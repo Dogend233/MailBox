@@ -1,0 +1,15 @@
+name: VexMailBox
+main: com.嘤嘤嘤.qwq.MailBox.MailBox
+version: 1.0
+description: 嘤嘤嘤邮箱插件
+author: Dogend
+website: qwq.嘤嘤嘤.com
+prefix: 邮箱
+softdepend: [VexView]
+commands:
+    mailbox:
+        description: 嘤嘤嘤邮箱插件的指令
+        aliases: mb
+        usage: |
+            /mailbox 打开邮箱
+            /mb 打开邮箱
