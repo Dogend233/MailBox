@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 
 interface CommandMail {
     public void fileHasCommand();
-    public void getCommandList();
-    public void getCommandDescription();
+    public void getFileCommandList();
+    public void getFileCommandDescription();
     public boolean doCommand(Player p);
 }

@@ -13,21 +13,21 @@ import org.bukkit.entity.Player;
 public class TextMail {
     
     // 邮件类型
-    public String type;
+    protected String type;
     // 邮件id
-    public int id;
+    protected int id;
     // 邮件发送者
-    public String sender;
+    protected String sender;
     // 邮件接收者（未实现）
-    public String Recipient;
+    protected String recipient;
     // 邮件主题
-    public String topic;
+    protected String topic;
     // 邮件内容
-    public String content;
+    protected String content;
     // 邮件发送日期
-    public String date;
+    protected String date;
     // 邮件类型显示名称
-    public String typeName;
+    protected String typeName;
     
     // 普通文本邮件（无附件）
     public TextMail(String type, int id, String sender, String topic, String content, String date){
@@ -90,6 +90,43 @@ public class TextMail {
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件删除失败！");
             return false;
         }
+    }
+    
+    public String getType(){
+        return this.type;
+    }
+    
+    public int getId(){
+        return this.id;
+    }
+    
+    public String getSender(){
+        return this.sender;
+    }
+    
+    public String getRecipient(){
+        return this.recipient;
+    }
+    
+    public String getTopic(){
+        return this.topic;
+    }
+    
+    public String getContent(){
+        return this.content;
+    }
+    
+    public String getDate(){
+        return this.date;
+    }
+    
+    public String getTypeName(){
+        return this.typeName;
+    }
+    
+    @Override
+    public String toString(){
+        return typeName+"-"+id+"-"+topic+"-"+content+"-"+sender+"-"+date;
     }
     
 }

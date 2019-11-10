@@ -1,96 +1,98 @@
 #MySQL数据库
 mysql:
-    #数据库地址
-    ip: localhost
-    #数据库端口
-    port: 3306
-    #数据库用户名
-    username: 'root'
-    #数据库密码
-    password: '111aaa'
-    #数据库名
-    databasename: ty_test
-    #数据表前缀
-    prefix: mailbox
+  #数据库地址
+  ip: localhost
+  #数据库端口
+  port: 3306
+  #数据库用户名
+  username: 'root'
+  #数据库密码
+  password: '111aaa'
+  #数据库名
+  databasename: ty_test
+  #数据表前缀
+  prefix: mailbox
 #插件配置
 mailbox:
-    #插件提示信息前缀(设置为 无 则不显示)
-    prefix: [邮箱]
-    #普通 插件信息颜色
-    normalMessage: §6
-    #成功 插件信息颜色
-    successMessage: §a
-    #失败 插件信息颜色
-    warningMessage: §c
-    #邮件类型显示名称
-    name:
-        #[ALL]类型邮件
-        all: [ALL]
-    #附件
-    file:
-        #分隔符（玩家、指令、指令描述）
-        divide: '.'
-        #指令
-        command:
-            #领取邮件的玩家变量
-            player: '%player%'
+  #启动服务器时进行更新检查
+  updateCheck: true
+  #插件提示信息前缀(设置为 无 则不显示)
+  prefix: [邮箱]
+  #普通 插件信息颜色
+  normalMessage: §6
+  #成功 插件信息颜色
+  successMessage: §a
+  #失败 插件信息颜色
+  warningMessage: §c
+  #邮件类型显示名称
+  name:
+    #[ALL]类型邮件
+    all: [ALL]
+  #附件
+  file:
+    #指令分隔符
+    divide: '.'
+    #指令
+    command:
+      #领取邮件的玩家变量
+      player: '%player%'
 #VexView配置
 vexview:
-    #HUD配置
-    hud:
-        #是否启用
-        enable: true
-        #x坐标
-        x: -1
-        #y坐标
-        y: 5
-        #图像宽度
-        w: 78
-        #图像高度
-        h: 86
-        #显示宽度
-        ww: 39
-        #显示高度
-        hh: 43
-    #GUI配置
-    gui:
-        #邮箱GUI
-        mailbox: 
-            #允许指令打开邮箱
-            openCmd: true
-            #允许按键打开邮箱（0-不允许|数字(例:50)单键打开|数1+数2(例:29+50)组合键打开(按住1再按2)）
-            openKey: 29+50
-            #“邮箱”颜色
-            colorBox: §r
-            #“写邮件”颜色
-            colorWrite: §r
-            #“未读”颜色
-            colorRead: §e
-            #“附件”颜色
-            colorFile: §c
-            #邮件主题颜色
-            colorTopic: §r
-            #“-”颜色
-            colorQAQ: §r
-            #发件人颜色
-            colorSender: §r
-            #邮箱为空时显示的文字
-            nullBox: §c暂时没有邮件呐~
-        #邮件内容GUI
-        mailcontent: 
-            #“来自”颜色
-            colorSenderTitle: §r
-            #发件人颜色
-            colorSender: §a
-            #时间颜色
-            colorDate: §a
-            #“<无>附件”颜色
-            colorFile: §e
-            #“指令”颜色
-            colorCommand: §6
-            #“<已>领取”颜色
-            colorCollect: §r
-            #“删除”颜色
-            colorDelete: §r
-            #“发送”颜色
-            colorConfirm: §r
+  #HUD配置
+  hud:
+    #是否启用
+    enable: true
+    #x坐标
+    x: -1
+    #y坐标
+    y: 5
+    #图像宽度
+    w: 78
+    #图像高度
+    h: 86
+    #显示宽度
+    ww: 39
+    #显示高度
+    hh: 43
+  #GUI配置
+  gui:
+    #邮箱GUI
+    mailbox: 
+      #允许指令打开邮箱
+      openCmd: true
+      #允许按键打开邮箱（0-不允许|数字(例:50)单键打开|数1+数2(例:29+50)组合键打开(按住1再按2)）
+      openKey: 29+50
+      #“邮箱”颜色
+      colorBox: §r
+      #“写邮件”颜色
+      colorWrite: §r
+      #“未读”颜色
+      colorRead: §e
+      #“附件”颜色
+      colorFile: §c
+      #邮件主题颜色
+      colorTopic: §r
+      #“-”颜色
+      colorQAQ: §r
+      #发件人颜色
+      colorSender: §r
+      #邮箱为空时显示的文字
+      nullBox: §c暂时没有邮件呐~
+    #邮件内容GUI
+    mailcontent: 
+      #“来自”颜色
+      colorSenderTitle: §r
+      #发件人颜色
+      colorSender: §a
+      #时间颜色
+      colorDate: §a
+      #“<无>附件”颜色
+      colorFile: §e
+      #“指令”颜色
+      colorCommand: §6
+      #“<已>领取”颜色
+      colorCollect: §r
+      #“删除”颜色
+      colorDelete: §r
+      #“发送”颜色
+      colorConfirm: §r

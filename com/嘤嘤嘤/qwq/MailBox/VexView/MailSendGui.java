@@ -1,6 +1,5 @@
 package com.嘤嘤嘤.qwq.MailBox.VexView;
 
-import static com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI.getMD5;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
@@ -52,22 +51,22 @@ public class MailSendGui extends VexInventoryGui{
         this.addComponent(vt4);
         this.addComponent(vt5);
         this.addComponent(vt6);
-        this.addComponent(new VexTextField(11,60,218,11,30,1,tm.topic));
+        this.addComponent(new VexTextField(11,60,218,11,30,1,tm.getTopic().replaceAll("§", "&")));
         this.addComponent(new VexTextField(11,85,218,11,0,2));
-        this.addComponent(new VexTextField(11,110,218,11,255,3,tm.content));
+        this.addComponent(new VexTextField(11,110,218,11,255,3,tm.getContent().replaceAll("§", "&")));
         this.addComponent(vbr);
         if(tm instanceof FileMail){
             FileMail fm = (FileMail) tm;
             String f4 = "";
             String f5 = "";
-            List<String> cl = fm.commandList;
-            List<String> cd = fm.commandDescription;
+            List<String> cl = fm.getCommandList();
+            List<String> cd = fm.getCommandDescription();
             if(cl!=null){
                 for(int i=0;i<cl.size();i++){
                     if(i==0){
                         f4 = cl.get(i);
                     }else{
-                        f4 += GlobalConfig.fileDiv+cl.get(i);
+                        f4 += GlobalConfig.fileDiv.substring(1)+cl.get(i);
                     }
                 }
             }
@@ -81,16 +80,16 @@ public class MailSendGui extends VexInventoryGui{
                         }
                     }else{
                         if(cd.get(i).contains("§")){
-                            f5 += GlobalConfig.fileDiv+cd.get(i).replace("§", "&");
+                            f5 += " "+cd.get(i).replace("§", "&");
                         }else{
-                            f5 += GlobalConfig.fileDiv+cd.get(i);
+                            f5 += " "+cd.get(i);
                         }
                     }
                 }
             }
             this.addComponent(new VexTextField(11,135,218,11,255,4,f4));
             this.addComponent(new VexTextField(11,160,218,11,255,5,f5));
-            ArrayList<ItemStack> sl = fm.itemList;
+            ArrayList<ItemStack> sl = fm.getItemList();
             if(sl.isEmpty()){
                 this.addComponent(new VexSlot(0,148,193,null));
                 this.addComponent(new VexSlot(1,166,193,null));
@@ -99,7 +98,7 @@ public class MailSendGui extends VexInventoryGui{
                 this.addComponent(new VexSlot(4,220,193,null));
             }else{
                 for(int i=0;i<sl.size();i++){
-                    this.addComponent(new VexSlot(i,18*i+148,193,fm.itemList.get(i)));
+                    this.addComponent(new VexSlot(i,18*i+148,193,fm.getItemList().get(i)));
                 }
                 for(int i=5;i>sl.size();i--){
                     this.addComponent(new VexSlot(i-1,18*(i-1)+148,193,null));
@@ -128,31 +127,31 @@ public class MailSendGui extends VexInventoryGui{
         String text = ovg.getVexGui().getTextField(3).getTypedText();
         if(valid(player, topic, text)){
             ArrayList<ItemStack> al = getItem(ovg);
-            List<String> cl = divCommand(ovg.getVexGui().getTextField(4).getTypedText());
-            List<String> cd = divCommand(ovg.getVexGui().getTextField(5).getTypedText());
-            if(al.isEmpty() && cl==null && cd==null){
-                TextMail tm = new TextMail("all", 0, player.getName(), topic, text, null);
+            List<String> cl = new ArrayList();
+            List<String> cd = new ArrayList();
+            String[] command = divide(ovg.getVexGui().getTextField(4).getTypedText(), "command");
+            String[] description = divide(ovg.getVexGui().getTextField(5).getTypedText(), "description");
+            if(command!=null)cl.addAll(Arrays.asList(command));
+            if(description!=null)cd.addAll(Arrays.asList(description));
+            if(al.isEmpty() && cl.isEmpty() && cd.isEmpty()){
+                TextMail tm = new TextMail("all", 0, player.getName(), topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null);
                 try{
                     openMailContentGui(player, tm);
                 }catch(IOException e){
                     player.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
                 }
             }else{
+                FileMail fm = new FileMail("all", 0, player.getName(), topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null, "0", al, cl, cd);
                 try{
-                    String filename = getMD5("all");
-                    FileMail fm = new FileMail("all", 0, player.getName(), topic, text, null, filename, al, cl, cd);
-                    try{
-                        openMailContentGui(player, fm);
-                    }catch(IOException e){
-                        player.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
-                    }
+                    openMailContentGui(player, fm);
                 }catch(IOException e){
-                    player.sendMessage(GlobalConfig.warning+"[邮件预览]：文件名生成失败");
+                    player.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
                 }
             }
         }
     });
     
+    // 验证邮件主题和内容
     private boolean valid(Player p, String t, String c){
         if(t.equals("")){
             p.sendMessage(GlobalConfig.warning+"[邮件预览]：主题不能为空");
@@ -167,27 +166,48 @@ public class MailSendGui extends VexInventoryGui{
         }
     }
     
-    private List<String> divCommand(String text){
+    // 分割文字
+    private String[] divide(String text, String type){
         if(text.equals("")){
             return null;
         }else{
-            if(text.contains("&"))text = text.replace("&", "§");
-            if(text.contains("\\"+GlobalConfig.fileDiv))text = text.replace("\\"+GlobalConfig.fileDiv, GlobalConfig.fileDiv);
-            String[] cmd = text.split(GlobalConfig.fileDiv);
-            List<String> l = new ArrayList();
-            l.addAll(Arrays.asList(cmd));
-            return l;
+            if(type.equals("command")){
+                String[] result = text.split(GlobalConfig.fileDiv);
+                return result;
+            }else if(type.equals("description")){
+                text = text.replace("&", "§");
+                String[] result = text.split(" ");
+                return result;
+            }else{
+                return null;
+            }
         }
     }
     
+    // 获取附件物品
     private ArrayList<ItemStack> getItem(OpenedVexGui ovg){
-        ArrayList<ItemStack> al = new ArrayList();
+        ArrayList<ItemStack> oldi = new ArrayList();
+        ArrayList<ItemStack> newi = new ArrayList();
+        ArrayList<Integer> no = new ArrayList();
+        for(int i=0;i<5;i++) oldi.add(ovg.getVexGui().getSlotById(i).getItem());
         for(int i=0;i<5;i++){
-            if(ovg.getVexGui().getSlotById(i).getItem().getType()!=AIR){
-                al.add(ovg.getVexGui().getSlotById(i).getItem());
+            if(!no.contains(i)){
+                if(oldi.get(i).getType()!=null && oldi.get(i).getType()!=AIR){
+                    for(int j=i+1;j<5;j++){
+                        if(oldi.get(i).isSimilar(oldi.get(j))){
+                            ItemStack t = oldi.get(i);
+                            int x1 = t.getAmount();
+                            int x2 = oldi.get(j).getAmount();
+                            t.setAmount(x1+x2);
+                            oldi.set(i, t);
+                            no.add(j);
+                        }
+                    }
+                    newi.add(ovg.getVexGui().getSlotById(i).getItem());
+                }
             }
         }
-        return al;
+        return newi;
     }
     
     // 打开邮件GUI

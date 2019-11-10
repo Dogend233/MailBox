@@ -1,5 +1,6 @@
 package com.嘤嘤嘤.qwq.MailBox.VexView;
 
+import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListAll;
@@ -82,7 +83,7 @@ public class MailBoxGui extends VexGui{
                 String s = "";
                 int mid = aml.get(i);
                 TextMail tm = am.get(mid);
-                String t = tm.topic;
+                String t = tm.getTopic();
                 for(int x=0;x<uam.size();x++){
                     if(uam.get(x)==mid){
                         if(tm instanceof FileMail) {
@@ -96,7 +97,7 @@ public class MailBoxGui extends VexGui{
                 if(t.length()>15){
                     t = t.substring(0, 14)+"...";
                 }
-                vsl.addComponent(new VexButton("id_"+mid,s+colorTopic+t+colorQAQ+" - "+colorSender+tm.sender,"[local]MailBox/button_mail.png","[local]MailBox/button_mail_.png",5,i*30+1,225,26,player -> {
+                vsl.addComponent(new VexButton("id_"+mid,s+colorTopic+t+colorQAQ+" - "+colorSender+tm.getSender(),"[local]MailBox/button_mail.png","[local]MailBox/button_mail_.png",5,i*30+1,225,26,player -> {
                     try {
                         openMailContentGui(player, tm);
                     } catch (IOException ex) {
@@ -114,7 +115,11 @@ public class MailBoxGui extends VexGui{
     });
     
     public static void openMailBoxGui(Player p){
-        VexViewAPI.openGui(p, new MailBoxGui(p));
+        if(p.hasPermission("mailbox.gui.mailbox")){
+            VexViewAPI.openGui(p, new MailBoxGui(p));
+        }else{
+            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限打开此GUI");
+        }
     }
     
 }

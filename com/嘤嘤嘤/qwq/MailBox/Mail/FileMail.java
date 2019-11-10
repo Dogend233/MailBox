@@ -7,6 +7,7 @@ import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -17,17 +18,17 @@ import org.bukkit.inventory.ItemStack;
 public class FileMail extends TextMail implements ItemMail, CommandMail{
     
     // 附件名
-    public String fileName;
+    protected String fileName;
     // 附件是否启用指令
-    public boolean hasCommand;
+    protected boolean hasCommand;
     // 指令列表
-    public List<String> commandList;
+    protected List<String> commandList;
     // 指令描述
-    public List<String> commandDescription;
+    protected List<String> commandDescription;
     // 附件是否含有物品
-    public boolean hasItem;
+    protected boolean hasItem;
     // 物品列表
-    public ArrayList<ItemStack> itemList;
+    protected ArrayList<ItemStack> itemList;
     
     public FileMail(String type, int id, String sender, String topic, String content, String date, String filename){
         super(type, id, sender, topic, content, date);
@@ -41,18 +42,18 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         this.itemList = isl;
         this.commandList = cl;
         this.commandDescription = cd;
-        hasItem = !isl.isEmpty();
-        hasCommand = cl != null;
+        this.hasItem = !isl.isEmpty();
+        this.hasCommand = cl != null;
     }
     
     // 获取附件信息
     private void getFile(){
         fileHasCommand();
         if(hasCommand){
-            getCommandList();
-            getCommandDescription();
+            getFileCommandList();
+            getFileCommandDescription();
         }
-        getItemList();
+        getFileItemList();
     }
     
     // 设置玩家领取邮件
@@ -63,7 +64,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
             if(giveItem(p)){
                 p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件发送完毕");
             }else{
-                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+typeName+" - "+id+" 邮件附件失败.");
+                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+this.typeName+" - "+id+" 邮件附件失败.");
                 return false;
             }
         }
@@ -94,6 +95,12 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     public boolean Send(Player p){
         if(id==0){
             // 新建邮件
+            // 判断玩家背包里是否有想要发送的物品
+            if(!itemList.isEmpty() && !p.hasPermission("mailbox.admin.send.check")){
+                if(!hasItem(itemList, p)){
+                    return false;
+                }
+            }
             // 获取时间
             date = DateTime.get("ymdhms");
             try {
@@ -104,12 +111,19 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
                 return false;
             }
             if(MailBoxAPI.saveMailFiles(this)){
-                if(MailBoxAPI.setSend(type, id, sender, topic, content, date, fileName)){
-                    MailSendEvent mse = new MailSendEvent(this, p);
-                    Bukkit.getServer().getPluginManager().callEvent(mse);
-                    return true;
+                // 删除玩家背包里想要发送的物品
+                if(removeItem(itemList, p)){
+                    if(MailBoxAPI.setSend(type, id, sender, topic, content, date, fileName)){
+                        MailSendEvent mse = new MailSendEvent(this, p);
+                        Bukkit.getServer().getPluginManager().callEvent(mse);
+                        return true;
+                    }else{
+                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                        return false;
+                    }
                 }else{
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：从背包中移除发送物品失败");
+                    DeleteFile();
                     return false;
                 }
             }else{
@@ -119,7 +133,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
             }
             
         }else{
-            // 修改已有邮件
+            //TODO 修改已有邮件
             return false;
         }
     }
@@ -148,13 +162,13 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
 
     // 获取指令列表
     @Override
-    public void getCommandList() {
+    public void getFileCommandList() {
         commandList = MailBoxAPI.getFileCommands(type, fileName);
     }
     
     // 获取指令描述
     @Override
-    public void getCommandDescription() {
+    public void getFileCommandDescription() {
         commandDescription = MailBoxAPI.getFileCommandsDescription(type, fileName);
     }
 
@@ -183,7 +197,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     }
 
     @Override
-    public void getItemList() {
+    public void getFileItemList() {
         itemList = MailBoxAPI.getFileItems(type, fileName);
         hasItem = !(itemList==null || itemList.isEmpty());
     }
@@ -212,6 +226,101 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 领取失败，请在背包中留出"+itemList.size()+"个空位！");
             return false;
         }
+    }
+    
+    // 判断玩家背包里是否有想要发送的物品
+    private boolean hasItem(ArrayList<ItemStack> isl, Player p){
+        for(int i=0;i<isl.size();i++){
+            if(!p.getInventory().containsAtLeast(isl.get(i), isl.get(i).getAmount())) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // 移除玩家背包里想要发送的物品
+    private boolean removeItem(ArrayList<ItemStack> isl, Player p){
+        if(p.hasPermission("mailbox.admin.send.noconsume"))return true;
+        boolean success = true;
+        ArrayList<Integer> clearList = new ArrayList();
+        HashMap<Integer, ItemStack> reduceList = new HashMap();
+        String error = GlobalConfig.normal+"[邮件预览]：从背包中移除以下物品失败";
+        for(int i=0;i<isl.size();i++){
+            ItemStack is1 = isl.get(i);
+            int count = is1.getAmount();
+            for(int j=0;j<36;j++){
+                if(p.getInventory().getItem(j)!=null){
+                    ItemStack is2 = p.getInventory().getItem(j).clone();
+                    if(is1.isSimilar(is2)){
+                        int amount = is2.getAmount();
+                        if(count<=amount){
+                            int temp = amount-count;
+                            if(temp==0){
+                                clearList.add(j);
+                            }else{
+                                is2.setAmount(temp);
+                                reduceList.put(j, is2);
+                            }
+                            count = 0;
+                            break;
+                        }else{
+                            clearList.add(j);
+                            count -= amount;
+                        }
+                    }
+                }
+            }
+            if(count!=0){
+                success = false;
+                error += "\n"+(i+1)+"号物品"+"缺少"+count+"个";
+            }
+        }
+        if(success){
+            if(!clearList.isEmpty()){
+                clearList.forEach(k -> {
+                    p.getInventory().clear(k);
+                });
+            }
+            if(!reduceList.isEmpty()){
+                reduceList.forEach((k, v) -> {
+                    p.getInventory().setItem(k, v);
+                });
+            }
+        }else{
+            p.sendMessage(error);
+        }
+        return success;
+    }
+    
+    public String getFileName(){
+        return this.fileName;
+    }
+    
+    public boolean getHasCommand(){
+        return this.hasCommand;
+    }
+    
+    public List<String> getCommandList(){
+        return this.commandList;
+    }
+    public List<String> getCommandDescription(){
+        return this.commandDescription;
+    }
+    
+    public boolean getHasItem(){
+        return this.hasItem;
+    }
+    
+    public ArrayList<ItemStack> getItemList(){
+        return this.itemList;
+    }
+    
+    @Override
+    public String toString(){
+        String str = typeName+"-"+id+"-"+topic+"-"+content+"-"+sender+"-"+date;
+        if(hasItem && !itemList.isEmpty()) str += "-含物品"+itemList.size()+"个";
+        if(hasCommand && !commandList.isEmpty()) str += "-含指令"+commandList.size()+"条";
+        return str;
     }
     
 }

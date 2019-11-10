@@ -1,6 +1,7 @@
 package com.嘤嘤嘤.qwq.MailBox.API;
 
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
+import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import com.嘤嘤嘤.qwq.MailBox.Utils.MD5;
 import com.嘤嘤嘤.qwq.MailBox.Utils.MySQLManager;
@@ -13,7 +14,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class MailBoxAPI {
     
-    private static String VERSION = "1.0";
+    private static final String VERSION = MailBox.getInstance().getDescription().getVersion();
     private static final String DATA_FOLDER = "plugins/VexMailBox";
     
     // 获取插件版本
@@ -60,10 +61,10 @@ public class MailBoxAPI {
         if(!f.exists())f.mkdir();
         f = new File(DATA_FOLDER+"/MailFiles/");
         if(!f.exists())f.mkdir();
-        f = new File(DATA_FOLDER+"/MailFiles/"+fm.type);
+        f = new File(DATA_FOLDER+"/MailFiles/"+fm.getType());
         if(!f.exists())f.mkdir();
         YamlConfiguration mailFiles = new YamlConfiguration();
-        f = new File(DATA_FOLDER+"/MailFiles/"+fm.type, fm.fileName+".yml");
+        f = new File(DATA_FOLDER+"/MailFiles/"+fm.getType(), fm.getFileName()+".yml");
         if(!f.exists()){
             try {
                 f.createNewFile();
@@ -71,15 +72,15 @@ public class MailBoxAPI {
                 return false;
             }
         }
-        if(fm.hasItem){
-            ArrayList<ItemStack> isl = fm.itemList;
+        if(fm.getHasItem()){
+            ArrayList<ItemStack> isl = fm.getItemList();
             for(int i=0;i<isl.size();i++){
                 mailFiles.set("is."+(i+1), isl.get(i));
             }
         }
-        mailFiles.set("cmd.enable", fm.hasCommand);
-        mailFiles.set("cmd.commands", fm.commandList);
-        mailFiles.set("cmd.descriptions", fm.commandDescription);
+        mailFiles.set("cmd.enable", fm.getHasCommand());
+        mailFiles.set("cmd.commands", fm.getCommandList());
+        mailFiles.set("cmd.descriptions", fm.getCommandDescription());
         try {
             mailFiles.save(f);
             return true;
