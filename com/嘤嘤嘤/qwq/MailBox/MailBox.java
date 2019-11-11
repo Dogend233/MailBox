@@ -52,7 +52,7 @@ public class MailBox extends JavaPlugin {
                 }
             }else if(args.length==1){
                 if(args[0].equalsIgnoreCase("reload")){
-                    if(sender.hasPermission("mailbox.admin.reload") || sender.equals(Bukkit.getConsoleSender())){
+                    if(sender.hasPermission("mailbox.admin.reload")){
                         reloadPlugin();
                         sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"插件已重载");
                         return true;
@@ -61,7 +61,7 @@ public class MailBox extends JavaPlugin {
                         return true;
                     }
                 }else if(args[0].equalsIgnoreCase("check")){
-                    if(sender.hasPermission("mailbox.admin.check") || sender.equals(Bukkit.getConsoleSender())){
+                    if(sender.hasPermission("mailbox.admin.check")){
                         UpdateCheck.check(sender);
                         return true;
                     }else{
@@ -74,8 +74,9 @@ public class MailBox extends JavaPlugin {
             }else if(args.length==2){
                 if(args[0].equalsIgnoreCase("all")){
                     if(args[1].equalsIgnoreCase("update")){
-                        if(sender.hasPermission("mailbox.admin.update.all") || sender.equals(Bukkit.getConsoleSender())){
-                            updateMailList((Player) sender, "all");
+                        if(sender.hasPermission("mailbox.admin.update.all")){
+                            if(sender instanceof Player) updateMailList((Player) sender, "all");
+                            else updateMailList(null, "all");
                             return true;
                         }else{
                             sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");

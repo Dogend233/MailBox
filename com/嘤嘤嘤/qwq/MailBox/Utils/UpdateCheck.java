@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
@@ -15,7 +16,7 @@ public class UpdateCheck {
     private static boolean count;
     
     // 从远程连接获取最新版本号
-    private static String getVersion(String httpurl){
+    private static ArrayList<String> getVersion(String httpurl){
         try{
             URL url = new URL(httpurl);
             URLConnection urlConnection = url.openConnection();
@@ -31,11 +32,11 @@ public class UpdateCheck {
                
             }
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String urlString = "";
+            ArrayList<String> urlString = new ArrayList();
             String current;
             while((current = in.readLine()) != null)
             {
-                urlString += current;
+                urlString.add(current);
             }
             return urlString;
         }catch(IOException e){
@@ -54,17 +55,23 @@ public class UpdateCheck {
     // 比较本插件版本号
     public static void check(CommandSender sender){
         count = true;
-        String ns = getVersion("http://qwq.xn--o5raa.com/plugins/mailbox/download.php?version");
-        if(ns!=null){
-            String[] nsl = ns.split("\\.");
+        ArrayList<String> info = getVersion("http://qwq.xn--o5raa.com/plugins/mailbox/version.php");
+        if(!info.isEmpty()){
+            String[] nsl = info.get(0).split("\\.");
             String[] osl = MailBoxAPI.getVersion().split("\\.");
             for(int i=0;i<3;i++){
                 int n = Integer.parseInt(nsl[i]);
                 int o = Integer.parseInt(osl[i]);
                 if(o<n){
-                    sender.sendMessage("§c-----[MailBox更新检测]:检测到新版本："+ns);
+                    sender.sendMessage("§c-----[MailBox更新检测]:检测到新版本："+info.get(0)+" 更新时间："+info.get(1));
+                    sender.sendMessage("&6更新内容：");
+                    String[] in = info.get(2).split("#");
+                    for(int j=0;j<in.length;j++){
+                        sender.sendMessage("§b"+(j+1)+": "+in[j]+".");
+                    }
                     break;
                 }
+                if(i==2) sender.sendMessage("§a-----[MailBox更新检测]:您的版本已是最新！");
             }
         }
     }
@@ -81,6 +88,10 @@ public class UpdateCheck {
             if(w<d) return false;
         }
         return true;
+    }
+    
+    public static void main(String[] args){
+        check(null);
     }
     
 }
