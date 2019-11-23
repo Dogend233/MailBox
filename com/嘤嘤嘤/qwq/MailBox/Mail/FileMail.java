@@ -30,20 +30,22 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     // 物品列表
     protected ArrayList<ItemStack> itemList;
     
-    public FileMail(String type, int id, String sender, String topic, String content, String date, String filename){
-        super(type, id, sender, topic, content, date);
+    public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename){
+        super(type, id, sender, recipient, topic, content, date);
         this.fileName = filename;
         getFile();
     }
     
-    public FileMail(String type, int id, String sender, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd){
-        super(type, id, sender, topic, content, date);
+    public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd){
+        super(type, id, sender, recipient, topic, content, date);
         this.fileName = filename;
         this.itemList = isl;
         this.commandList = cl;
         this.commandDescription = cd;
         this.hasItem = !isl.isEmpty();
-        this.hasCommand = cl != null;
+        this.hasCommand = !cl.isEmpty();
+        System.out.println(itemList);
+        System.out.println(hasItem);
     }
     
     // 获取附件信息
@@ -59,19 +61,24 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     // 设置玩家领取邮件
     @Override
     public boolean Collect(Player p){
+        // 判断收件人
+        if(type.equals("player") && !recipient.contains(p.getName())){
+            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你不是这个邮件的收件人！");
+            return false;
+        }
         // 发送邮件附件
         if(hasItem){
             if(giveItem(p)){
-                p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件发送完毕");
+                p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件发送完毕.");
             }else{
-                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+this.typeName+" - "+id+" 邮件附件失败.");
+                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+typeName+" - "+id+" 邮件附件失败.");
                 return false;
             }
         }
         // 执行邮件指令
         if(hasCommand){
             if(doCommand(p)){
-                p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"指令执行完毕");
+                p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"指令执行完毕.");
             }else{
                 Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 执行 "+typeName+" - "+id+" 邮件指令失败.");
             }
@@ -93,48 +100,55 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     // 发送这封邮件
     @Override
     public boolean Send(Player p){
-        if(id==0){
-            // 新建邮件
-            // 判断玩家背包里是否有想要发送的物品
-            if(!itemList.isEmpty() && !p.hasPermission("mailbox.admin.send.check")){
-                if(!hasItem(itemList, p)){
+        if(!(this instanceof FileMail)){
+            return super.Send(p);
+        }else{
+            System.out.println(2);
+            if(id==0){
+                // 新建邮件
+                // 判断玩家背包里是否有想要发送的物品
+                if(!itemList.isEmpty() && !p.hasPermission("mailbox.admin.send.check")){
+                    System.out.println(itemList);
+                    System.out.println(itemList.toString());
+                    if(!hasItem(itemList, p)){
+                        return false;
+                    }
+                }
+                // 获取时间
+                date = DateTime.get("ymdhms");
+                try {
+                    // 生成一个文件名
+                    fileName = MailBoxAPI.getMD5(type);
+                } catch (IOException ex) {
+                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
                     return false;
                 }
-            }
-            // 获取时间
-            date = DateTime.get("ymdhms");
-            try {
-                // 生成一个文件名
-                fileName = MailBoxAPI.getMD5(type);
-            } catch (IOException ex) {
-                p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
-                return false;
-            }
-            if(MailBoxAPI.saveMailFiles(this)){
-                // 删除玩家背包里想要发送的物品
-                if(removeItem(itemList, p)){
-                    if(MailBoxAPI.setSend(type, id, sender, topic, content, date, fileName)){
-                        MailSendEvent mse = new MailSendEvent(this, p);
-                        Bukkit.getServer().getPluginManager().callEvent(mse);
-                        return true;
+                if(MailBoxAPI.saveMailFiles(this)){
+                    // 删除玩家背包里想要发送的物品
+                    if(removeItem(itemList, p)){
+                        if(MailBoxAPI.setSend(type, id, sender, getRecipientString(), topic, content, date, fileName)){
+                            MailSendEvent mse = new MailSendEvent(this, p);
+                            Bukkit.getServer().getPluginManager().callEvent(mse);
+                            return true;
+                        }else{
+                            p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                            return false;
+                        }
                     }else{
-                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：从背包中移除发送物品失败");
+                        DeleteFile();
                         return false;
                     }
                 }else{
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：从背包中移除发送物品失败");
-                    DeleteFile();
+                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：保存为附件失败");
+                    if(p.isOp())p.sendMessage(GlobalConfig.normal+"[邮件预览]：附件名:"+fileName);
                     return false;
                 }
+
             }else{
-                p.sendMessage(GlobalConfig.normal+"[邮件预览]：保存为附件失败");
-                if(p.isOp())p.sendMessage(GlobalConfig.normal+"[邮件预览]：附件名:"+fileName);
+                //TODO 修改已有邮件
                 return false;
             }
-            
-        }else{
-            //TODO 修改已有邮件
-            return false;
         }
     }
     
@@ -181,12 +195,12 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
                 try{
                     cs = cs.replace(GlobalConfig.fileCmdPlayer, p.getName());
                     if(Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cs)){
-                        p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 第"+(i+1)+"条指令执行成功");
+                        p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"第"+(i+1)+"条指令执行成功");
                     }else{
-                        p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 第"+(i+1)+"条指令执行失败");
+                        p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"第"+(i+1)+"条指令执行失败");
                     }
                 } catch (CommandException e) {
-                    p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 第"+(i+1)+"条指令执行失败");
+                    p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"第"+(i+1)+"条指令执行失败");
                 }
             }
             return true;
@@ -229,7 +243,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     }
     
     // 判断玩家背包里是否有想要发送的物品
-    private boolean hasItem(ArrayList<ItemStack> isl, Player p){
+    public boolean hasItem(ArrayList<ItemStack> isl, Player p){
         for(int i=0;i<isl.size();i++){
             if(!p.getInventory().containsAtLeast(isl.get(i), isl.get(i).getAmount())) {
                 return false;
@@ -318,6 +332,10 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     @Override
     public String toString(){
         String str = typeName+"-"+id+"-"+topic+"-"+content+"-"+sender+"-"+date;
+        if(!recipient.isEmpty()) {
+            str += "-收件人：";
+            for(String s:recipient) str += s+" ";
+        }
         if(hasItem && !itemList.isEmpty()) str += "-含物品"+itemList.size()+"个";
         if(hasCommand && !commandList.isEmpty()) str += "-含指令"+commandList.size()+"条";
         return str;

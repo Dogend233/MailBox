@@ -1,6 +1,6 @@
 name: VexMailBox
 main: com.嘤嘤嘤.qwq.MailBox.MailBox
-version: 1.1.1
+version: 1.2.0
 description: 嘤嘤嘤邮箱插件
 author: Dogend
 website: qwq.嘤嘤嘤.com
@@ -12,3 +12,11 @@ commands:
         aliases: mb
         usage: |
             /mailbox 打开邮箱
+            /mailbox 打开邮箱GUI
+            /mailbox reload 重载插件
+            /mailbox check 手动检查更新
+            /mailbox system update 更新"system"类型邮件列表
+            /mailbox player update 更新"player"类型邮件列表
+            /mailbox player clean 手动清理"player"类型过期邮件
+            /mailbox system send [filename] 从custom文件夹取一个名为filename的邮件作为system邮件预览
+            /mailbox player send [filename] <player1> <player2> <player3> ... 从custom文件夹取一个名为filename的邮件作为player邮件预览,并将player1(player2、player3等)写入收件人

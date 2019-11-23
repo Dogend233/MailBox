@@ -1,0 +1,30 @@
+#自定义邮件示例文件（此模板system与player通用）
+#发件人（不填则为发送者）
+sender: '§b系统'
+#邮件主题（最大30字）
+topic: '§c这是示例的custom邮件'
+#邮件内容（最大255字, 空格换行）
+content: '§b示例 §6示例 §a示例 §c示例 §e示例'
+#是否包含附件（如果填false则不读取下面的其他配置）
+file: true
+#邮件包含指令
+cmd:
+  #是否启用指令（如果填false则不读取下面的两个配置）
+  enable: true
+  #指令列表（不带/）
+  commands:
+  - 'weather clear'
+  - 'gamemode 0 %player%'
+  #指令描述列表（这一条是设置列表为空的示例）
+  descriptions:
+  - '§b晴天大法'
+  - '§6解除神力'
+#邮件包含物品（按顺序填，最大五个，不填则为空）
+is:
+  '1':
+    ==: org.bukkit.inventory.ItemStack
+    type: EGG
+  '2':
+    ==: org.bukkit.inventory.ItemStack
+    type: BONE
+    amount: 3

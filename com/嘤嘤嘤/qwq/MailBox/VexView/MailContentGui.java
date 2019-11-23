@@ -2,13 +2,15 @@ package com.嘤嘤嘤.qwq.MailBox.VexView;
 
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListAllUn;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
+import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayerId;
+import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListSystemId;
 import static com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui.openMailBoxGui;
 import static com.嘤嘤嘤.qwq.MailBox.VexView.MailSendGui.openMailSendGui;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import lk.vexview.api.VexViewAPI;
 import lk.vexview.gui.VexGui;
@@ -23,108 +25,364 @@ import org.bukkit.inventory.ItemStack;
 
 public class MailContentGui extends VexGui{
     
-    private static String colorSenderTitle;
-    private static String colorSender;
-    private static String colorDate;
-    private static String colorFile;
-    private static String colorCommand;
-    private static String colorCollect;
-    private static String colorDelete;
-    private static String colorConfirm;
+    private static String gui_img;
+    private static int gui_x;
+    private static int gui_y;
+    private static int gui_w;
+    private static int gui_h;
+    private static int gui_ww;
+    private static int gui_hh;
+    private static HashMap<String, String[]> buttonString = new HashMap();
+    private static HashMap<String, int[]> buttonInt = new HashMap();
+    private static HashMap<String, List> buttonHover = new HashMap();
+
+    private static String button_send_id;
+    private static String button_send_text;
+    private static String button_send_img_1;
+    private static String button_send_img_2;
+    private static int button_send_x;
+    private static int button_send_y;
+    private static int button_send_w;
+    private static int button_send_h;
+    private static List<String> button_send_hover;
+    private static int text_topic_x;
+    private static int text_topic_y;
+    private static double text_topic_size;
+    private static int text_topic_w;
+    private static int text_date_x;
+    private static int text_date_y;
+    private static double text_date_size;
+    private static String text_date_prefix;
+    private static List<String> text_date_display;
+    private static int text_sender_x;
+    private static int text_sender_y;
+    private static double text_sender_size;
+    private static String text_sender_prefix;
+    private static VexText text_file_yes;
+    private static VexText text_file_no;
+    private static VexText text_cmd;
+    private static int text_content_x;
+    private static int text_content_y;
+    private static int text_content_w;
+    private static int text_content_h;
+    private static int text_content_mh;
+    private static double text_content_size;
+    private static int text_content_count;
+    private static int text_content_line;
+    private static int text_content_sh;
+    private static String image_cmd_url;
+    private static int image_cmd_x;
+    private static int image_cmd_y;
+    private static int image_cmd_w;
+    private static int image_cmd_h;
+    private static String slot_img;
+    private static int slot_w;
+    private static int slot_h;
+    private static List<Integer> slot_x;
+    private static List<Integer> slot_y;
+
+    private boolean collecte;
+    private VexButton vbr;
+    private VexButton vbd;
+    private VexButton vbs;
+    private VexButton vbc;
+    private VexButton vbcd;
     
-    public MailContentGui(Player p, TextMail tm){
-        super("[local]MailBox/gui_content.png",-1,-1,240,165,240,165);
+    public MailContentGui(Player p, TextMail tm, VexGui vg, boolean asSender){
+        super(gui_img,gui_x,gui_y,gui_w,gui_h,gui_ww,gui_hh);
+        // 返回按钮
+        vbr = new VexButton(
+                buttonString.get("return")[0],buttonString.get("return")[1],buttonString.get("return")[2],buttonString.get("return")[3],
+                buttonInt.get("return")[0],buttonInt.get("return")[1],buttonInt.get("return")[2],buttonInt.get("return")[3]);
+        if(!buttonHover.get("return").isEmpty()) vbr.setHover(new VexHoverText(buttonHover.get("return")));
+        if(asSender){
+            vbr.setFunction(player -> openMailBoxGui(player, "Recipient"));
+        }else{
+            vbr.setFunction(player -> openMailBoxGui(player, "Sender"));
+        }
+        if(vg!=null){
+            vbr.setFunction(player -> openMailSendGui(player, tm.getType(), vg));
+        }
+        this.addComponent(vbr);
+        // 删除按钮
+        vbd = new VexButton(
+                buttonString.get("delete")[0],buttonString.get("delete")[1],buttonString.get("delete")[2],buttonString.get("delete")[3],
+                buttonInt.get("delete")[0],buttonInt.get("delete")[1],buttonInt.get("delete")[2],buttonInt.get("delete")[3],player -> tm.Delete(player));
+        if(!buttonHover.get("delete").isEmpty()) vbd.setHover(new VexHoverText(buttonHover.get("delete")));
+        // 发送按钮
+        vbs = new VexButton(
+                buttonString.get("send")[0],buttonString.get("send")[1],buttonString.get("send")[2],buttonString.get("send")[3],
+                buttonInt.get("send")[0],buttonInt.get("send")[1],buttonInt.get("send")[2],buttonInt.get("send")[3],player -> {
+                    if(tm.Send(player)){
+                        player.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件发送成功");
+                        // 关闭GUI
+                        player.closeInventory();
+                    }else{
+                        player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件发送失败");
+                    }
+                });
+        if(!buttonHover.get("send").isEmpty()) vbs.setHover(new VexHoverText(buttonHover.get("send")));
+        // 领取按钮
+        vbc = new VexButton(
+                buttonString.get("collect")[0],buttonString.get("collect")[1],buttonString.get("collect")[2],buttonString.get("collect")[3],
+                buttonInt.get("collect")[0],buttonInt.get("collect")[1],buttonInt.get("collect")[2],buttonInt.get("collect")[3],player -> {
+                    if(player.hasPermission("mailbox.collect."+tm.getType())){
+                        // 领取邮件
+                        tm.Collect(player);
+                        // 关闭GUI
+                        player.closeInventory();
+                    }else{
+                        player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限领取此类型邮件");
+                    }
+                });
+        if(!buttonHover.get("collect").isEmpty()) vbc.setHover(new VexHoverText(buttonHover.get("collect")));
+        // 已领取按钮
+        vbcd = new VexButton(
+                buttonString.get("collected")[0],buttonString.get("collected")[1],buttonString.get("collected")[2],buttonString.get("collected")[3],
+                buttonInt.get("collected")[0],buttonInt.get("collected")[1],buttonInt.get("collected")[2],buttonInt.get("collected")[3]);
+        if(!buttonHover.get("collected").isEmpty()) vbcd.setHover(new VexHoverText(buttonHover.get("collected")));
+        // 获取玩家是否可以领取这封邮件
+        switch (tm.getType()) {
+            case "system":
+            {
+                ArrayList<Integer> l = MailListSystemId.get(p.getName()).get("asRecipient");
+                collecte = l.contains(tm.getId());
+                break;
+            }
+            case "player":
+            {
+                ArrayList<Integer> l = MailListPlayerId.get(p.getName()).get("asRecipient");
+                collecte = l.contains(tm.getId());
+                break;
+            }
+            default: collecte = false;
+        } 
         textMail(tm, p);
     }
     
     public static void setContentConfig(
-        String colorSenderTitle, 
-        String colorSender,
-        String colorDate,
-        String colorFile,
-        String colorCommand, 
-        String colorCollect,
-        String colorDelete,
-        String colorConfirm
+        String gui_img,
+        int gui_x,
+        int gui_y,
+        int gui_w,
+        int gui_h,
+        int gui_ww,
+        int gui_hh,
+        String button_return_id,
+        String button_return_text,
+        List<String> button_return_hover,
+        String button_return_img_1,
+        String button_return_img_2,
+        int button_return_x,
+        int button_return_y,
+        int button_return_w,
+        int button_return_h,
+        String button_collect_id,
+        String button_collect_text,
+        List<String> button_collect_hover,
+        String button_collect_img_1,
+        String button_collect_img_2,
+        String button_collected_text,
+        List<String> button_collected_hover,
+        String button_collected_img_1,
+        String button_collected_img_2,
+        int button_collect_x,
+        int button_collect_y,
+        int button_collect_w,
+        int button_collect_h,
+        String button_delete_id,
+        String button_delete_text,
+        List<String> button_delete_hover,
+        String button_delete_img_1,
+        String button_delete_img_2,
+        int button_delete_x,
+        int button_delete_y,
+        int button_delete_w,
+        int button_delete_h,
+        String button_send_id,
+        String button_send_text,
+        List<String> button_send_hover,
+        String button_send_img_1,
+        String button_send_img_2,
+        int button_send_x,
+        int button_send_y,
+        int button_send_w,
+        int button_send_h,
+        int text_topic_x,
+        int text_topic_y,
+        double text_topic_size,
+        int text_topic_w,
+        int text_date_x,
+        int text_date_y,
+        double text_date_size,
+        String text_date_prefix,
+        List<String> text_date_display,
+        int text_sender_x,
+        int text_sender_y,
+        double text_sender_size,
+        String text_sender_prefix,
+        int text_file_x,
+        int text_file_y,
+        String text_file_text_yes,
+        String text_file_text_no,
+        double text_file_size,
+        int text_cmd_x,
+        int text_cmd_y,
+        String text_cmd_text,
+        double text_cmd_size,
+        int text_content_x,
+        int text_content_y,
+        int text_content_w,
+        int text_content_h,
+        int text_content_mh,
+        double text_content_size,
+        int text_content_count,
+        int text_content_line,
+        int text_content_sh, 
+        String image_cmd_url,
+        int image_cmd_x,
+        int image_cmd_y,
+        int image_cmd_w,
+        int image_cmd_h,
+        String slot_img,
+        int slot_w,
+        int slot_h,
+        List<Integer> slot_x,
+        List<Integer> slot_y
     ){
-        MailContentGui.colorSenderTitle = colorSenderTitle;
-        MailContentGui.colorSender = colorSender;
-        MailContentGui.colorDate = colorDate;
-        MailContentGui.colorFile = colorFile;
-        MailContentGui.colorCommand = colorCommand;
-        MailContentGui.colorCollect = colorCollect;
-        MailContentGui.colorDelete = colorDelete;
-        MailContentGui.colorConfirm = colorConfirm;
+        // GUI
+        MailContentGui.gui_img = gui_img;
+        MailContentGui.gui_x = gui_x;
+        MailContentGui.gui_y = gui_y;
+        MailContentGui.gui_w = gui_w;
+        MailContentGui.gui_h = gui_h;
+        MailContentGui.gui_ww = gui_ww;
+        MailContentGui.gui_hh = gui_hh;
+        // 按钮String
+        buttonString.clear();
+        buttonString.put("return", new String[]{button_return_id,button_return_text,button_return_img_1,button_return_img_2});
+        buttonString.put("collect", new String[]{button_collect_id,button_collect_text,button_collect_img_1,button_collect_img_2});
+        buttonString.put("collected", new String[]{button_collect_id+"ed",button_collected_text,button_collected_img_1,button_collected_img_2});
+        buttonString.put("delete", new String[]{button_delete_id,button_delete_text,button_delete_img_1,button_delete_img_2});
+        buttonString.put("send", new String[]{button_send_id,button_send_text,button_send_img_1,button_send_img_2});
+        // 按钮int
+        buttonInt.clear();
+        buttonInt.put("return", new int[]{button_return_x,button_return_y,button_return_w,button_return_h});
+        buttonInt.put("collect", new int[]{button_collect_x,button_collect_y,button_collect_w,button_collect_h});
+        buttonInt.put("collected", new int[]{button_collect_x,button_collect_y,button_collect_w,button_collect_h});
+        buttonInt.put("delete", new int[]{button_delete_x,button_delete_y,button_delete_w,button_delete_h});
+        buttonInt.put("send", new int[]{button_send_x,button_send_y,button_send_w,button_send_h});
+        // 按钮Hover
+        buttonHover.clear();
+        buttonHover.put("return", button_return_hover);
+        buttonHover.put("collect", button_collect_hover);
+        buttonHover.put("collected", button_collected_hover);
+        buttonHover.put("delete", button_delete_hover);
+        buttonHover.put("send", button_send_hover);
+        // 邮件主题
+        MailContentGui.text_topic_x = text_topic_x;
+        MailContentGui.text_topic_y = text_topic_y;
+        MailContentGui.text_topic_size = text_topic_size;
+        MailContentGui.text_topic_w = text_topic_w;
+        // 邮件发送时间
+        MailContentGui.text_date_x = text_date_x;
+        MailContentGui.text_date_y = text_date_y;
+        MailContentGui.text_date_size = text_date_size;
+        MailContentGui.text_date_prefix = text_date_prefix;
+        MailContentGui.text_date_display = text_date_display;
+        // 发件人
+        MailContentGui.text_sender_x = text_sender_x;
+        MailContentGui.text_sender_y = text_sender_y;
+        MailContentGui.text_sender_size = text_sender_size;
+        MailContentGui.text_sender_prefix = text_sender_prefix;
+        // 附件提示字
+        text_file_yes = new VexText(text_file_x, text_file_y, Arrays.asList(text_file_text_yes), text_file_size);
+        text_file_no = new VexText(text_file_x, text_file_y, Arrays.asList(text_file_text_no), text_file_size);
+        // 指令提示字
+        text_cmd = new VexText(text_cmd_x, text_cmd_y, Arrays.asList(text_cmd_text), text_cmd_size);
+        // 邮件内容
+        MailContentGui.text_content_x = text_content_x;
+        MailContentGui.text_content_y = text_content_y;
+        MailContentGui.text_content_w = text_content_w;
+        MailContentGui.text_content_h = text_content_h;
+        MailContentGui.text_content_mh = text_content_mh;
+        MailContentGui.text_content_size = text_content_size;
+        MailContentGui.text_content_count = text_content_count;
+        MailContentGui.text_content_line = text_content_line;
+        MailContentGui.text_content_sh = text_content_sh;
+        // 指令指示图
+        MailContentGui.image_cmd_url = image_cmd_url;
+        MailContentGui.image_cmd_x = image_cmd_x;
+        MailContentGui.image_cmd_y = image_cmd_y;
+        MailContentGui.image_cmd_w = image_cmd_w;
+        MailContentGui.image_cmd_h = image_cmd_h;
+        // 物品槽
+        MailContentGui.slot_img = slot_img;
+        MailContentGui.slot_w = slot_w;
+        MailContentGui.slot_h = slot_h;
+        MailContentGui.slot_x = slot_x;
+        MailContentGui.slot_y = slot_y;
     }
+    
+    
     
     // 对文本邮件的操作
     private void textMail(TextMail tm, Player p){
         // 邮件id
         int mail = tm.getId();
+        // 邮件类型
+        String type = tm.getType();
         // 邮件主题
-        double s = 2;
         String t = tm.getTopic();
-        if(t.length()>10) {
-            s = 1;
-            if(t.length()>20) {
-                t = t.substring(0, 20)+"\n"+t.substring(21);
-                s = 1;
+        List<String> tl = new ArrayList();
+        if(t.length()>text_topic_w) {
+            String str = t;
+            int temp = text_topic_w;
+            int c = t.length()/temp;
+            if(t.length()%temp!=0) c++;
+            for(int i=0;i<c;i++){
+                if(str.length()>text_topic_w){
+                    if(str.substring(text_topic_w-1, text_topic_w).equals("§")){
+                        temp -= 1;
+                    }
+                    tl.add(str.substring(0, temp));
+                    str = str.substring(temp);
+                }else{
+                    tl.add(str);
+                }
             }
+        }else{
+            tl.add(t);
         }
-        VexText vtp = new VexText(8,7,Arrays.asList(t),s);
+        VexText vtp = new VexText(text_topic_x,text_topic_y,tl,text_topic_size);
         // 附件类型+ID
-        if(p.hasPermission("mailbox.content.id"))vtp.setHover(new VexHoverText(Arrays.asList(tm.getType()+"-"+tm.getId())));
+        if(p.hasPermission("mailbox.content.id")) vtp.setHover(new VexHoverText(Arrays.asList(tm.getType()+"-"+tm.getId())));
         this.addComponent(vtp);
         // 发送时间
-        if(tm.getDate()!=null)this.addComponent(new VexText(7,117,Arrays.asList(colorDate+tm.getDate()),1));
+        if(text_date_display.contains(type) && tm.getDate()!=null) this.addComponent(new VexText(text_date_x,text_date_y,Arrays.asList(text_date_prefix+tm.getDate()),text_date_size));
         // 发送人
-        this.addComponent(new VexText(142,149,Arrays.asList(colorSenderTitle+"来自： "+colorSender+tm.getSender()),1));
+        this.addComponent(new VexText(text_sender_x,text_sender_y,Arrays.asList(text_sender_prefix+tm.getSender()),text_sender_size));
         // 邮件内容
         this.addComponent(divContent(tm.getContent()));
         // 附件邮件
         if(tm instanceof FileMail) {
             fileMail(tm, p, mail);
         }else{
-            // 附件文字
-            this.addComponent(new VexText(7,129,Arrays.asList(colorFile+"无附件"),1));
+            this.addComponent(text_file_no);
             if(mail==0){
                 p.sendMessage(GlobalConfig.success+"[邮件预览]：你阅读了这封邮件");
-                // 发送邮件
-                VexButton vb = new VexButton("send", colorConfirm+"发送", "[local]MailBox/button_small.png", "[local]MailBox/button_small_.png", 203,120,30,18, player -> {
-                    // 发送邮件
-                    if(tm.Send(player)){
-                        p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件发送成功");
-                        // 关闭GUI
-                        player.closeInventory();
-                    }else{
-                        p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件发送失败");
-                    }
-                });
-                this.addComponent(vb);
+                this.addComponent(vbs);
             }else{
-                ArrayList<Integer> l = MailListAllUn.get(p.getName());
-                if(l.contains(mail)){
-                    // 如果邮件不是附件邮件且为未读状态，则设置为已读
-                    tm.Collect(p);
-                }
+                // 如果邮件不是附件邮件且为未读状态，则设置为已读
+                if(collecte) tm.Collect(p);
             }
         }
         if(mail==0){
-            // 返回按钮
-            this.addComponent(new VexButton("return","","[local]MailBox/button_return.png","[local]MailBox/button_return.png",207,1,30,25,player -> {
-                openMailSendGui(player, tm);
-            }));
+            this.addComponent(vbr);
         }else{
-            // 返回按钮
-            this.addComponent(new VexButton("return","","[local]MailBox/button_return.png","[local]MailBox/button_return.png",207,1,30,25,player -> {
-                openMailBoxGui(player);
-            }));
-            // 如果是OP，增加删除按钮
-            if(p.isOp()){
-                this.addComponent(new VexButton("delete", colorDelete+"删除", "[local]MailBox/button_small.png", "[local]MailBox/button_small_.png", 170,120,30,18, player -> {
-                    // 删除邮件
-                    tm.Delete(p);
-                }));
+            this.addComponent(vbr);
+            if(p.hasPermission("mailbox.admin.delete."+type) || ((type.equals("player")) && tm.getSender().equals(p.getName()) && p.hasPermission("mailbox.delete.player"))) {
+                this.addComponent(vbd);
             }
         }
     }
@@ -134,59 +392,40 @@ public class MailContentGui extends VexGui{
         FileMail fm = (FileMail) tm;
         if((fm.getHasItem() && !fm.getItemList().isEmpty()) || (fm.getHasCommand() && !fm.getCommandList().isEmpty())){
             // 附件文字
-            VexText vtF = new VexText(7,129,Arrays.asList(colorFile+"附件: "),1);
+            VexText vtF = text_file_yes;
             // 附件类型+名称
-            if(p.hasPermission("mailbox.content.filename"))vtF.setHover(new VexHoverText(Arrays.asList(fm.getType()+"-"+fm.getFileName())));
+            if(p.hasPermission("mailbox.content.filename")) vtF.setHover(new VexHoverText(Arrays.asList(fm.getType()+"-"+fm.getFileName())));
             this.addComponent(vtF);
             // 附件物品
             if(fm.getHasItem()){
+                int x_offset = ((slot_w-18)/2)-1; 
+                int y_offset = ((slot_h-18)/2)-1;
                 ArrayList<ItemStack> isl = fm.getItemList();
                 for(int i = 0 ;i<isl.size();i++){
+                    int x = slot_x.get(i);
+                    int y = slot_y.get(i);
                     ItemStack is = isl.get(i);
-                    this.addComponent(new VexSlot(i,i*18+7,142,is));
+                    this.addComponent(new VexSlot(i,x,y,is));
+                    this.addComponent(new VexImage(slot_img,x+x_offset,y+y_offset,slot_w,slot_h));
                 }
             }
             // 附件指令
-            VexHoverText vht = null;
             if(fm.getHasCommand()){
+                this.addComponent(text_cmd);
+                VexImage vi = new VexImage(image_cmd_url,image_cmd_x,image_cmd_y,image_cmd_w,image_cmd_h);
                 List<String> cD = fm.getCommandDescription();
-                if(cD!=null){
-                    vht = new VexHoverText(cD);
-                }
-                this.addComponent(new VexText(96,132,Arrays.asList(colorCommand+"指令"),1));
-                this.addComponent(new VexImage("[local]MailBox/img_cmd.png",97,142,16,16,vht));
+                if(!cD.isEmpty()) vi.setHover(new VexHoverText(cD));
+                this.addComponent(vi);
             }
-            // 领取附件按钮
+            // 发送邮件/领取附件按钮
             if(mail==0){
-                VexButton vb = new VexButton("确认", "确认", "[local]MailBox/button_small.png", "[local]MailBox/button_small_.png", 203,120,30,18, player -> {
-                    // 发送邮件
-                    if(tm.Send(player)){
-                        p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件发送成功");
-                    }else{
-                        p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件发送失败");
-                    }
-                    // 关闭GUI
-                    player.closeInventory();
-                });
-                this.addComponent(vb);
+                this.addComponent(vbs);
             }else{
-                String f_c = "领取";
-                ArrayList<Integer> l = MailListAllUn.get(p.getName());
-                if(!l.contains(mail)) { f_c = "已领取"; }
-                VexButton vb = new VexButton("id_"+mail, colorCollect+f_c, "[local]MailBox/button_small.png", "[local]MailBox/button_small_.png", 203,120,30,18, player -> {
-                    if(player.hasPermission("mailbox.collect."+fm.getType())){
-                        if(l.contains(mail)){
-                            // 领取邮件
-                            fm.Collect(p);
-                            // 关闭GUI
-                            player.closeInventory();
-                        }
-                    }else{
-                        player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限领取此类型邮件");
-                    }
-                    
-                });
-                this.addComponent(vb);
+                if(collecte) {
+                    this.addComponent(vbc);
+                }else{
+                    this.addComponent(vbcd);
+                }
             }
         }else{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"此邮件附件配置文件错误！");
@@ -196,26 +435,26 @@ public class MailContentGui extends VexGui{
     // 分割邮件内容
     private VexScrollingList divContent(String content){
         String text = content;
-        int length = 23;
+        int length = text_content_count;
         int size = 0;
         String[] t = text.split(" ");
         for(String t1 : t) {
             size += t1.length() / length;
-            if(t1.length()%length != 0)size++;
+            if(t1.length()%length != 0) size++;
         }
-        int mh = 82;
-        if(size>8){
-            mh += (size-8)*10;
+        int mh = text_content_mh;
+        if(size>text_content_line){
+            mh += (size-text_content_line)*text_content_sh;
         }
-        VexScrollingList vsl = new VexScrollingList(10,28,220,88,mh);
-        vsl.addComponent(new VexText(0,0,Arrays.asList(t),1));
+        VexScrollingList vsl = new VexScrollingList(text_content_x,text_content_y,text_content_w,text_content_h,mh);
+        vsl.addComponent(new VexText(0,0,Arrays.asList(t),text_content_size));
         return vsl;
     }
     
     // 打开邮件GUI
-    public static void openMailContentGui(Player p, TextMail tm) throws IOException{
+    public static void openMailContentGui(Player p, TextMail tm, VexGui a, boolean asSender) throws IOException{
         if(p.hasPermission("mailbox.gui.mailcontent")){
-            VexViewAPI.openGui(p, new MailContentGui(p, tm));
+            VexViewAPI.openGui(p, new MailContentGui(p, tm, a, asSender));
         }else{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限打开此GUI");
         }

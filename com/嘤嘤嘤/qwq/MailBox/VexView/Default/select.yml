@@ -1,0 +1,43 @@
+#邮件类型选择GUI
+gui:
+  #GUI背景图片
+  img: '[local]MailBox/gui_select.png'
+  #x坐标
+  x: -1
+  #y坐标
+  y: -1
+  #显示宽度
+  w: 240
+  #显示高度
+  h: 158
+  #原图宽度
+  ww: 240
+  #原图高度
+  hh: 158
+#按钮
+button:
+    #id
+    id:
+      #system
+      system: MailSelectButton_System
+      #player
+      player: MailSelectButton_Player
+    #图片
+    img_1: '[local]MailBox/button_small.png'
+    img_2: '[local]MailBox/button_small_.png'
+    #x坐标
+    x:
+    - 20
+    - 80
+    #y坐标
+    y:
+    - 20
+    - 20
+    #显示宽度
+    w: 50
+    #显示高度
+    h: 30
+    #显示顺序
+    list:
+      - player
+      - system

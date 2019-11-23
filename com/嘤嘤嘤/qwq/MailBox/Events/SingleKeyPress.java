@@ -18,7 +18,7 @@ public class SingleKeyPress implements Listener {
     public void openMailBox(KeyBoardPressEvent e){
         // 按key键打开邮箱GUI
         if(e.getKey()==key&&VexViewAPI.getPlayerCurrentGui(e.getPlayer())==null){
-            openMailBoxGui(e.getPlayer());
+            openMailBoxGui(e.getPlayer(), "Recipient");
         }
     }
     

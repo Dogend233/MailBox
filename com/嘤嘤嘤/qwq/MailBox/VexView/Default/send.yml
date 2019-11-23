@@ -1,0 +1,218 @@
+#邮件发送GUI
+gui:
+  #GUI背景图片
+  img: '[local]MailBox/gui_send.png'
+  #x坐标
+  x: -1
+  #y坐标
+  y: -1
+  #显示宽度
+  w: 240
+  #显示高度
+  h: 300
+  #原图宽度
+  ww: 240
+  #原图高度
+  hh: 300
+  #玩家物品栏x坐标
+  ix: 40
+  #玩家物品栏y坐标
+  iy: 222
+#按钮
+button:
+  #返回
+  return:
+    #按钮ID
+    id: MailSendButton_Return
+    #按钮文字
+    text: §r
+    #按钮提示文字
+    hover:
+    - §a返回邮箱
+    #按钮背景图
+    img_1: '[local]MailBox/button_return.png'
+    img_2: '[local]MailBox/button_return_.png'
+    #x坐标
+    x: 222
+    #y坐标
+    y: -14
+    #显示宽度
+    w: 32
+    #显示高度
+    h: 32
+  #预览
+  preview:
+    #按钮ID
+    id: MailSendButton_Preview
+    #按钮文字
+    text: §r预览
+    #按钮提示文字
+    hover:
+    - §a预览这封邮件
+    #按钮背景图
+    img_1: '[local]MailBox/button_small.png'
+    img_2: '[local]MailBox/button_small_.png'
+    #x坐标
+    x: 10
+    #y坐标
+    y: 185
+    #显示宽度
+    w: 30
+    #显示高度
+    h: 18
+#文字
+text:
+  #邮件主题
+  topic:
+    #x坐标
+    x: 10
+    #y坐标
+    y: 21
+    #文字大小（可以小数）
+    size: 1
+    #文字内容
+    text: '§b邮件主题：'
+  #收件人
+  recipient:
+    #x坐标
+    x: 19
+    #y坐标
+    y: 61
+    #文字大小（可以小数）
+    size: 1
+    #文字内容
+    text: '§b收件人：'
+  #邮件文字内容
+  text:
+    #x坐标
+    x: 10
+    #y坐标
+    y: 41
+    #文字大小（可以小数）
+    size: 1
+    #文字内容
+    text: '§b邮件内容：'
+  #邮件指令
+  command:
+    #x坐标
+    x: 10
+    #y坐标
+    y: 121
+    #文字大小（可以小数）
+    size: 1
+    #文字内容
+    text: '§b执行指令：'
+  #邮件指令描述
+  description:
+    #x坐标
+    x: 10
+    #y坐标
+    y: 141
+    #文字大小（可以小数）
+    size: 1
+    #文字内容
+    text: '§b指令描述：'
+  #邮件物品附件
+  item:
+    #x坐标
+    x: 100
+    #y坐标
+    y: 185
+    #文字大小（可以小数）
+    size: 1
+    #文字内容
+    text: '§b附件物品：'
+#文本框
+field:
+  #邮件主题
+  topic:
+    #x坐标
+    x: 50
+    #y坐标
+    y: 20
+    #显示宽度
+    w: 180
+    #显示高度
+    h: 12
+    #最大字符长度（最大30）
+    max: 30
+  #收件人
+  recipient:
+    #x坐标
+    x: 50
+    #y坐标
+    y: 60
+    #显示宽度
+    w: 180
+    #显示高度
+    h: 12
+    #最大字符长度（最大255）
+    max: 255
+  #邮件文字内容
+  text:
+    #x坐标
+    x: 50
+    #y坐标
+    y: 40
+    #显示宽度
+    w: 180
+    #显示高度
+    h: 12
+    #最大字符长度（最大255）
+    max: 255
+  #邮件指令
+  command:
+    #x坐标
+    x: 50
+    #y坐标
+    y: 120
+    #显示宽度
+    w: 180
+    #显示高度
+    h: 12
+    #最大字符长度（最大255）
+    max: 255
+  #邮件指令描述
+  description:
+    #x坐标
+    x: 50
+    #y坐标
+    y: 140
+    #显示宽度
+    w: 180
+    #显示高度
+    h: 12
+    #最大字符长度（最大255）
+    max: 255
+#物品槽（实际大小18x，鼠标悬停时高亮部分为16x）
+slot:
+  #物品槽背景图
+  img: '[local]MailBox/image_solt.png'
+  #物品槽背景图显示宽度（推荐偶数且大于等于18）
+  w: 18
+  #物品槽背景图显示高度（同上）
+  h: 18
+  #x坐标（按顺序写五个）
+  x:
+  - 141
+  - 159
+  - 177
+  - 195
+  - 213
+  #y坐标（按顺序写五个）
+  y:
+  - 186
+  - 186
+  - 186
+  - 186
+  - 186
+#player类型邮件上限可选择数量
+#填好数组并给玩家对应权限
+#权限判定顺序从上到下
+player_max: 
+  #发件上限
+  #mailbox.send.player.out.x
+  out: 
+  - 10
+  - 5
+  - 2

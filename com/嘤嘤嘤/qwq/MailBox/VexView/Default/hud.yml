@@ -1,0 +1,20 @@
+#HUD图标
+hud:
+  #是否启用HUD（true 启用 | false 关闭）
+  enable: true
+  #HUD的ID
+  id: MailBoxHud
+  #背景图
+  img: '[local]MailBox/hud_mail.png'
+  #x坐标
+  x: -1
+  #y坐标
+  y: 5
+  #显示宽度
+  w: 78
+  #显示高度
+  h: 86
+  #原图宽度
+  ww: 39
+  #原图高度
+  hh: 43

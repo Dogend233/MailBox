@@ -1,0 +1,227 @@
+#邮件内容GUI
+gui:
+  #GUI背景图片
+  img: '[local]MailBox/gui_content.png'
+  #x坐标
+  x: -1
+  #y坐标
+  y: -1
+  #显示宽度
+  w: 240
+  #显示高度
+  h: 200
+  #原图宽度
+  ww: 240
+  #原图高度
+  hh: 200
+#按钮
+button:
+  #返回
+  return:
+    #按钮ID
+    id: MailContentButton_Return
+    #按钮文字
+    text: §r
+    #按钮提示文字
+    hover:
+    - §a返回至上一页
+    #按钮背景图
+    img_1: '[local]MailBox/button_return.png'
+    img_2: '[local]MailBox/button_return_.png'
+    #x坐标
+    x: 222
+    #y坐标
+    y: -14
+    #显示宽度
+    w: 32
+    #显示高度
+    h: 32
+  #领取
+  collect:
+    #按钮ID（已领取按钮ID为此id末尾加ed）
+    id: MailContentButton_Collect
+    #未领取邮件的设置
+    collect:
+      #按钮文字
+      text: §r领取
+      #按钮提示文字
+      hover:
+      - §b领取这封邮件
+      #按钮背景图
+      img_1: '[local]MailBox/button_small.png'
+      img_2: '[local]MailBox/button_small_.png'
+    #已领取邮件的设置
+    collected:
+      #按钮文字
+      text: §r已领取
+      #按钮提示文字
+      hover:
+      #按钮背景图
+      img_1: '[local]MailBox/button_small.png'
+      img_2: '[local]MailBox/button_small_.png'
+    #x坐标
+    x: 203
+    #y坐标
+    y: 160
+    #显示宽度
+    w: 30
+    #显示高度
+    h: 18
+  #删除
+  delete:
+    #按钮ID
+    id: MailContentButton_Delete
+    #按钮文字
+    text: §r删除
+    #按钮提示文字
+    hover:
+    - §c删除这封邮件
+    #按钮背景图
+    img_1: '[local]MailBox/button_small.png'
+    img_2: '[local]MailBox/button_small_.png'
+    #x坐标
+    x: 170
+    #y坐标
+    y: 160
+    #显示宽度
+    w: 30
+    #显示高度
+    h: 18
+  #发送
+  send:
+    #按钮ID
+    id: MailContentButton_Send
+    #按钮文字
+    text: §r发送
+    #按钮提示文字
+    hover:
+    - §a发送这封邮件
+    #按钮背景图
+    img_1: '[local]MailBox/button_small.png'
+    img_2: '[local]MailBox/button_small_.png'
+    #x坐标
+    x: 203
+    #y坐标
+    y: 160
+    #显示宽度
+    w: 30
+    #显示高度
+    h: 18
+#文字
+text:
+  #邮件主题
+  topic:
+    #x坐标
+    x: 8
+    #y坐标
+    y: 7
+    #文字大小（可以小数）
+    size: 1.5
+    #当邮件标题长度大于w(不包含w)时换行
+    #如果最后一位是§，则此字符也参与换行
+    w: 15
+  #邮件发送时间
+  date:
+    #x坐标
+    x: 8
+    #y坐标
+    y: 185
+    #文字大小（可以小数）
+    size: 1
+    #前缀
+    prefix: §b
+    #显示发送时间的邮件类型
+    display:
+    - system
+    - player
+  #发件人
+  sender:
+    #x坐标
+    x: 164
+    #y坐标
+    y: 185
+    #文字大小（可以小数）
+    size: 1
+    #前缀
+    prefix: '§a来自: §6'
+  #附件
+  file:
+    #x坐标
+    x: 7
+    #y坐标
+    y: 155
+    #附件显示文字
+    text_yes: '§e附件: '
+    #无附件显示文字
+    text_no: §6无附件
+    #文字大小（可以小数）
+    size: 1
+  #指令提示字
+  cmd:
+    #x坐标
+    x: 97
+    #y坐标
+    y: 155
+    #显示文字
+    text: '§a指↓令'
+    #文字大小（可以小数）
+    size: 1
+  #邮件内容滚动列表
+  content:
+    #x坐标
+    x: 10
+    #y坐标
+    y: 35
+    #显示宽度
+    w: 220
+    #显示高度
+    h: 108
+    #最小高度（建议比显示高度小6）
+    mh: 102
+    #文字大小
+    size: 1
+    #总行数计算公式：文字行数 + 每个(溢出行文字数/count)
+    #每行文字（请手动测试一行最多的 中文 文字数量）
+    count: 23
+    #最大高度计算公式：((总行数-line) * sh) + mh
+    #最小页面时最大行数
+    line: 10
+    #每多一行增加的高度
+    sh: 10
+#图片
+image:
+  #指令提示图
+  cmd:
+    #图片地址
+    url: '[local]MailBox/img_cmd.png'
+    #x坐标
+    x: 99
+    #y坐标
+    y: 167
+    #显示宽度
+    w: 16
+    #显示高度
+    h: 16
+#物品槽（实际大小18x，鼠标悬停时高亮部分为16x）
+slot:
+  #物品槽背景图
+  img: '[local]MailBox/image_solt.png'
+  #物品槽背景图显示宽度（推荐偶数且大于等于18）
+  w: 18
+  #物品槽背景图显示高度（同上）
+  h: 18
+  #x坐标（按顺序写五个）
+  x:
+  - 9
+  - 27
+  - 45
+  - 63
+  - 81
+  #y坐标（按顺序写五个）
+  y:
+  - 167
+  - 167
+  - 167
+  - 167
+  - 167
+  

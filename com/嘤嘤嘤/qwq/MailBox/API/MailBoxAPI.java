@@ -1,15 +1,25 @@
 package com.嘤嘤嘤.qwq.MailBox.API;
 
+import static com.嘤嘤嘤.qwq.MailBox.GlobalConfig.expiredDay;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
+import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
+import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayer;
+import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayerId;
+import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListSystem;
 import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import com.嘤嘤嘤.qwq.MailBox.Utils.MD5;
-import com.嘤嘤嘤.qwq.MailBox.Utils.MySQLManager;
+import com.嘤嘤嘤.qwq.MailBox.Utils.SQLManager;
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import static org.bukkit.Bukkit.getLogger;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class MailBoxAPI {
@@ -22,15 +32,40 @@ public class MailBoxAPI {
         return VERSION;
     }
     
+    // 获取与该玩家有关的邮件
+    public static HashMap<String, ArrayList<Integer>> getRelevantMail(Player p, String type){
+        HashMap<String, ArrayList<Integer>> hm = new HashMap();
+        String name = p.getName();
+        ArrayList<Integer> senderList = new ArrayList();
+        ArrayList<Integer> recipientList = new ArrayList();
+        switch (type) {
+            case "player":
+                MailListPlayer.forEach((k, v) -> {
+                    if(v.getSender().equals(name)) senderList.add(k);
+                    if(v.getRecipient().contains(name)) recipientList.add(k);
+                });
+                break;
+            case "system":
+                ArrayList<Integer> collected = SQLManager.get().getCollectedMailList(p, type);
+                MailListSystem.forEach((k, v) -> {
+                    if(v.getSender().equals(name)) senderList.add(k);
+                    if(!collected.contains(k)) recipientList.add(k);
+                });
+        }
+        hm.put("asSender", senderList);
+        hm.put("asRecipient", recipientList);
+        return hm;
+    }
+    
     // 设置某玩家领取一封邮件
     public static boolean setCollect(String type, int id, String playername){
-        return MySQLManager.get().setMailCollect(type, id, playername);
+        return SQLManager.get().setMailCollect(type, id, playername);
     }
     
     // 发送一封邮件
-    public static boolean setSend(String type, int id, String playername, String topic, String text, String date, String filename){
+    public static boolean setSend(String type, int id, String playername, String recipient, String topic, String text, String date, String filename){
         if(id==0){
-            return MySQLManager.get().sendMail(type, playername, topic, text, date, filename);
+            return SQLManager.get().sendMail(type, playername, recipient, topic, text, date, filename);
         }else{
             // 修改现有邮件
             return false;
@@ -91,7 +126,7 @@ public class MailBoxAPI {
     
     // 删除某一封邮件
     public static boolean setDelete(String type, int id){
-        return MySQLManager.get().deleteMail(type, id);
+        return SQLManager.get().deleteMail(type, id);
     }
     
     // 删除某一封邮件的附件文件
@@ -158,6 +193,111 @@ public class MailBoxAPI {
         }else{
             return null;
         }
+    }
+    
+    // 取出一封自定义邮件
+    public static TextMail getCustomMail(String filename, String type){
+        YamlConfiguration mailFiles;
+        File f = new File(DATA_FOLDER+"/MailFiles/custom", filename+".yml");
+        if(f.exists()){
+            mailFiles = YamlConfiguration.loadConfiguration(f);
+            if(mailFiles.getBoolean("file")){
+                List<String> cl = new ArrayList();
+                List<String> cd = new ArrayList();
+                ArrayList<ItemStack> is = new ArrayList();
+                if(mailFiles.getBoolean("cmd.enable")){
+                    cl = mailFiles.getStringList("cmd.commands");
+                    cd = mailFiles.getStringList("cmd.descriptions");
+                }
+                return(new FileMail(
+                    type,
+                    0,
+                    mailFiles.getString("sender"),
+                    null,
+                    mailFiles.getString("topic"),
+                    mailFiles.getString("content"),
+                    null,
+                    "0",
+                    getFileItems("custom", filename),
+                    cl,
+                    cd
+                ));
+            }else{
+                return(new TextMail(
+                    type,
+                    0,
+                    mailFiles.getString("sender"),
+                    null,
+                    mailFiles.getString("topic"),
+                    mailFiles.getString("content"),
+                    null
+                ));
+            }
+        }else{
+            return null;
+        }
+    }
+    
+    // 获取该玩家player发件数量
+    public static int playerAsSender(Player p){
+        if(MailListPlayerId.containsKey(p.getName())){
+            return MailListPlayerId.get(p.getName()).get("asSender").size();
+        }else{
+            return getRelevantMail(p, "player").get("asSender").size();
+        }
+    }
+    
+    // 获取该玩家player收件数量
+    public static int playerAsRecipient(Player p){
+        if(MailListPlayerId.containsKey(p.getName())){
+            return MailListPlayerId.get(p.getName()).get("asRecipient").size();
+        }else{
+            return getRelevantMail(p, "player").get("asRecipient").size();
+        }
+    }
+    
+    // 获取该玩家player可以发件的数量
+    public static int playerAsSenderAllow(Player p, List<Integer> player_out){
+        for(int count:player_out){
+            if(p.hasPermission("mailbox.send.player.out."+count)){
+                return count;
+            }
+        }
+        return 0;
+    }
+    
+    // 获取该玩家player可以收件的数量
+    public static int playerAsRecipientAllow(Player p, List<Integer> player_in){
+        for(int count:player_in){
+            if(p.hasPermission("mailbox.send.player.in."+count)){
+                return count;
+            }
+        }
+        return 0;
+    }
+    
+    // 判断这封邮件是否过期
+    public static boolean isExpired(TextMail tm){
+        try {
+            SimpleDateFormat dd = new SimpleDateFormat("dd");
+            String ds = expiredDay; 
+            long dt = dd.parse(ds).getTime();
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String sendTime = tm.getDate();
+            System.out.println(sendTime);
+            String nowTime = DateTime.get("ymdhms");
+            System.out.println(nowTime);
+            long st = df.parse(sendTime).getTime();
+            long nt = df.parse(nowTime).getTime();
+            System.out.println(st);
+            System.out.println(dt);
+            System.out.println(nt);
+            System.out.println(st+dt);
+            return st+dt<=nt;
+        } catch (ParseException ex) {
+            getLogger().info(ex.getLocalizedMessage());
+        }
+        return false;
     }
     
     // 生成一个32位MD5码

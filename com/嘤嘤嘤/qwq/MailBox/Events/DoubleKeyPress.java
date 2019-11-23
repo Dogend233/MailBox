@@ -22,7 +22,7 @@ public class DoubleKeyPress implements Listener {
     public void openMailBox(KeyBoardPressEvent e){
         // 按Ctrl+M打开邮箱GUI
         if(canOpen&&e.getKey()==key2&&VexViewAPI.getPlayerCurrentGui(e.getPlayer())==null){
-            openMailBoxGui(e.getPlayer());
+            openMailBoxGui(e.getPlayer(), "Recipient");
             canOpen = false;
         }
         if(e.getKey()==key1){

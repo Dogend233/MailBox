@@ -31,7 +31,7 @@ public class UpdateCheck {
                return null;
                
             }
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(),"UTF-8"));
             ArrayList<String> urlString = new ArrayList();
             String current;
             while((current = in.readLine()) != null)
@@ -62,7 +62,12 @@ public class UpdateCheck {
             for(int i=0;i<3;i++){
                 int n = Integer.parseInt(nsl[i]);
                 int o = Integer.parseInt(osl[i]);
-                if(o<n){
+                if(o==n){
+                    if(i==2) sender.sendMessage("§a-----[MailBox更新检测]:您的版本已是最新！");
+                }else if(o>n){
+                    sender.sendMessage("§a-----[MailBox更新检测]:您的版本已是最新！");
+                    break;
+                }else{
                     sender.sendMessage("§c-----[MailBox更新检测]:检测到新版本："+info.get(0)+" 更新时间："+info.get(1));
                     sender.sendMessage("&6更新内容：");
                     String[] in = info.get(2).split("#");
@@ -71,7 +76,6 @@ public class UpdateCheck {
                     }
                     break;
                 }
-                if(i==2) sender.sendMessage("§a-----[MailBox更新检测]:您的版本已是最新！");
             }
         }
     }
@@ -88,10 +92,6 @@ public class UpdateCheck {
             if(w<d) return false;
         }
         return true;
-    }
-    
-    public static void main(String[] args){
-        check(null);
     }
     
 }
