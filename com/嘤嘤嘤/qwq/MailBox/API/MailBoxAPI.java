@@ -195,6 +195,28 @@ public class MailBoxAPI {
         }
     }
     
+    // 将手上物品写入itemstack.yml
+    public static boolean saveItem(ItemStack is){
+        File f = new File(DATA_FOLDER);
+        if(!f.exists())f.mkdir();
+        YamlConfiguration mailFiles = new YamlConfiguration();
+        f = new File(DATA_FOLDER, "itemstack.yml");
+        if(!f.exists()){
+            try {
+                f.createNewFile();
+            } catch (IOException ex) {
+                return false;
+            }
+        }
+        mailFiles.set("itemstack", is);
+        try {
+            mailFiles.save(f);
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+    
     // 取出一封自定义邮件
     public static TextMail getCustomMail(String filename, String type){
         YamlConfiguration mailFiles;

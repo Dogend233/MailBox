@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import lk.vexview.api.VexViewAPI;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class MailBox extends JavaPlugin {
@@ -55,7 +56,19 @@ public class MailBox extends JavaPlugin {
                     return true;
                 }
             }else if(args.length==1){
-                if(args[0].equalsIgnoreCase("reload")){
+                if(args[0].equalsIgnoreCase("export")){
+                    if(sender instanceof Player && sender.hasPermission("mailbox.admin.export")){
+                        ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
+                        if(is!=null && MailBoxAPI.saveItem(is)){
+                            sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
+                        }else{
+                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品的失败");
+                        }
+                        return true;
+                    }
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有导出物品的权限");
+                    return true;
+                }else if(args[0].equalsIgnoreCase("reload")){
                     if(sender.hasPermission("mailbox.admin.reload")){
                         reloadPlugin();
                         sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"插件已重载");
@@ -149,17 +162,17 @@ public class MailBox extends JavaPlugin {
                                 return true;
                             }
                         }else{
-                            return true;
+                            return false;
                         }
                     }else{
-                        return true;
+                        return false;
                     }
                 }else{
                     sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"此邮件类型不存在");
                     return true;
                 }
             }else{
-                return true;
+                return false;
             }
         }
         return true;
