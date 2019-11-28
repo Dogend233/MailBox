@@ -29,6 +29,8 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     protected boolean hasItem;
     // 物品列表
     protected ArrayList<ItemStack> itemList;
+    // 附件金币
+    protected double coin;
     
     public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename){
         super(type, id, sender, recipient, topic, content, date);
@@ -36,7 +38,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         getFile();
     }
     
-    public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd){
+    public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin){
         super(type, id, sender, recipient, topic, content, date);
         this.fileName = filename;
         this.itemList = isl;
@@ -44,8 +46,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         this.commandDescription = cd;
         this.hasItem = !isl.isEmpty();
         this.hasCommand = !cl.isEmpty();
-        System.out.println(itemList);
-        System.out.println(hasItem);
+        this.coin = coin;
     }
     
     // 获取附件信息
@@ -56,6 +57,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
             getFileCommandDescription();
         }
         getFileItemList();
+        getFileMoney();
     }
     
     // 设置玩家领取邮件
@@ -85,6 +87,8 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         }
         // 设置玩家领取邮件
         if(MailBoxAPI.setCollect(type, id, p.getName())){
+            // 给钱
+            if(giveCoin(p, coin)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+coin+GlobalConfig.vaultDisplay+", 余额："+MailBoxAPI.getEconomyFormat(MailBoxAPI.getEconomyBalance(p))+GlobalConfig.vaultDisplay);
             MailCollectEvent mce = new MailCollectEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mce);
             p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件领取成功！");
@@ -103,14 +107,18 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         if(!(this instanceof FileMail)){
             return super.Send(p);
         }else{
-            System.out.println(2);
             if(id==0){
                 // 新建邮件
                 // 判断玩家背包里是否有想要发送的物品
-                if(!itemList.isEmpty() && !p.hasPermission("mailbox.admin.send.check")){
-                    System.out.println(itemList);
-                    System.out.println(itemList.toString());
+                if(!itemList.isEmpty() && !p.hasPermission("mailbox.admin.send.check.item")){
                     if(!hasItem(itemList, p)){
+                        return false;
+                    }
+                }
+                // 判断玩家钱够不够
+                if(GlobalConfig.enVault && coin!=0 && !p.hasPermission("mailbox.admin.send.check.coin")){
+                    if(MailBoxAPI.getEconomyBalance(p)<coin){
+                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：你这钱不够啊");
                         return false;
                     }
                 }
@@ -127,6 +135,8 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
                     // 删除玩家背包里想要发送的物品
                     if(removeItem(itemList, p)){
                         if(MailBoxAPI.setSend(type, id, sender, getRecipientString(), topic, content, date, fileName)){
+                            // 扣钱
+                            if(removeCoin(p, coin)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+coin+GlobalConfig.vaultDisplay);
                             MailSendEvent mse = new MailSendEvent(this, p);
                             Bukkit.getServer().getPluginManager().callEvent(mse);
                             return true;
@@ -165,6 +175,11 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     // 删除这封邮件的附件
     public boolean DeleteFile(){
         return MailBoxAPI.setDeleteFile(type,fileName);
+    }
+    
+    
+    private void getFileMoney() {
+        coin = MailBoxAPI.getFileMoney(type, fileName)[0];
     }
 
     // 判断附件是否启用指令
@@ -306,6 +321,14 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         return success;
     }
     
+    private boolean giveCoin(Player p, double coin){
+        return MailBoxAPI.addEconomy(p, coin);
+    }
+    
+    private boolean removeCoin(Player p, double coin){
+        return MailBoxAPI.reduceEconomy(p, coin);
+    }
+    
     public String getFileName(){
         return this.fileName;
     }
@@ -329,6 +352,10 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         return this.itemList;
     }
     
+    public double getCoin(){
+        return this.coin;
+    }
+    
     @Override
     public String toString(){
         String str = typeName+"-"+id+"-"+topic+"-"+content+"-"+sender+"-"+date;
@@ -338,6 +365,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         }
         if(hasItem && !itemList.isEmpty()) str += "-含物品"+itemList.size()+"个";
         if(hasCommand && !commandList.isEmpty()) str += "-含指令"+commandList.size()+"条";
+        if(coin!=0) str += "-含金钱："+coin;
         return str;
     }
     

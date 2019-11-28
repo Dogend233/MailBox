@@ -28,3 +28,7 @@ is:
     ==: org.bukkit.inventory.ItemStack
     type: BONE
     amount: 3
+#邮件包含金钱
+money:
+  #vault的金钱
+  coin: 50

@@ -83,7 +83,7 @@ public enum SQLCommand {
         "`filename` varchar(32))"
     ),
 
-    //创建MySQL的"system"邮箱system_collect数据表
+    //创建"system"邮箱system_collect数据表
     CREATE_SYSTEM_COLLECT(
         "CREATE TABLE IF NOT EXISTS `", "_system_collect` (" +
         "`mail` int(11)," +

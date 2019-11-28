@@ -21,17 +21,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import lk.vexview.api.VexViewAPI;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class MailBox extends JavaPlugin {
     
     private int temp;
     private boolean enCmdOpen;
-    private boolean enVexView;
-    public static MailBox instance;
+    private static MailBox instance;
     // 首次启动
     private static boolean FirstEnable = true;
     // config 配置文件
@@ -177,12 +178,19 @@ public class MailBox extends JavaPlugin {
         }
         return true;
     }
-    
+      
     @Override
     public void onEnable(){
         // 插件启动
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件正在启动......");
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:版本："+this.getDescription().getVersion());
+        // 检查前置[Vault]
+        GlobalConfig.setVault(setupEconomy());
+        if(GlobalConfig.enVault){
+            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[Vault]已安装");
+        }else{
+            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:前置插件[Vault]未安装，已关闭相关功能");
+        }
         // 检查前置[VexView]
         if(Bukkit.getPluginManager().isPluginEnabled("VexView")){
             String version = VexViewAPI.getVexView().getVersion();
@@ -191,11 +199,11 @@ public class MailBox extends JavaPlugin {
             if(UpdateCheck.check(version, "2.5.0")){
                 // 加载插件
                 instance = this;
-                enVexView = true;
+                GlobalConfig.setVexView(true);
                 reloadPlugin();
                 Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件启动完成");
                 // 检查更新
-                if(getConfigBoolean("mailbox.updateCheck")){
+                if(config.getBoolean("mailbox.updateCheck")){
                     new BukkitRunnable(){
                         @Override
                         public void run(){
@@ -205,15 +213,27 @@ public class MailBox extends JavaPlugin {
                 }
             }else{
                 Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]版本小于2.5");
-                enVexView = false;
+                GlobalConfig.setVexView(false);
                 this.enCmdOpen = false;
                 Bukkit.getPluginManager().disablePlugin(this);
             }
         }else{
             Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]未安装，卸载插件");
-            enVexView = false;
+            GlobalConfig.setVexView(false);
             Bukkit.getPluginManager().disablePlugin(this);
         }
+    }
+    
+    // 设置Vault
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        return MailBoxAPI.setEconomy(rsp.getProvider());
     }
     
     @Override
@@ -268,9 +288,9 @@ public class MailBox extends JavaPlugin {
         reloadConfig();
         config = getConfig();
         setConfig();
-        if(!enVexView) {
+        if(!GlobalConfig.enVexView) {
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 加入/退出 事件");
-            Bukkit.getPluginManager().registerEvents(new JoinAndQuit(enVexView, false), this);
+            Bukkit.getPluginManager().registerEvents(new JoinAndQuit(false, false), this);
         }
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 邮件 事件");
         Bukkit.getPluginManager().registerEvents(new Mail(), this);
@@ -302,19 +322,19 @@ public class MailBox extends JavaPlugin {
         }
         // 连接数据库
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在连接数据库");
-        if(getConfigBoolean("database.enableMySQL")){
+        if(config.getBoolean("database.enableMySQL")){
             SQLManager.get().enableMySQL(
-                getConfigString("database.mySQLhost"), 
-                getConfigString("database.dataBaseName"), 
-                getConfigString("database.mySQLusername"), 
-                getConfigString("database.mySQLpassword"), 
-                getConfigInt("database.mySQLport"), 
-                getConfigString("database.dataTablePrefix")
+                config.getString("database.mySQLhost"), 
+                config.getString("database.dataBaseName"), 
+                config.getString("database.mySQLusername"), 
+                config.getString("database.mySQLpassword"), 
+                config.getInt("database.mySQLport"), 
+                config.getString("database.dataTablePrefix")
             );
         }else{
             SQLManager.get().enableSQLite(
-                getConfigString("database.dataBaseName"), 
-                getConfigString("database.dataTablePrefix")
+                config.getString("database.dataBaseName"), 
+                config.getString("database.dataTablePrefix")
             );
         }
         
@@ -326,23 +346,26 @@ public class MailBox extends JavaPlugin {
     // 设置Config
     private void setConfig(){
         // 设置GlobalConfig
-        String fileDivS = getConfigString("mailbox.file.divide");
+        String fileDivS = config.getString("mailbox.file.divide");
         if(fileDivS.equals(".") || fileDivS.equals("|")){
             fileDivS = "\\"+fileDivS;
         }
         GlobalConfig.setGlobalConfig(
-            getConfigString("mailbox.prefix")+" : ",
-            getConfigString("mailbox.normalMessage"),
-            getConfigString("mailbox.successMessage"),
-            getConfigString("mailbox.warningMessage"),
-            getConfigString("mailbox.name.system"),
-            getConfigString("mailbox.name.player"),
+            config.getString("mailbox.prefix")+" : ",
+            config.getString("mailbox.normalMessage"),
+            config.getString("mailbox.successMessage"),
+            config.getString("mailbox.warningMessage"),
+            config.getString("mailbox.name.system"),
+            config.getString("mailbox.name.player"),
             fileDivS,
-            getConfigString("mailbox.file.command.player"),
-            getConfigString("mailbox.player_maxtime")
+            config.getString("mailbox.file.command.player"),
+            config.getString("mailbox.player_maxtime"),
+            config.getIntegerList("mailbox.player_max.out"),
+            config.getString("mailbox.vault.display"),
+            config.getInt("mailbox.vault.max")
         );
         // 设置VexViewConfig
-        if(enVexView) VexViewConfigSet();
+        if(GlobalConfig.enVexView) VexViewConfigSet();
     }
     
     //更新邮件列表
@@ -393,17 +416,4 @@ public class MailBox extends JavaPlugin {
         if(enCmdOpen)Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:已启用指令打开邮箱GUI");
     }
     
-    // 获取config配置信息
-    private static String getConfigString(String path)
-    {
-        return config.getString(path);
-    }
-    private static int getConfigInt(String path)
-    {
-        return config.getInt(path);
-    }
-    private static boolean getConfigBoolean(String path)
-    {
-        return config.getBoolean(path);
-    }
 }

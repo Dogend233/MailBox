@@ -62,7 +62,6 @@ public class TextMail {
     
     // 发送这封邮件
     public boolean Send(Player p){
-        System.out.println(1);
         if(id==0){
             // 获取时间
             date = DateTime.get("ymdhms");

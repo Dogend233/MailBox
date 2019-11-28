@@ -1,5 +1,6 @@
 package com.嘤嘤嘤.qwq.MailBox.API;
 
+import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import static com.嘤嘤嘤.qwq.MailBox.GlobalConfig.expiredDay;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
@@ -17,6 +18,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 import static org.bukkit.Bukkit.getLogger;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -24,12 +27,47 @@ import org.bukkit.inventory.ItemStack;
 
 public class MailBoxAPI {
     
-    private static final String VERSION = MailBox.getInstance().getDescription().getVersion();
+    private static Economy economy = null;
+    private static String VERSION;
     private static final String DATA_FOLDER = "plugins/VexMailBox";
+    
+    // 设置插件版本
+    public static void setVersion(){
+        VERSION = MailBox.getInstance().getDescription().getVersion();
+    }
     
     // 获取插件版本
     public static String getVersion(){
+        if(VERSION==null) setVersion();
         return VERSION;
+    }
+    
+    // 设置[Vault]
+    public static boolean setEconomy(Economy eco){
+        economy = eco;
+        return economy != null;
+    }
+    
+    // 获取玩家余额
+    public static double getEconomyBalance(Player p){
+        return economy.getBalance(p);
+    }
+
+    // 格式化字符串
+    public static String getEconomyFormat(double coin){
+        return economy.format(coin);
+    }
+    
+    // 给玩家钱
+    public static boolean addEconomy(Player p, double coin){
+        EconomyResponse r = economy.depositPlayer(p, coin);
+        return r.transactionSuccess();
+    }
+    
+    // 拿玩家钱
+    public static boolean reduceEconomy(Player p, double coin){
+        EconomyResponse r = economy.withdrawPlayer(p, coin);
+        return r.transactionSuccess();
     }
     
     // 获取与该玩家有关的邮件
@@ -116,6 +154,7 @@ public class MailBoxAPI {
         mailFiles.set("cmd.enable", fm.getHasCommand());
         mailFiles.set("cmd.commands", fm.getCommandList());
         mailFiles.set("cmd.descriptions", fm.getCommandDescription());
+        mailFiles.set("money.coin", fm.getCoin());
         try {
             mailFiles.save(f);
             return true;
@@ -195,6 +234,26 @@ public class MailBoxAPI {
         }
     }
     
+    // 取出附件内的钱
+    public static double[] getFileMoney(String type, String fileName) {
+        double[] t = {0};
+        if(GlobalConfig.enVault){
+            YamlConfiguration mailFiles;
+            File f = new File(DATA_FOLDER+"/MailFiles/"+type, fileName+".yml");
+            if(f.exists()){
+                mailFiles = YamlConfiguration.loadConfiguration(f);
+                if(mailFiles.contains("money.coin")){
+                    t[0] = mailFiles.getInt("money.coin");
+                }
+                return t;
+            }else{
+                return t;
+            }
+        }else{
+            return t;
+        }
+    }
+    
     // 将手上物品写入itemstack.yml
     public static boolean saveItem(ItemStack is){
         File f = new File(DATA_FOLDER);
@@ -242,7 +301,8 @@ public class MailBoxAPI {
                     "0",
                     getFileItems("custom", filename),
                     cl,
-                    cd
+                    cd,
+                    mailFiles.getInt("money.coin")
                 ));
             }else{
                 return(new TextMail(
@@ -306,15 +366,9 @@ public class MailBoxAPI {
             long dt = dd.parse(ds).getTime();
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String sendTime = tm.getDate();
-            System.out.println(sendTime);
             String nowTime = DateTime.get("ymdhms");
-            System.out.println(nowTime);
             long st = df.parse(sendTime).getTime();
             long nt = df.parse(nowTime).getTime();
-            System.out.println(st);
-            System.out.println(dt);
-            System.out.println(nt);
-            System.out.println(st+dt);
             return st+dt<=nt;
         } catch (ParseException ex) {
             getLogger().info(ex.getLocalizedMessage());
@@ -326,7 +380,6 @@ public class MailBoxAPI {
     public static String getMD5(String type) throws IOException{
         String md5 = MD5.Hex(DateTime.get("ms"));
         while(existFiles(md5, type)){
-            System.out.println("1");
             md5 = MD5.Hex(DateTime.get("ms"));
         }
         return md5;

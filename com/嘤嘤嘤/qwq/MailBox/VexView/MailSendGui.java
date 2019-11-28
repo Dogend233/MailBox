@@ -4,6 +4,7 @@ import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
+import static com.嘤嘤嘤.qwq.MailBox.GlobalConfig.vaultDisplay;
 import static com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui.openMailBoxGui;
 import static com.嘤嘤嘤.qwq.MailBox.VexView.MailContentGui.openMailContentGui;
 import java.io.IOException;
@@ -21,7 +22,6 @@ import lk.vexview.gui.components.VexImage;
 import lk.vexview.gui.components.VexSlot;
 import lk.vexview.gui.components.VexText;
 import lk.vexview.gui.components.VexTextField;
-import org.bukkit.Bukkit;
 import static org.bukkit.Material.AIR;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -49,17 +49,22 @@ public class MailSendGui extends VexInventoryGui{
     private static List<Integer> slot_x;
     private static List<Integer> slot_y;
     private static List<VexImage> solt_image = new ArrayList();
-    private static List<Integer> player_in;
-    private static List<Integer> player_out;
+    private static VexImage image_coin;
     
+    private boolean enVault;
+    private double bal = 0;
+    private String balF;
     private String type;
     private boolean perm_cmd = false;
+    private boolean perm_coin = false;
     private int perm_item = 0;
     
     public MailSendGui(Player p, String type) {
         super(gui_img,gui_x,gui_y,gui_w,gui_h,gui_ww,gui_hh,gui_ix,gui_iy);
+        enVault = GlobalConfig.enVault;
         this.type = type;
         perm_cmd = p.hasPermission("mailbox.admin.send.command");
+        perm_coin = p.hasPermission("mailbox.send.money.coin");
         for(int i=5;i>0;i--){
             if(p.hasPermission("mailbox.send.item."+i)){
                 perm_item = i;
@@ -67,8 +72,8 @@ public class MailSendGui extends VexInventoryGui{
             }
         }
         this.addComponent(button_return);
-        button_preview.setFunction(player -> previewMail(player));
         this.addComponent(button_preview);
+        this.getButtonById(button_preview.getId()).setFunction(player -> previewMail(player));
         this.addComponent(text_topic);
         this.addComponent(getTextField(field.get("topic")));
         this.addComponent(text_text);
@@ -88,6 +93,14 @@ public class MailSendGui extends VexInventoryGui{
             case "player" :
                 this.addComponent(text_recipient);
                 this.addComponent(getTextField(field.get("recipient")));
+        }
+        if(enVault && perm_coin){
+            bal = MailBoxAPI.getEconomyBalance(p);
+            balF = MailBoxAPI.getEconomyFormat(bal);
+            this.addComponent(image_coin);
+            VexTextField vtf = getTextField(field.get("coin"));
+            vtf.setHover(new VexHoverText(Arrays.asList("余额："+balF)));
+            this.addComponent(vtf);
         }
     }
     
@@ -168,13 +181,21 @@ public class MailSendGui extends VexInventoryGui{
         int field_description_w,
         int field_description_h,
         int field_description_max,
+        int field_coin_x,
+        int field_coin_y,
+        int field_coin_w,
+        int field_coin_h,
+        int field_coin_max,
+        String image_coin_url,
+        int image_coin_x,
+        int image_coin_y,
+        int image_coin_w,
+        int image_coin_h,
         String slot_img,
         int slot_w,
         int slot_h,
         List<Integer> slot_x,
-        List<Integer> slot_y,
-        List<Integer> player_in,
-        List<Integer> player_out
+        List<Integer> slot_y
     ){
         // GUI
         MailSendGui.gui_img = gui_img;
@@ -206,6 +227,9 @@ public class MailSendGui extends VexInventoryGui{
         field.put("text", new int[]{field_text_x,field_text_y,field_text_w,field_text_h,field_text_max,3});
         field.put("command", new int[]{field_command_x,field_command_y,field_command_w,field_command_h,field_command_max,4});
         field.put("description", new int[]{field_description_x,field_description_y,field_description_w,field_description_h,field_description_max,5});
+        field.put("coin", new int[]{field_coin_x,field_coin_y,field_coin_w,field_coin_h,field_coin_max,6});
+        // [Vault]提示图
+        image_coin = new VexImage(image_coin_url,image_coin_x,image_coin_y,image_coin_w,image_coin_h);
         // 物品槽
         MailSendGui.slot_x = slot_x;
         MailSendGui.slot_y = slot_y;
@@ -217,9 +241,6 @@ public class MailSendGui extends VexInventoryGui{
             int y = slot_y.get(i);
             solt_image.add(new VexImage(slot_img,x+x_offset,y+y_offset,slot_w,slot_h));
         }
-        // 玩家发件上限
-        MailSendGui.player_in = player_in;
-        MailSendGui.player_out = player_out;
     }
     
     // 获取文本框
@@ -236,6 +257,22 @@ public class MailSendGui extends VexInventoryGui{
         List<String> cl = new ArrayList();
         List<String> cd = new ArrayList();
         ArrayList<ItemStack> al = new ArrayList();
+        double co = 0;
+        if(enVault && perm_coin){
+            try{
+                co = Double.parseDouble(ovg.getVexGui().getTextField(field.get("coin")[5]).getTypedText());
+            }catch(NumberFormatException e){
+                p.sendMessage(GlobalConfig.warning+"[邮件预览]："+vaultDisplay+GlobalConfig.warning+"输入格式错误");
+                return;
+            }
+            if(co>bal && !p.hasPermission("mailbox.admin.send.check.coin")){
+                p.sendMessage(GlobalConfig.warning+"[邮件预览]："+vaultDisplay+GlobalConfig.warning+"余额不足");
+                return;
+            }else if(co>GlobalConfig.vaultMax && !p.hasPermission("mailbox.admin.send.check.coin")){
+                p.sendMessage(GlobalConfig.warning+"[邮件预览]："+vaultDisplay+GlobalConfig.warning+"超出最大发送限制");
+                return;
+            }
+        }
         boolean valid = false;
         switch (type) {
             case "player":
@@ -260,12 +297,9 @@ public class MailSendGui extends VexInventoryGui{
                 if(description!=null) cd.addAll(Arrays.asList(description));
             }
             if(perm_item!=0){
-                System.out.println(al);
                 al = getItem(ovg);
-                System.out.println(al);
-                System.out.println(al.isEmpty());
             }
-            if(al.isEmpty() && cl.isEmpty() && cd.isEmpty()){
+            if(al.isEmpty() && cl.isEmpty() && cd.isEmpty() && co==0){
                 TextMail tm = new TextMail(type, 0, p.getName(), rl, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null);
                 try{
                     openMailContentGui(p, tm, this, false);
@@ -273,7 +307,7 @@ public class MailSendGui extends VexInventoryGui{
                     p.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
                 }
             }else{
-                FileMail fm = new FileMail(type, 0, p.getName(), rl, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null, "0", al, cl, cd);
+                FileMail fm = new FileMail(type, 0, p.getName(), rl, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null, "0", al, cl, cd, co);
                 try{
                     openMailContentGui(p, fm, this, false);
                 }catch(IOException e){
@@ -368,7 +402,6 @@ public class MailSendGui extends VexInventoryGui{
     
     // 获取附件物品
     private ArrayList<ItemStack> getItem(OpenedVexGui ovg){
-        System.out.println(perm_item);
         ArrayList<ItemStack> oldi = new ArrayList();
         ArrayList<ItemStack> newi = new ArrayList();
         ArrayList<Integer> no = new ArrayList();
@@ -396,7 +429,7 @@ public class MailSendGui extends VexInventoryGui{
     // 打开发送邮件GUI
     public static void openMailSendGui(Player p, String type, VexGui gui) {
         if(type.equals("player")){
-            int out = MailBoxAPI.playerAsSenderAllow(p, player_out);
+            int out = MailBoxAPI.playerAsSenderAllow(p, GlobalConfig.player_out);
             int outed = MailBoxAPI.playerAsSender(p);
             if((out-outed)<=0){
                 p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你的"+GlobalConfig.getTypeName(type)+"邮件发送数量达到上限");

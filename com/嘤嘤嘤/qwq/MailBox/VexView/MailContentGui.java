@@ -1,5 +1,6 @@
 package com.嘤嘤嘤.qwq.MailBox.VexView;
 
+import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
@@ -35,16 +36,6 @@ public class MailContentGui extends VexGui{
     private static HashMap<String, String[]> buttonString = new HashMap();
     private static HashMap<String, int[]> buttonInt = new HashMap();
     private static HashMap<String, List> buttonHover = new HashMap();
-
-    private static String button_send_id;
-    private static String button_send_text;
-    private static String button_send_img_1;
-    private static String button_send_img_2;
-    private static int button_send_x;
-    private static int button_send_y;
-    private static int button_send_w;
-    private static int button_send_h;
-    private static List<String> button_send_hover;
     private static int text_topic_x;
     private static int text_topic_y;
     private static double text_topic_size;
@@ -58,6 +49,11 @@ public class MailContentGui extends VexGui{
     private static int text_sender_y;
     private static double text_sender_size;
     private static String text_sender_prefix;
+    private static int text_coin_x;
+    private static int text_coin_y;
+    private static double text_coin_size;
+    private static String text_coin_prefix;
+    private static String text_coin_suffix;
     private static VexText text_file_yes;
     private static VexText text_file_no;
     private static VexText text_cmd;
@@ -75,6 +71,7 @@ public class MailContentGui extends VexGui{
     private static int image_cmd_y;
     private static int image_cmd_w;
     private static int image_cmd_h;
+    private static VexImage image_coin;
     private static String slot_img;
     private static int slot_w;
     private static int slot_h;
@@ -221,6 +218,11 @@ public class MailContentGui extends VexGui{
         int text_sender_y,
         double text_sender_size,
         String text_sender_prefix,
+        int text_coin_x,
+        int text_coin_y,
+        double text_coin_size,
+        String text_coin_prefix,
+        String text_coin_suffix,
         int text_file_x,
         int text_file_y,
         String text_file_text_yes,
@@ -244,6 +246,11 @@ public class MailContentGui extends VexGui{
         int image_cmd_y,
         int image_cmd_w,
         int image_cmd_h,
+        String image_coin_url,
+        int image_coin_x,
+        int image_coin_y,
+        int image_coin_w,
+        int image_coin_h,
         String slot_img,
         int slot_w,
         int slot_h,
@@ -295,6 +302,12 @@ public class MailContentGui extends VexGui{
         MailContentGui.text_sender_y = text_sender_y;
         MailContentGui.text_sender_size = text_sender_size;
         MailContentGui.text_sender_prefix = text_sender_prefix;
+        // Vault的金币
+        MailContentGui.text_coin_x = text_coin_x;
+        MailContentGui.text_coin_y = text_coin_y;
+        MailContentGui.text_coin_size = text_coin_size;
+        MailContentGui.text_coin_prefix = text_coin_prefix;
+        MailContentGui.text_coin_suffix = text_coin_suffix;
         // 附件提示字
         text_file_yes = new VexText(text_file_x, text_file_y, Arrays.asList(text_file_text_yes), text_file_size);
         text_file_no = new VexText(text_file_x, text_file_y, Arrays.asList(text_file_text_no), text_file_size);
@@ -316,6 +329,8 @@ public class MailContentGui extends VexGui{
         MailContentGui.image_cmd_y = image_cmd_y;
         MailContentGui.image_cmd_w = image_cmd_w;
         MailContentGui.image_cmd_h = image_cmd_h;
+        // Vault的金币指示图
+        image_coin = new VexImage(image_coin_url,image_coin_x,image_coin_y,image_coin_w,image_coin_h);
         // 物品槽
         MailContentGui.slot_img = slot_img;
         MailContentGui.slot_w = slot_w;
@@ -323,8 +338,6 @@ public class MailContentGui extends VexGui{
         MailContentGui.slot_x = slot_x;
         MailContentGui.slot_y = slot_y;
     }
-    
-    
     
     // 对文本邮件的操作
     private void textMail(TextMail tm, Player p){
@@ -390,7 +403,7 @@ public class MailContentGui extends VexGui{
     // 对附件邮件的操作
     private void fileMail(TextMail tm, Player p, int mail){
         FileMail fm = (FileMail) tm;
-        if((fm.getHasItem() && !fm.getItemList().isEmpty()) || (fm.getHasCommand() && !fm.getCommandList().isEmpty())){
+        if((fm.getHasItem() && !fm.getItemList().isEmpty()) || (fm.getHasCommand() && !fm.getCommandList().isEmpty()) || fm.getCoin()!=0){
             // 附件文字
             VexText vtF = text_file_yes;
             // 附件类型+名称
@@ -416,6 +429,15 @@ public class MailContentGui extends VexGui{
                 List<String> cD = fm.getCommandDescription();
                 if(!cD.isEmpty()) vi.setHover(new VexHoverText(cD));
                 this.addComponent(vi);
+            }
+            // 附件vault金币
+            if(GlobalConfig.enVault){
+                double coin = fm.getCoin();
+                if(coin!=0){
+                    String c = MailBoxAPI.getEconomyFormat(coin);
+                    this.addComponent(image_coin);
+                    this.addComponent(new VexText(text_coin_x,text_coin_y,Arrays.asList(text_coin_prefix+c+text_coin_suffix),text_coin_size));
+                }
             }
             // 发送邮件/领取附件按钮
             if(mail==0){

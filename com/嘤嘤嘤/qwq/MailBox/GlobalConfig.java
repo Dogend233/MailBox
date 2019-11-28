@@ -1,6 +1,10 @@
 package com.嘤嘤嘤.qwq.MailBox;
 
+import java.util.List;
+
 public class GlobalConfig {
+    public static boolean enVexView;
+    public static boolean enVault;
     
     private static String mailDisplay_SYSTEM;
     private static String mailDisplay_PLAYER;
@@ -11,6 +15,19 @@ public class GlobalConfig {
     public static String fileDiv;
     public static String fileCmdPlayer;
     public static String expiredDay;
+    public static List<Integer> player_out;
+    public static String vaultDisplay;
+    public static int vaultMax;
+    
+    public static boolean setVexView(boolean vv){
+        enVexView = vv;
+        return enVexView;
+    }
+    
+    public static boolean setVault(boolean v){
+        enVault = v;
+        return enVault;
+    }
     
     public static void setGlobalConfig(
         String pluginPrefix,
@@ -21,7 +38,10 @@ public class GlobalConfig {
         String mailDisplay_PLAYER,
         String fileDiv,
         String fileCmdPlayer,
-        String expiredDay
+        String expiredDay,
+        List<Integer> player_out,
+        String vaultDisplay,
+        int vaultMax
     ){
         // 全局
         GlobalConfig.pluginPrefix = pluginPrefix;// 插件提示信息前缀
@@ -33,8 +53,12 @@ public class GlobalConfig {
         // 附件
         GlobalConfig.fileDiv = fileDiv;// 分割符
         GlobalConfig.fileCmdPlayer = fileCmdPlayer;// 领取邮件的玩家变量
-        // player邮件过期时间
-        GlobalConfig.expiredDay = expiredDay;
+        // player邮件
+        GlobalConfig.expiredDay = expiredDay;// 过期时间
+        GlobalConfig.player_out = player_out;// 玩家发件量
+        // [Vault]设置
+        GlobalConfig.vaultDisplay = vaultDisplay;// 显示名称
+        GlobalConfig.vaultMax = vaultMax;// 单次邮件发送最大值
     }
     
     public static String getTypeName(String type) {

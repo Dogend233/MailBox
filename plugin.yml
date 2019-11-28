@@ -1,11 +1,11 @@
 name: VexMailBox
 main: com.嘤嘤嘤.qwq.MailBox.MailBox
-version: 1.2.0
+version: 1.2.1
 description: 嘤嘤嘤邮箱插件
 author: Dogend
 website: qwq.嘤嘤嘤.com
 prefix: 邮箱
-softdepend: [VexView]
+softdepend: [VexView, Vault]
 commands:
     mailbox:
         description: 嘤嘤嘤邮箱插件的指令

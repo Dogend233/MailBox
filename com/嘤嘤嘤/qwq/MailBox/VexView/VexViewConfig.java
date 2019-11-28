@@ -201,6 +201,11 @@ public class VexViewConfig {
             content.getInt("text.sender.y"),
             content.getDouble("text.sender.size"),
             content.getString("text.sender.prefix"),
+            content.getInt("text.coin.x"),
+            content.getInt("text.coin.y"),
+            content.getDouble("text.coin.size"),
+            content.getString("text.coin.prefix"),
+            content.getString("text.coin.suffix"),
             content.getInt("text.file.x"),
             content.getInt("text.file.y"),
             content.getString("text.file.text_yes"),
@@ -224,6 +229,11 @@ public class VexViewConfig {
             content.getInt("image.cmd.y"),
             content.getInt("image.cmd.w"),
             content.getInt("image.cmd.h"),
+            content.getString("image.coin.url"),
+            content.getInt("image.coin.x"),
+            content.getInt("image.coin.y"),
+            content.getInt("image.coin.w"),
+            content.getInt("image.coin.h"),
             content.getString("slot.img"),
             content.getInt("slot.w"),
             content.getInt("slot.h"),
@@ -327,13 +337,21 @@ public class VexViewConfig {
             send.getInt("field.description.w"),
             send.getInt("field.description.h"),
             send.getInt("field.description.max"),
+            send.getInt("field.coin.x"),
+            send.getInt("field.coin.y"),
+            send.getInt("field.coin.w"),
+            send.getInt("field.coin.h"),
+            send.getInt("field.coin.max"),
+            send.getString("image.coin.url"),
+            send.getInt("image.coin.x"),
+            send.getInt("image.coin.y"),
+            send.getInt("image.coin.w"),
+            send.getInt("image.coin.h"),
             send.getString("slot.img"),
             send.getInt("slot.w"),
             send.getInt("slot.h"),
             send.getIntegerList("slot.x"),
-            send.getIntegerList("slot.y"),
-            send.getIntegerList("player_max.in"),
-            send.getIntegerList("player_max.out")
+            send.getIntegerList("slot.y")
         );
     }
     
@@ -372,9 +390,9 @@ public class VexViewConfig {
                 os.flush();
                 os.close();
                 is.close();
-                Bukkit.getConsoleSender().sendMessage("§a"+filename+"配置文件创建成功");
+                Bukkit.getConsoleSender().sendMessage("§a-----"+filename+"配置文件创建成功");
             } catch (IOException ex) {
-                Bukkit.getConsoleSender().sendMessage("§c"+filename+"配置文件创建失败");
+                Bukkit.getConsoleSender().sendMessage("§c-----"+filename+"配置文件创建失败");
                 getLogger().info(ex.getLocalizedMessage());
                 return null;
             }
