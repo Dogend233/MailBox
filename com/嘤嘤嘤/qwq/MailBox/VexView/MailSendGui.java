@@ -50,21 +50,26 @@ public class MailSendGui extends VexInventoryGui{
     private static List<Integer> slot_y;
     private static List<VexImage> solt_image = new ArrayList();
     private static VexImage image_coin;
+    private static VexImage image_point;
     
     private boolean enVault;
-    private double bal = 0;
-    private String balF;
+    private boolean enPlayerPoints;
+    private double bal_coin = 0;
+    private int bal_point = 0;
     private String type;
     private boolean perm_cmd = false;
     private boolean perm_coin = false;
+    private boolean perm_point = false;
     private int perm_item = 0;
     
     public MailSendGui(Player p, String type) {
         super(gui_img,gui_x,gui_y,gui_w,gui_h,gui_ww,gui_hh,gui_ix,gui_iy);
         enVault = GlobalConfig.enVault;
+        enPlayerPoints = GlobalConfig.enPlayerPoints;
         this.type = type;
         perm_cmd = p.hasPermission("mailbox.admin.send.command");
         perm_coin = p.hasPermission("mailbox.send.money.coin");
+        perm_point = p.hasPermission("mailbox.send.money.point");
         for(int i=5;i>0;i--){
             if(p.hasPermission("mailbox.send.item."+i)){
                 perm_item = i;
@@ -95,11 +100,18 @@ public class MailSendGui extends VexInventoryGui{
                 this.addComponent(getTextField(field.get("recipient")));
         }
         if(enVault && perm_coin){
-            bal = MailBoxAPI.getEconomyBalance(p);
-            balF = MailBoxAPI.getEconomyFormat(bal);
+            bal_coin = MailBoxAPI.getEconomyBalance(p);
+            //String bal = MailBoxAPI.getEconomyFormat(bal_coin);
             this.addComponent(image_coin);
             VexTextField vtf = getTextField(field.get("coin"));
-            vtf.setHover(new VexHoverText(Arrays.asList("余额："+balF)));
+            vtf.setHover(new VexHoverText(Arrays.asList("余额："+bal_coin)));
+            this.addComponent(vtf);
+        }
+        if(enPlayerPoints && perm_point){
+            bal_point = MailBoxAPI.getPoints(p);
+            this.addComponent(image_point);
+            VexTextField vtf = getTextField(field.get("point"));
+            vtf.setHover(new VexHoverText(Arrays.asList("余额："+bal_point)));
             this.addComponent(vtf);
         }
     }
@@ -186,11 +198,21 @@ public class MailSendGui extends VexInventoryGui{
         int field_coin_w,
         int field_coin_h,
         int field_coin_max,
+        int field_point_x,
+        int field_point_y,
+        int field_point_w,
+        int field_point_h,
+        int field_point_max,
         String image_coin_url,
         int image_coin_x,
         int image_coin_y,
         int image_coin_w,
         int image_coin_h,
+        String image_point_url,
+        int image_point_x,
+        int image_point_y,
+        int image_point_w,
+        int image_point_h,
         String slot_img,
         int slot_w,
         int slot_h,
@@ -227,9 +249,12 @@ public class MailSendGui extends VexInventoryGui{
         field.put("text", new int[]{field_text_x,field_text_y,field_text_w,field_text_h,field_text_max,3});
         field.put("command", new int[]{field_command_x,field_command_y,field_command_w,field_command_h,field_command_max,4});
         field.put("description", new int[]{field_description_x,field_description_y,field_description_w,field_description_h,field_description_max,5});
-        field.put("coin", new int[]{field_coin_x,field_coin_y,field_coin_w,field_coin_h,field_coin_max,6});
+        field.put("coin", new int[]{field_coin_x,field_coin_y,field_coin_w,field_coin_h,field_coin_max,6,0});
+        field.put("point", new int[]{field_point_x,field_point_y,field_point_w,field_point_h,field_point_max,7,0});
         // [Vault]提示图
         image_coin = new VexImage(image_coin_url,image_coin_x,image_coin_y,image_coin_w,image_coin_h);
+        // [PlayerPoints]提示图
+        image_point = new VexImage(image_point_url,image_point_x,image_point_y,image_point_w,image_point_h);
         // 物品槽
         MailSendGui.slot_x = slot_x;
         MailSendGui.slot_y = slot_y;
@@ -245,7 +270,9 @@ public class MailSendGui extends VexInventoryGui{
     
     // 获取文本框
     private VexTextField getTextField(int[] f){
-        return new VexTextField(f[0],f[1],f[2],f[3],f[4],f[5]);
+        if(f.length==7) return new VexTextField(f[0],f[1],f[2],f[3],f[4],f[5],Integer.toString(f[6]));
+        else return new VexTextField(f[0],f[1],f[2],f[3],f[4],f[5]);
+        
     }
     
     // 预览邮件
@@ -258,19 +285,41 @@ public class MailSendGui extends VexInventoryGui{
         List<String> cd = new ArrayList();
         ArrayList<ItemStack> al = new ArrayList();
         double co = 0;
+        int po = 0;
         if(enVault && perm_coin){
-            try{
-                co = Double.parseDouble(ovg.getVexGui().getTextField(field.get("coin")[5]).getTypedText());
-            }catch(NumberFormatException e){
-                p.sendMessage(GlobalConfig.warning+"[邮件预览]："+vaultDisplay+GlobalConfig.warning+"输入格式错误");
-                return;
+            String t = ovg.getVexGui().getTextField(field.get("coin")[5]).getTypedText();
+            if(t!=null && !t.equals("")){
+                try{
+                    co = Double.parseDouble(t);
+                }catch(NumberFormatException e){
+                    p.sendMessage(GlobalConfig.warning+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.warning+"输入格式错误");
+                    return;
+                }
+                if(co>bal_coin && !p.hasPermission("mailbox.admin.send.check.coin")){
+                    p.sendMessage(GlobalConfig.warning+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.warning+"余额不足");
+                    return;
+                }else if(co>GlobalConfig.vaultMax && !p.hasPermission("mailbox.admin.send.check.coin")){
+                    p.sendMessage(GlobalConfig.warning+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.warning+"超出最大发送限制");
+                    return;
+                }
             }
-            if(co>bal && !p.hasPermission("mailbox.admin.send.check.coin")){
-                p.sendMessage(GlobalConfig.warning+"[邮件预览]："+vaultDisplay+GlobalConfig.warning+"余额不足");
-                return;
-            }else if(co>GlobalConfig.vaultMax && !p.hasPermission("mailbox.admin.send.check.coin")){
-                p.sendMessage(GlobalConfig.warning+"[邮件预览]："+vaultDisplay+GlobalConfig.warning+"超出最大发送限制");
-                return;
+        }
+        if(enPlayerPoints && perm_point){
+            String t = ovg.getVexGui().getTextField(field.get("point")[5]).getTypedText();
+            if(t!=null && !t.equals("")){
+                try{
+                    po = Integer.parseInt(t);
+                }catch(NumberFormatException e){
+                    p.sendMessage(GlobalConfig.warning+"[邮件预览]："+GlobalConfig.playerPointsDisplay+GlobalConfig.warning+"输入格式错误");
+                    return;
+                }
+                if(po>bal_point && !p.hasPermission("mailbox.admin.send.check.point")){
+                    p.sendMessage(GlobalConfig.warning+"[邮件预览]："+GlobalConfig.playerPointsDisplay+GlobalConfig.warning+"余额不足");
+                    return;
+                }else if(po>GlobalConfig.playerPointsMax && !p.hasPermission("mailbox.admin.send.check.coin")){
+                    p.sendMessage(GlobalConfig.warning+"[邮件预览]："+GlobalConfig.playerPointsDisplay+GlobalConfig.warning+"超出最大发送限制");
+                    return;
+                }
             }
         }
         boolean valid = false;
@@ -299,7 +348,7 @@ public class MailSendGui extends VexInventoryGui{
             if(perm_item!=0){
                 al = getItem(ovg);
             }
-            if(al.isEmpty() && cl.isEmpty() && cd.isEmpty() && co==0){
+            if(al.isEmpty() && cl.isEmpty() && cd.isEmpty() && co==0 && po==0){
                 TextMail tm = new TextMail(type, 0, p.getName(), rl, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null);
                 try{
                     openMailContentGui(p, tm, this, false);
@@ -307,7 +356,7 @@ public class MailSendGui extends VexInventoryGui{
                     p.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
                 }
             }else{
-                FileMail fm = new FileMail(type, 0, p.getName(), rl, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null, "0", al, cl, cd, co);
+                FileMail fm = new FileMail(type, 0, p.getName(), rl, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null, "0", al, cl, cd, co, po);
                 try{
                     openMailContentGui(p, fm, this, false);
                 }catch(IOException e){

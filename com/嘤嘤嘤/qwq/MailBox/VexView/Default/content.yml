@@ -156,6 +156,18 @@ text:
     prefix: '§e'
     #后缀
     suffix: '§6 金币'
+  #PlayerPoints的点券数值
+  point:
+    #x坐标
+    x: 45
+    #y坐标
+    y: 155
+    #文字大小（可以小数）
+    size: 1
+    #前缀
+    prefix: '§a'
+    #后缀
+    suffix: '§b 点券'
   #附件
   file:
     #x坐标
@@ -222,6 +234,18 @@ image:
     x: 35
     #y坐标
     y: 145
+    #显示宽度
+    w: 8
+    #显示高度
+    h: 8
+  #PlayerPoints的点券提示图
+  point:
+    #图片地址
+    url: '[local]MailBox/img_point.png'
+    #x坐标
+    x: 35
+    #y坐标
+    y: 155
     #显示宽度
     w: 8
     #显示高度

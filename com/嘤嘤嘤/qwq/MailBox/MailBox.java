@@ -22,9 +22,11 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import lk.vexview.api.VexViewAPI;
 import net.milkbowl.vault.economy.Economy;
+import org.black_ixx.playerpoints.PlayerPoints;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -191,6 +193,13 @@ public class MailBox extends JavaPlugin {
         }else{
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:前置插件[Vault]未安装，已关闭相关功能");
         }
+        // 检查前置[PlayerPoints]
+        GlobalConfig.setPlayerPoints(setupPoints());
+        if(GlobalConfig.enPlayerPoints){
+            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[PlayerPoints]已安装");
+        }else{
+            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:前置插件[PlayerPoints]未安装，已关闭相关功能");
+        }
         // 检查前置[VexView]
         if(Bukkit.getPluginManager().isPluginEnabled("VexView")){
             String version = VexViewAPI.getVexView().getVersion();
@@ -226,14 +235,17 @@ public class MailBox extends JavaPlugin {
     
     // 设置Vault
     private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
+        if(getServer().getPluginManager().getPlugin("Vault") == null) return false;
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            return false;
-        }
+        if (rsp == null) return false;
         return MailBoxAPI.setEconomy(rsp.getProvider());
+    }
+    
+    // 设置PlayerPoints
+    private boolean setupPoints() {
+        Plugin plugin = getServer().getPluginManager().getPlugin("PlayerPoints");
+        if(plugin == null) return false;
+        return MailBoxAPI.setPoints(PlayerPoints.class.cast(plugin)); 
     }
     
     @Override
@@ -362,7 +374,9 @@ public class MailBox extends JavaPlugin {
             config.getString("mailbox.player_maxtime"),
             config.getIntegerList("mailbox.player_max.out"),
             config.getString("mailbox.vault.display"),
-            config.getInt("mailbox.vault.max")
+            config.getDouble("mailbox.vault.max"),
+            config.getString("mailbox.player_points.display"),
+            config.getInt("mailbox.player_points.max")
         );
         // 设置VexViewConfig
         if(GlobalConfig.enVexView) VexViewConfigSet();

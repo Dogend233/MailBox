@@ -5,6 +5,7 @@ import java.util.List;
 public class GlobalConfig {
     public static boolean enVexView;
     public static boolean enVault;
+    public static boolean enPlayerPoints;
     
     private static String mailDisplay_SYSTEM;
     private static String mailDisplay_PLAYER;
@@ -17,7 +18,9 @@ public class GlobalConfig {
     public static String expiredDay;
     public static List<Integer> player_out;
     public static String vaultDisplay;
-    public static int vaultMax;
+    public static double vaultMax;
+    public static String playerPointsDisplay;
+    public static int playerPointsMax;
     
     public static boolean setVexView(boolean vv){
         enVexView = vv;
@@ -27,6 +30,11 @@ public class GlobalConfig {
     public static boolean setVault(boolean v){
         enVault = v;
         return enVault;
+    }
+    
+    public static boolean setPlayerPoints(boolean pp){
+        enPlayerPoints = pp;
+        return enPlayerPoints;
     }
     
     public static void setGlobalConfig(
@@ -41,7 +49,9 @@ public class GlobalConfig {
         String expiredDay,
         List<Integer> player_out,
         String vaultDisplay,
-        int vaultMax
+        double vaultMax,
+        String playerPointsDisplay,
+        int playerPointsMax
     ){
         // 全局
         GlobalConfig.pluginPrefix = pluginPrefix;// 插件提示信息前缀
@@ -59,6 +69,9 @@ public class GlobalConfig {
         // [Vault]设置
         GlobalConfig.vaultDisplay = vaultDisplay;// 显示名称
         GlobalConfig.vaultMax = vaultMax;// 单次邮件发送最大值
+        // [PlayerPoints]设置
+        GlobalConfig.playerPointsDisplay = playerPointsDisplay;// 显示名称
+        GlobalConfig.playerPointsMax = playerPointsMax;// 单次邮件发送最大值
     }
     
     public static String getTypeName(String type) {

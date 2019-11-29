@@ -196,6 +196,18 @@ field:
     h: 12
     #最大字符长度（最大255）
     max: 10
+  #PlayerPoints 的点券
+  point:
+    #x坐标
+    x: 110
+    #y坐标
+    y: 160
+    #显示宽度
+    w: 50
+    #显示高度
+    h: 12
+    #最大字符长度（最大255）
+    max: 10
 #物品槽（实际大小18x，鼠标悬停时高亮部分为16x）
 slot:
   #物品槽背景图
@@ -226,6 +238,18 @@ image:
     url: '[local]MailBox/img_coin.png'
     #x坐标
     x: 164
+    #y坐标
+    y: 159
+    #显示宽度
+    w: 14
+    #显示高度
+    h: 14
+  #PlayerPoints的点券图标
+  point:
+    #图片地址
+    url: '[local]MailBox/img_point.png'
+    #x坐标
+    x: 94
     #y坐标
     y: 159
     #显示宽度

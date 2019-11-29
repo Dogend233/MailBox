@@ -30,5 +30,7 @@ is:
     amount: 3
 #邮件包含金钱
 money:
-  #vault的金钱
+  #Vault的金币
   coin: 50
+  #PlayerPoints的点券
+  point: 10

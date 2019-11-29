@@ -58,3 +58,9 @@ mailbox:
     display: '§e金币'
     #玩家单封邮件可发送的最大数量
     max: 5000
+  #PlayerPoints点券插件
+  player_points:
+    #显示名称
+    display: '§b点券'
+    #玩家单封邮件可发送的最大数量
+    max: 5000

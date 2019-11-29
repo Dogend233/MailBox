@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.black_ixx.playerpoints.PlayerPoints;
 import static org.bukkit.Bukkit.getLogger;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -28,6 +29,7 @@ import org.bukkit.inventory.ItemStack;
 public class MailBoxAPI {
     
     private static Economy economy = null;
+    private static PlayerPoints points = null;
     private static String VERSION;
     private static final String DATA_FOLDER = "plugins/VexMailBox";
     
@@ -48,26 +50,47 @@ public class MailBoxAPI {
         return economy != null;
     }
     
-    // 获取玩家余额
+    // 获取玩家[Vault]余额
     public static double getEconomyBalance(Player p){
         return economy.getBalance(p);
     }
 
-    // 格式化字符串
-    public static String getEconomyFormat(double coin){
+    // 格式化[Vault]字符串
+    /*public static String getEconomyFormat(double coin){
         return economy.format(coin);
-    }
+    }*/
     
-    // 给玩家钱
+    // 给玩家[Vault]的钱
     public static boolean addEconomy(Player p, double coin){
         EconomyResponse r = economy.depositPlayer(p, coin);
         return r.transactionSuccess();
     }
     
-    // 拿玩家钱
+    // 拿玩家[Vault]的钱
     public static boolean reduceEconomy(Player p, double coin){
         EconomyResponse r = economy.withdrawPlayer(p, coin);
         return r.transactionSuccess();
+    }
+    
+    // 设置[PlayerPoint]
+    public static boolean setPoints(PlayerPoints p){
+        points = p;
+        return points != null;
+    }
+    
+    // 获取玩家[PlayerPoint]余额
+    public static int getPoints(Player p){
+        return points.getAPI().look(p.getUniqueId());
+    }
+    
+    // 给玩家[PlayerPoint]的钱
+    public static boolean addPoints(Player p, int point){
+        return points.getAPI().give(p.getUniqueId(), point);
+    }
+    
+    // 拿玩家[PlayerPoint]的钱
+    public static boolean reducePoints(Player p, int point){
+        return points.getAPI().take(p.getUniqueId(), point);
     }
     
     // 获取与该玩家有关的邮件
@@ -145,16 +168,17 @@ public class MailBoxAPI {
                 return false;
             }
         }
-        if(fm.getHasItem()){
+        if(fm.isHasItem()){
             ArrayList<ItemStack> isl = fm.getItemList();
             for(int i=0;i<isl.size();i++){
                 mailFiles.set("is."+(i+1), isl.get(i));
             }
         }
-        mailFiles.set("cmd.enable", fm.getHasCommand());
+        mailFiles.set("cmd.enable", fm.isHasCommand());
         mailFiles.set("cmd.commands", fm.getCommandList());
         mailFiles.set("cmd.descriptions", fm.getCommandDescription());
         mailFiles.set("money.coin", fm.getCoin());
+        mailFiles.set("money.point", fm.getPoint());
         try {
             mailFiles.save(f);
             return true;
@@ -236,19 +260,14 @@ public class MailBoxAPI {
     
     // 取出附件内的钱
     public static double[] getFileMoney(String type, String fileName) {
-        double[] t = {0};
-        if(GlobalConfig.enVault){
-            YamlConfiguration mailFiles;
-            File f = new File(DATA_FOLDER+"/MailFiles/"+type, fileName+".yml");
-            if(f.exists()){
-                mailFiles = YamlConfiguration.loadConfiguration(f);
-                if(mailFiles.contains("money.coin")){
-                    t[0] = mailFiles.getInt("money.coin");
-                }
-                return t;
-            }else{
-                return t;
-            }
+        double[] t = {0, 0};
+        YamlConfiguration mailFiles;
+        File f = new File(DATA_FOLDER+"/MailFiles/"+type, fileName+".yml");
+        if(f.exists()){
+            mailFiles = YamlConfiguration.loadConfiguration(f);
+            if(GlobalConfig.enVault && mailFiles.contains("money.coin")) t[0] = mailFiles.getDouble("money.coin");
+            if(GlobalConfig.enPlayerPoints && mailFiles.contains("money.point")) t[1] = mailFiles.getInt("money.point");
+            return t;
         }else{
             return t;
         }
@@ -286,10 +305,14 @@ public class MailBoxAPI {
                 List<String> cl = new ArrayList();
                 List<String> cd = new ArrayList();
                 ArrayList<ItemStack> is = new ArrayList();
+                double co = 0;
+                int po = 0;
                 if(mailFiles.getBoolean("cmd.enable")){
                     cl = mailFiles.getStringList("cmd.commands");
                     cd = mailFiles.getStringList("cmd.descriptions");
                 }
+                if(GlobalConfig.enVault && mailFiles.contains("money.coin")) co = mailFiles.getDouble("money.coin");
+                if(GlobalConfig.enPlayerPoints && mailFiles.contains("money.point")) po = mailFiles.getInt("money.point");
                 return(new FileMail(
                     type,
                     0,
@@ -302,7 +325,8 @@ public class MailBoxAPI {
                     getFileItems("custom", filename),
                     cl,
                     cd,
-                    mailFiles.getInt("money.coin")
+                    co,
+                    po
                 ));
             }else{
                 return(new TextMail(

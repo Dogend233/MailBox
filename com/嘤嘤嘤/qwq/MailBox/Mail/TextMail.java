@@ -11,24 +11,26 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-public class TextMail {
+public class TextMail{
     
     // 邮件类型
-    protected String type;
-    // 邮件id
-    protected int id;
-    // 邮件发送者
-    protected String sender;
-    // 邮件接收者
-    protected List<String> recipient;
-    // 邮件主题
-    protected String topic;
-    // 邮件内容
-    protected String content;
-    // 邮件发送日期
-    protected String date;
+    private final String type;
     // 邮件类型显示名称
-    protected String typeName;
+    private final String typeName;
+    // 邮件id
+    private final int id;
+    // 邮件发送者
+    private String sender;
+    // 邮件接收者
+    private List<String> recipient;
+    // 邮件主题
+    private String topic;
+    // 邮件内容
+    private String content;
+    // 邮件发送日期
+    private String date;
+    // 邮件是否被修改过（未实现）
+    private boolean modify;
     
     // 普通文本邮件（无附件）
     public TextMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date){
@@ -91,24 +93,28 @@ public class TextMail {
         }
     }
     
-    public void setSender(String sender){
-        this.sender = sender;
-    }
-    
-    public void setRecipient(List<String> recipient) {
-        this.recipient = recipient;
-    }
-    
     public String getType(){
         return this.type;
+    }
+        
+    public String getTypeName(){
+        return this.typeName;
     }
     
     public int getId(){
         return this.id;
     }
     
+    public void setSender(String sender){
+        this.sender = sender;
+    }
+    
     public String getSender(){
         return this.sender;
+    }
+    
+    public void setRecipient(List<String> recipient) {
+        this.recipient = recipient;
     }
     
     public List<String> getRecipient(){
@@ -122,21 +128,29 @@ public class TextMail {
         str = str.substring(1);
         return str;
     }
+        
+    public void setTopic(String topic){
+        this.topic = topic;
+    }
     
     public String getTopic(){
         return this.topic;
+    }
+    
+    public void setContent(String content){
+        this.content = content;
     }
     
     public String getContent(){
         return this.content;
     }
     
-    public String getDate(){
-        return this.date;
+    public void setDate(String date){
+        this.date = date;
     }
     
-    public String getTypeName(){
-        return this.typeName;
+    public String getDate(){
+        return this.date;
     }
     
     @Override

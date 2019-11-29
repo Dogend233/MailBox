@@ -18,19 +18,21 @@ import org.bukkit.inventory.ItemStack;
 public class FileMail extends TextMail implements ItemMail, CommandMail{
     
     // 附件名
-    protected String fileName;
+    private String fileName;
     // 附件是否启用指令
-    protected boolean hasCommand;
+    private boolean hasCommand;
     // 指令列表
-    protected List<String> commandList;
+    private List<String> commandList;
     // 指令描述
-    protected List<String> commandDescription;
+    private List<String> commandDescription;
     // 附件是否含有物品
-    protected boolean hasItem;
+    private boolean hasItem;
     // 物品列表
-    protected ArrayList<ItemStack> itemList;
+    private ArrayList<ItemStack> itemList;
     // 附件金币
-    protected double coin;
+    private double coin;
+    // 附件点券
+    private int point;
     
     public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename){
         super(type, id, sender, recipient, topic, content, date);
@@ -38,7 +40,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         getFile();
     }
     
-    public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin){
+    public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
         super(type, id, sender, recipient, topic, content, date);
         this.fileName = filename;
         this.itemList = isl;
@@ -47,11 +49,12 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         this.hasItem = !isl.isEmpty();
         this.hasCommand = !cl.isEmpty();
         this.coin = coin;
+        this.point = point;
     }
     
     // 获取附件信息
     private void getFile(){
-        fileHasCommand();
+        getFileHasCommand();
         if(hasCommand){
             getFileCommandList();
             getFileCommandDescription();
@@ -64,7 +67,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     @Override
     public boolean Collect(Player p){
         // 判断收件人
-        if(type.equals("player") && !recipient.contains(p.getName())){
+        if(getType().equals("player") && !getRecipient().contains(p.getName())){
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你不是这个邮件的收件人！");
             return false;
         }
@@ -73,7 +76,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
             if(giveItem(p)){
                 p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件发送完毕.");
             }else{
-                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+typeName+" - "+id+" 邮件附件失败.");
+                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+getTypeName()+" - "+getId()+" 邮件附件失败.");
                 return false;
             }
         }
@@ -82,21 +85,23 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
             if(doCommand(p)){
                 p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"指令执行完毕.");
             }else{
-                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 执行 "+typeName+" - "+id+" 邮件指令失败.");
+                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 执行 "+getTypeName()+" - "+getId()+" 邮件指令失败.");
             }
         }
         // 设置玩家领取邮件
-        if(MailBoxAPI.setCollect(type, id, p.getName())){
+        if(MailBoxAPI.setCollect(getType(), getId(), p.getName())){
             // 给钱
-            if(giveCoin(p, coin)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+coin+GlobalConfig.vaultDisplay+", 余额："+MailBoxAPI.getEconomyFormat(MailBoxAPI.getEconomyBalance(p))+GlobalConfig.vaultDisplay);
+            //if(giveCoin(p, coin)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+coin+GlobalConfig.vaultDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getEconomyFormat(MailBoxAPI.getEconomyBalance(p))+GlobalConfig.success+GlobalConfig.vaultDisplay);
+            if(giveCoin(p, coin)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+coin+GlobalConfig.vaultDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getEconomyBalance(p)+GlobalConfig.success+GlobalConfig.vaultDisplay);
+            if(givePoint(p, point)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+point+GlobalConfig.playerPointsDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getPoints(p)+GlobalConfig.success+GlobalConfig.playerPointsDisplay);
             MailCollectEvent mce = new MailCollectEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mce);
             p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件领取成功！");
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取了 "+typeName+" - "+id+" 邮件.");
+            Bukkit.getConsoleSender().sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取了 "+getTypeName()+" - "+getId()+" 邮件.");
             return true;
         }else{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件领取失败！");
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+typeName+" - "+id+" 邮件失败.");
+            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+getTypeName()+" - "+getId()+" 邮件失败.");
             return false;
         }
     }
@@ -107,7 +112,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         if(!(this instanceof FileMail)){
             return super.Send(p);
         }else{
-            if(id==0){
+            if(getId()==0){
                 // 新建邮件
                 // 判断玩家背包里是否有想要发送的物品
                 if(!itemList.isEmpty() && !p.hasPermission("mailbox.admin.send.check.item")){
@@ -115,18 +120,25 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
                         return false;
                     }
                 }
-                // 判断玩家钱够不够
+                // 判断玩家coin够不够
                 if(GlobalConfig.enVault && coin!=0 && !p.hasPermission("mailbox.admin.send.check.coin")){
                     if(MailBoxAPI.getEconomyBalance(p)<coin){
-                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：你这钱不够啊");
+                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：你这"+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不够啊");
+                        return false;
+                    }
+                }
+                // 判断玩家point够不够
+                if(GlobalConfig.enPlayerPoints && point!=0 && !p.hasPermission("mailbox.admin.send.check.point")){
+                    if(MailBoxAPI.getPoints(p)<point){
+                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：你这"+GlobalConfig.playerPointsDisplay+GlobalConfig.normal+"不够啊");
                         return false;
                     }
                 }
                 // 获取时间
-                date = DateTime.get("ymdhms");
+                setDate(DateTime.get("ymdhms"));
                 try {
                     // 生成一个文件名
-                    fileName = MailBoxAPI.getMD5(type);
+                    fileName = MailBoxAPI.getMD5(getType());
                 } catch (IOException ex) {
                     p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
                     return false;
@@ -134,9 +146,10 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
                 if(MailBoxAPI.saveMailFiles(this)){
                     // 删除玩家背包里想要发送的物品
                     if(removeItem(itemList, p)){
-                        if(MailBoxAPI.setSend(type, id, sender, getRecipientString(), topic, content, date, fileName)){
+                        if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getTopic(), getContent(), getDate(), fileName)){
                             // 扣钱
                             if(removeCoin(p, coin)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+coin+GlobalConfig.vaultDisplay);
+                            if(removePoint(p, point)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+point+GlobalConfig.playerPointsDisplay);
                             MailSendEvent mse = new MailSendEvent(this, p);
                             Bukkit.getServer().getPluginManager().callEvent(mse);
                             return true;
@@ -174,31 +187,33 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     
     // 删除这封邮件的附件
     public boolean DeleteFile(){
-        return MailBoxAPI.setDeleteFile(type,fileName);
+        return MailBoxAPI.setDeleteFile(getType(),fileName);
     }
     
-    
+    // 获取附件包含金钱
     private void getFileMoney() {
-        coin = MailBoxAPI.getFileMoney(type, fileName)[0];
+        double money[] = MailBoxAPI.getFileMoney(getType(), fileName);
+        coin = money[0];
+        point = (int) money[1];
     }
 
     // 判断附件是否启用指令
     @Override
-    public void fileHasCommand() {
-        hasCommand = MailBoxAPI.hasFileCommands(type, fileName);
+    public void getFileHasCommand() {
+        hasCommand = MailBoxAPI.hasFileCommands(getType(), fileName);
         if(hasCommand) ;
     }
 
     // 获取指令列表
     @Override
     public void getFileCommandList() {
-        commandList = MailBoxAPI.getFileCommands(type, fileName);
+        commandList = MailBoxAPI.getFileCommands(getType(), fileName);
     }
     
     // 获取指令描述
     @Override
     public void getFileCommandDescription() {
-        commandDescription = MailBoxAPI.getFileCommandsDescription(type, fileName);
+        commandDescription = MailBoxAPI.getFileCommandsDescription(getType(), fileName);
     }
 
     // 执行指令
@@ -227,7 +242,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
 
     @Override
     public void getFileItemList() {
-        itemList = MailBoxAPI.getFileItems(type, fileName);
+        itemList = MailBoxAPI.getFileItems(getType(), fileName);
         hasItem = !(itemList==null || itemList.isEmpty());
     }
 
@@ -258,6 +273,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     }
     
     // 判断玩家背包里是否有想要发送的物品
+    @Override
     public boolean hasItem(ArrayList<ItemStack> isl, Player p){
         for(int i=0;i<isl.size();i++){
             if(!p.getInventory().containsAtLeast(isl.get(i), isl.get(i).getAmount())) {
@@ -268,7 +284,8 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     }
     
     // 移除玩家背包里想要发送的物品
-    private boolean removeItem(ArrayList<ItemStack> isl, Player p){
+    @Override
+    public boolean removeItem(ArrayList<ItemStack> isl, Player p){
         if(p.hasPermission("mailbox.admin.send.noconsume"))return true;
         boolean success = true;
         ArrayList<Integer> clearList = new ArrayList();
@@ -329,43 +346,88 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         return MailBoxAPI.reduceEconomy(p, coin);
     }
     
+    private boolean givePoint(Player p, int point){
+        return MailBoxAPI.addPoints(p, point);
+    }
+    
+    private boolean removePoint(Player p, int point){
+        return MailBoxAPI.reducePoints(p, point);
+    }
+    
+    public void setFileName(String fileName){
+        this.fileName = fileName;
+        getFile();
+    }
+    
     public String getFileName(){
         return this.fileName;
     }
     
-    public boolean getHasCommand(){
+    @Override
+    public void setCommandList(List<String> commandList){
+        this.commandList = commandList;
+        this.hasCommand = !commandList.isEmpty();
+    }
+    
+    @Override
+    public boolean isHasCommand(){
         return this.hasCommand;
     }
     
+    @Override
     public List<String> getCommandList(){
         return this.commandList;
     }
+    
+    @Override
+    public void setCommandDescription(List<String> commandDescription){
+        this.commandDescription = commandDescription;
+    }
+    
+    @Override
     public List<String> getCommandDescription(){
         return this.commandDescription;
     }
     
-    public boolean getHasItem(){
+    @Override
+    public void setItemList(ArrayList<ItemStack> itemList){
+        this.itemList = itemList;
+        this.hasItem = !itemList.isEmpty();
+    }
+    
+    @Override
+    public boolean isHasItem(){
         return this.hasItem;
     }
     
+    @Override
     public ArrayList<ItemStack> getItemList(){
         return this.itemList;
+    }
+    
+    public void setCoin(double coin){
+        this.coin = coin;
     }
     
     public double getCoin(){
         return this.coin;
     }
     
+    public void setPoint(int point){
+        this.point = point;
+    }
+    
+    public int getPoint(){
+        return this.point;
+    }
+    
     @Override
     public String toString(){
-        String str = typeName+"-"+id+"-"+topic+"-"+content+"-"+sender+"-"+date;
-        if(!recipient.isEmpty()) {
-            str += "-收件人：";
-            for(String s:recipient) str += s+" ";
-        }
+        String str = super.toString();
         if(hasItem && !itemList.isEmpty()) str += "-含物品"+itemList.size()+"个";
         if(hasCommand && !commandList.isEmpty()) str += "-含指令"+commandList.size()+"条";
-        if(coin!=0) str += "-含金钱："+coin;
+        if(coin!=0) str += "-含"+coin+GlobalConfig.vaultDisplay;
+        if(point!=0) str += "-含"+point+GlobalConfig.playerPointsDisplay;
         return str;
     }
     

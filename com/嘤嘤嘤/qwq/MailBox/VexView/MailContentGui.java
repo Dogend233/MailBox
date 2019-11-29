@@ -54,6 +54,11 @@ public class MailContentGui extends VexGui{
     private static double text_coin_size;
     private static String text_coin_prefix;
     private static String text_coin_suffix;
+    private static int text_point_x;
+    private static int text_point_y;
+    private static double text_point_size;
+    private static String text_point_prefix;
+    private static String text_point_suffix;
     private static VexText text_file_yes;
     private static VexText text_file_no;
     private static VexText text_cmd;
@@ -72,6 +77,7 @@ public class MailContentGui extends VexGui{
     private static int image_cmd_w;
     private static int image_cmd_h;
     private static VexImage image_coin;
+    private static VexImage image_point;
     private static String slot_img;
     private static int slot_w;
     private static int slot_h;
@@ -223,6 +229,11 @@ public class MailContentGui extends VexGui{
         double text_coin_size,
         String text_coin_prefix,
         String text_coin_suffix,
+        int text_point_x,
+        int text_point_y,
+        double text_point_size,
+        String text_point_prefix,
+        String text_point_suffix,
         int text_file_x,
         int text_file_y,
         String text_file_text_yes,
@@ -251,6 +262,11 @@ public class MailContentGui extends VexGui{
         int image_coin_y,
         int image_coin_w,
         int image_coin_h,
+        String image_point_url,
+        int image_point_x,
+        int image_point_y,
+        int image_point_w,
+        int image_point_h,
         String slot_img,
         int slot_w,
         int slot_h,
@@ -308,6 +324,12 @@ public class MailContentGui extends VexGui{
         MailContentGui.text_coin_size = text_coin_size;
         MailContentGui.text_coin_prefix = text_coin_prefix;
         MailContentGui.text_coin_suffix = text_coin_suffix;
+        // PlayerPoints的点券
+        MailContentGui.text_point_x = text_point_x;
+        MailContentGui.text_point_y = text_point_y;
+        MailContentGui.text_point_size = text_point_size;
+        MailContentGui.text_point_prefix = text_point_prefix;
+        MailContentGui.text_point_suffix = text_point_suffix;
         // 附件提示字
         text_file_yes = new VexText(text_file_x, text_file_y, Arrays.asList(text_file_text_yes), text_file_size);
         text_file_no = new VexText(text_file_x, text_file_y, Arrays.asList(text_file_text_no), text_file_size);
@@ -331,6 +353,8 @@ public class MailContentGui extends VexGui{
         MailContentGui.image_cmd_h = image_cmd_h;
         // Vault的金币指示图
         image_coin = new VexImage(image_coin_url,image_coin_x,image_coin_y,image_coin_w,image_coin_h);
+        // PlayerPoints的点券指示图
+        image_point = new VexImage(image_point_url,image_point_x,image_point_y,image_point_w,image_point_h);
         // 物品槽
         MailContentGui.slot_img = slot_img;
         MailContentGui.slot_w = slot_w;
@@ -403,14 +427,14 @@ public class MailContentGui extends VexGui{
     // 对附件邮件的操作
     private void fileMail(TextMail tm, Player p, int mail){
         FileMail fm = (FileMail) tm;
-        if((fm.getHasItem() && !fm.getItemList().isEmpty()) || (fm.getHasCommand() && !fm.getCommandList().isEmpty()) || fm.getCoin()!=0){
+        if((fm.isHasItem() && !fm.getItemList().isEmpty()) || (fm.isHasCommand() && !fm.getCommandList().isEmpty()) || fm.getCoin()!=0){
             // 附件文字
             VexText vtF = text_file_yes;
             // 附件类型+名称
             if(p.hasPermission("mailbox.content.filename")) vtF.setHover(new VexHoverText(Arrays.asList(fm.getType()+"-"+fm.getFileName())));
             this.addComponent(vtF);
             // 附件物品
-            if(fm.getHasItem()){
+            if(fm.isHasItem()){
                 int x_offset = ((slot_w-18)/2)-1; 
                 int y_offset = ((slot_h-18)/2)-1;
                 ArrayList<ItemStack> isl = fm.getItemList();
@@ -423,20 +447,28 @@ public class MailContentGui extends VexGui{
                 }
             }
             // 附件指令
-            if(fm.getHasCommand()){
+            if(fm.isHasCommand()){
                 this.addComponent(text_cmd);
                 VexImage vi = new VexImage(image_cmd_url,image_cmd_x,image_cmd_y,image_cmd_w,image_cmd_h);
                 List<String> cD = fm.getCommandDescription();
                 if(!cD.isEmpty()) vi.setHover(new VexHoverText(cD));
                 this.addComponent(vi);
             }
-            // 附件vault金币
+            // 附件Vault金币
             if(GlobalConfig.enVault){
                 double coin = fm.getCoin();
                 if(coin!=0){
-                    String c = MailBoxAPI.getEconomyFormat(coin);
+                    //String c = MailBoxAPI.getEconomyFormat(coin);
                     this.addComponent(image_coin);
-                    this.addComponent(new VexText(text_coin_x,text_coin_y,Arrays.asList(text_coin_prefix+c+text_coin_suffix),text_coin_size));
+                    this.addComponent(new VexText(text_coin_x,text_coin_y,Arrays.asList(text_coin_prefix+coin+text_coin_suffix),text_coin_size));
+                }
+            }
+            // 附件PlayerPoints点券
+            if(GlobalConfig.enPlayerPoints){
+                int point = fm.getPoint();
+                if(point!=0){
+                    this.addComponent(image_point);
+                    this.addComponent(new VexText(text_point_x,text_point_y,Arrays.asList(text_point_prefix+point+text_point_suffix),text_point_size));
                 }
             }
             // 发送邮件/领取附件按钮
