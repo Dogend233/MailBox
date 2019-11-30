@@ -1,4 +1,4 @@
-#自定义邮件示例文件（此模板system与player通用）
+#自定义邮件示例文件（此模板所有邮件类型通用）
 #发件人（不填则为发送者）
 sender: '§b系统'
 #邮件主题（最大30字）
@@ -16,9 +16,7 @@ cmd:
   - 'weather clear'
   - 'gamemode 0 %player%'
   #指令描述列表（这一条是设置列表为空的示例）
-  descriptions:
-  - '§b晴天大法'
-  - '§6解除神力'
+  descriptions: []
 #邮件包含物品（按顺序填，最大五个，不填则为空）
 is:
   '1':
@@ -30,7 +28,7 @@ is:
     amount: 3
 #邮件包含金钱
 money:
-  #Vault的金币
+  #Vault的金币（填0为无）
   coin: 50
-  #PlayerPoints的点券
+  #PlayerPoints的点券（填0为无）
   point: 10

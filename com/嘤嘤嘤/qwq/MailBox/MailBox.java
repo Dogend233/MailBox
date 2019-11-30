@@ -46,6 +46,9 @@ public class MailBox extends JavaPlugin {
     // player 类型邮件
     public static HashMap<Integer, TextMail> MailListPlayer = new HashMap();
     public static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListPlayerId = new HashMap();
+    // permission 类型邮件
+    public static HashMap<Integer, TextMail> MailListPermission = new HashMap();
+    public static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListPermissionId = new HashMap();
     
     @Override    
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
@@ -97,7 +100,7 @@ public class MailBox extends JavaPlugin {
                     return true;
                 }
             }else if(args.length>=2){
-                if(args[0].equalsIgnoreCase("system") || args[0].equalsIgnoreCase("player")){
+                if(args[0].equalsIgnoreCase("system") || args[0].equalsIgnoreCase("player") || args[0].equalsIgnoreCase("permission")){
                     String type = args[0];
                     if(args.length==2){
                         if(args[1].equalsIgnoreCase("update")){
@@ -134,6 +137,9 @@ public class MailBox extends JavaPlugin {
                             if(type.equals("player") && args.length<4) {
                                 sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"请至少填写一个以上的收件人");
                                 return true;
+                            }else if(type.equals("permission") && args.length!=4) {
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"请填写一个领取邮件所需要的权限");
+                                return true;
                             }else{
                                 for(int i=3;i<args.length;i++){
                                     rl.add(args[i]);
@@ -148,7 +154,8 @@ public class MailBox extends JavaPlugin {
                                         return true;
                                     }else{
                                         if(tm.getSender()==null) tm.setSender(p.getName());
-                                        if(type.equals("player") && tm.getRecipient()==null) tm.setRecipient(rl);
+                                        if(type.equals("player")) tm.setRecipient(rl);
+                                        if(type.equals("permission")) tm.setPermission(rl.get(0));
                                         try {
                                             openMailContentGui(p, tm, null, false);
                                         } catch (IOException ex) {
@@ -233,7 +240,7 @@ public class MailBox extends JavaPlugin {
         }
     }
     
-    // 设置Vault
+    // 设置[Vault]
     private boolean setupEconomy() {
         if(getServer().getPluginManager().getPlugin("Vault") == null) return false;
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
@@ -241,7 +248,7 @@ public class MailBox extends JavaPlugin {
         return MailBoxAPI.setEconomy(rsp.getProvider());
     }
     
-    // 设置PlayerPoints
+    // 设置[PlayerPoints]
     private boolean setupPoints() {
         Plugin plugin = getServer().getPluginManager().getPlugin("PlayerPoints");
         if(plugin == null) return false;
@@ -326,6 +333,12 @@ public class MailBox extends JavaPlugin {
             f.mkdir();
             Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:创建player邮件文件夹");
         }
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查permission邮件文件夹是否存在");
+        f = new File(DATA_FOLDER+"/MailFiles/"+"permission");
+        if(!f.exists()){
+            f.mkdir();
+            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:创建permission邮件文件夹");
+        }
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查custom邮件文件夹是否存在");
         f = new File(DATA_FOLDER+"/MailFiles/"+"custom");
         if(!f.exists()){
@@ -350,9 +363,10 @@ public class MailBox extends JavaPlugin {
             );
         }
         
-        // 更新[SYSTEM]邮件列表
+        // 更新邮件列表
         updateMailList(null, "system");
         updateMailList(null, "player");
+        updateMailList(null, "permission");
     }
     
     // 设置Config
@@ -369,6 +383,7 @@ public class MailBox extends JavaPlugin {
             config.getString("mailbox.warningMessage"),
             config.getString("mailbox.name.system"),
             config.getString("mailbox.name.player"),
+            config.getString("mailbox.name.permission"),
             fileDivS,
             config.getString("mailbox.file.command.player"),
             config.getString("mailbox.player_maxtime"),
@@ -395,6 +410,10 @@ public class MailBox extends JavaPlugin {
                 MailListPlayer = SQLManager.get().getMailList(type);
                 count = MailListPlayer.size();
                 break;
+            case "permission": 
+                MailListPermission = SQLManager.get().getMailList(type);
+                count = MailListPermission.size();
+                break;
             default:
                 return;
         }
@@ -414,6 +433,10 @@ public class MailBox extends JavaPlugin {
             case "player" :
                 MailListPlayerId.remove(p.getName());
                 MailListPlayerId.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                break;
+            case "permission" :
+                MailListPermissionId.remove(p.getName());
+                MailListPermissionId.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
                 break;
         }
         

@@ -12,6 +12,11 @@ public enum SQLCommand {
         "SELECT mail FROM `", "_system_collect` WHERE `user` = ? "
     ),
     
+    //获取玩家已领取的"permission"邮件ID列表
+    FIND_COLLECTED_PERMISSION_MAIL(
+        "SELECT mail FROM `", "_permission_collect` WHERE `user` = ? "
+    ),
+    
     //发送一封"system"邮件
     SEND_SYSTEM_MAIL(
         "INSERT INTO `", "_system` " +
@@ -23,6 +28,13 @@ public enum SQLCommand {
     SEND_PLAYER_MAIL(
         "INSERT INTO `", "_player` " +
         "(`sender`, `topic`, `text`, `sendtime`, `filename`, `recipient`)" +
+        "VALUES (?, ?, ?, ?, ?, ?)"
+    ),
+    
+    //发送一封"permission"邮件
+    SEND_PERMISSION_MAIL(
+        "INSERT INTO `", "_permission` " +
+        "(`sender`, `topic`, `text`, `sendtime`, `filename`, `permission`)" +
         "VALUES (?, ?, ?, ?, ?, ?)"
     ),
     
@@ -39,6 +51,16 @@ public enum SQLCommand {
     //删除一封"player"邮件
     DELETE_PLAYER_MAIL(
         "DELETE FROM `", "_player` WHERE `mail` = ?"
+    ),
+    
+    //删除一封"permission"邮件
+    DELETE_PERMISSION_MAIL(
+        "DELETE FROM `", "_permission` WHERE `mail` = ?"
+    ),
+    
+    //删除一封"permission"邮件的已领取列表
+    DELETE_COLLECTED_PERMISSION_MAIL(
+        "DELETE FROM `", "_permission_collect` WHERE `mail` = ?"
     ),
     
     //设置一封"system"邮件已被某玩家领取
@@ -58,6 +80,13 @@ public enum SQLCommand {
         "UPDATE `", "_player` " +
         "SET `recipient` = ? " +
         "WHERE `mail` = ?"
+    ),
+    
+    //设置一封"permission"邮件已被某玩家领取
+    COLLECT_PERMISSION_MAIL(
+        "INSERT INTO `", "_permission_collect` " +
+        "(`mail`, `user`)" +
+        "VALUES (?, ?)"
     ),
     
     //创建MySQL的"system"邮箱system数据表
@@ -113,6 +142,38 @@ public enum SQLCommand {
         "`text` varchar(255)," +
         "`sendtime` datetime," +
         "`filename` varchar(32))"
+    ),
+    
+    //创建MySQL的"permission"邮箱permission数据表
+    CREATE_PERMISSION_MYSQL(
+        "CREATE TABLE IF NOT EXISTS `", "_permission` (" +
+        "`mail` int(11) AUTO_INCREMENT," +
+        "`sender` varchar(32)," +
+        "`permission` varchar(32)," +
+        "`topic` varchar(32)," +
+        "`text` varchar(255)," +
+        "`sendtime` datetime," +
+        "`filename` varchar(32)," +
+        "PRIMARY KEY (`mail`))"
+    ),
+    
+    //创建SQLite的"permission"邮箱permission数据表
+    CREATE_PERMISSION_SQLITE(
+        "CREATE TABLE IF NOT EXISTS `", "_permission` (" +
+        "`mail` INTEGER PRIMARY KEY," +
+        "`sender` varchar(32)," +
+        "`permission` varchar(32)," +
+        "`topic` varchar(32)," +
+        "`text` varchar(255)," +
+        "`sendtime` datetime," +
+        "`filename` varchar(32))"
+    ),
+
+    //创建"permission"邮箱permission_collect数据表
+    CREATE_PERMISSION_COLLECT(
+        "CREATE TABLE IF NOT EXISTS `", "_permission_collect` (" +
+        "`mail` int(11)," +
+        "`user` varchar(32))"
     );
 
     private String command_1;

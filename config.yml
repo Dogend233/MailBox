@@ -29,9 +29,11 @@ mailbox:
   #邮件类型显示名称
   name:
     #system 类型邮件
-    system: [系统邮件]
+    system: '[系统邮件]'
     #player 类型邮件
-    player: [玩家邮件]
+    player: '[玩家邮件]'
+    #permission 类型邮件
+    permission: '[权限邮件]'
   #player邮件过期时间
   player_maxtime: 30
   #player类型邮件上限可选择数量

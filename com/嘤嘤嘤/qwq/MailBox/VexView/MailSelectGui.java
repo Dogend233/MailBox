@@ -29,8 +29,6 @@ public class MailSelectGui extends VexGui{
     
     public MailSelectGui(Player p) {
         super(gui_img,gui_x,gui_y,gui_w,gui_h,gui_ww,gui_hh);
-        button_id.putIfAbsent("player", "MailSelectButton_Player");
-        button_id.putIfAbsent("systemr", "MailSelectButton_System");
         int i=0;
         for(String type: button_list){
             if(p.hasPermission("mailbox.admin.send."+type)){
@@ -50,6 +48,7 @@ public class MailSelectGui extends VexGui{
         int gui_hh,
         String button_id_system,
         String button_id_player,
+        String button_id_permission,
         String button_img_1,
         String button_img_2,
         List<Integer> button_x,
@@ -70,6 +69,7 @@ public class MailSelectGui extends VexGui{
         button_id.clear();
         button_id.put("system", button_id_system);
         button_id.put("player", button_id_player);
+        button_id.put("permission", button_id_permission);
         MailSelectGui.button_img_1 = button_img_1;
         MailSelectGui.button_img_2 = button_img_2;
         MailSelectGui.button_x = button_x;
@@ -80,7 +80,7 @@ public class MailSelectGui extends VexGui{
     }
     
     public static void openMailSelectGui(Player p){
-        if(p.hasPermission("mailbox.admin.send.player") || p.hasPermission("mailbox.admin.send.system")){
+        if(p.hasPermission("mailbox.admin.send.player") || p.hasPermission("mailbox.admin.send.system") || p.hasPermission("mailbox.admin.send.permission")){
             VexViewAPI.openGui(p, new MailSelectGui(p));
         }else if(p.hasPermission("mailbox.send.player.only")){
             openMailSendGui(p, "player", null);

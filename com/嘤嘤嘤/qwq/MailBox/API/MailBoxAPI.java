@@ -5,6 +5,7 @@ import static com.嘤嘤嘤.qwq.MailBox.GlobalConfig.expiredDay;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
+import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPermission;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayer;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayerId;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListSystem;
@@ -107,11 +108,19 @@ public class MailBoxAPI {
                 });
                 break;
             case "system":
-                ArrayList<Integer> collected = SQLManager.get().getCollectedMailList(p, type);
+                ArrayList<Integer> collectedSystem = SQLManager.get().getCollectedMailList(p, type);
                 MailListSystem.forEach((k, v) -> {
                     if(v.getSender().equals(name)) senderList.add(k);
-                    if(!collected.contains(k)) recipientList.add(k);
+                    if(!collectedSystem.contains(k)) recipientList.add(k);
                 });
+                break;
+            case "permission":
+                ArrayList<Integer> collectedPermission = SQLManager.get().getCollectedMailList(p, type);
+                MailListPermission.forEach((k, v) -> {
+                    if(v.getSender().equals(name)) senderList.add(k);
+                    if(p.hasPermission(v.getPermission()) && !collectedPermission.contains(k)) recipientList.add(k);
+                });
+                break;
         }
         hm.put("asSender", senderList);
         hm.put("asRecipient", recipientList);
@@ -124,9 +133,9 @@ public class MailBoxAPI {
     }
     
     // 发送一封邮件
-    public static boolean setSend(String type, int id, String playername, String recipient, String topic, String text, String date, String filename){
+    public static boolean setSend(String type, int id, String playername, String recipient, String permission, String topic, String text, String date, String filename){
         if(id==0){
-            return SQLManager.get().sendMail(type, playername, recipient, topic, text, date, filename);
+            return SQLManager.get().sendMail(type, playername, recipient, permission, topic, text, date, filename);
         }else{
             // 修改现有邮件
             return false;
@@ -318,6 +327,7 @@ public class MailBoxAPI {
                     0,
                     mailFiles.getString("sender"),
                     null,
+                    null,
                     mailFiles.getString("topic"),
                     mailFiles.getString("content"),
                     null,
@@ -333,6 +343,7 @@ public class MailBoxAPI {
                     type,
                     0,
                     mailFiles.getString("sender"),
+                    null,
                     null,
                     mailFiles.getString("topic"),
                     mailFiles.getString("content"),
@@ -353,15 +364,6 @@ public class MailBoxAPI {
         }
     }
     
-    // 获取该玩家player收件数量
-    public static int playerAsRecipient(Player p){
-        if(MailListPlayerId.containsKey(p.getName())){
-            return MailListPlayerId.get(p.getName()).get("asRecipient").size();
-        }else{
-            return getRelevantMail(p, "player").get("asRecipient").size();
-        }
-    }
-    
     // 获取该玩家player可以发件的数量
     public static int playerAsSenderAllow(Player p, List<Integer> player_out){
         for(int count:player_out){
@@ -372,15 +374,24 @@ public class MailBoxAPI {
         return 0;
     }
     
+    // 获取该玩家player收件数量
+    /*public static int playerAsRecipient(Player p){
+        if(MailListPlayerId.containsKey(p.getName())){
+            return MailListPlayerId.get(p.getName()).get("asRecipient").size();
+        }else{
+            return getRelevantMail(p, "player").get("asRecipient").size();
+        }
+    }*/
+    
     // 获取该玩家player可以收件的数量
-    public static int playerAsRecipientAllow(Player p, List<Integer> player_in){
+    /*public static int playerAsRecipientAllow(Player p, List<Integer> player_in){
         for(int count:player_in){
             if(p.hasPermission("mailbox.send.player.in."+count)){
                 return count;
             }
         }
         return 0;
-    }
+    }*/
     
     // 判断这封邮件是否过期
     public static boolean isExpired(TextMail tm){

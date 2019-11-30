@@ -22,6 +22,8 @@ button:
       system: MailSelectButton_System
       #player
       player: MailSelectButton_Player
+      #permission
+      permission: MailSelectButton_Permission
     #图片
     img_1: '[local]MailBox/button_small.png'
     img_2: '[local]MailBox/button_small_.png'
@@ -29,8 +31,10 @@ button:
     x:
     - 20
     - 80
+    - 140
     #y坐标
     y:
+    - 20
     - 20
     - 20
     #显示宽度
@@ -41,3 +45,4 @@ button:
     list:
       - player
       - system
+      - permission

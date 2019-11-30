@@ -4,6 +4,8 @@ import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
+import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPermission;
+import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPermissionId;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayer;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayerId;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.getUnMailList;
@@ -274,14 +276,17 @@ public class MailBoxGui extends VexGui{
     private VexScrollingList getBoxList(Player p, String playertype){
         updateMailList(null, "system");
         updateMailList(null, "player");
+        updateMailList(null, "permission");
         HashMap<Integer, TextMail> systemmail = MailListSystem;
         HashMap<Integer, TextMail> playermail = MailListPlayer;
-        if(MailListSystem.isEmpty() && MailListPlayer.isEmpty()){
+        HashMap<Integer, TextMail> permissionmail = MailListPermission;
+        if(MailListSystem.isEmpty() && MailListPlayer.isEmpty() && MailListPermission.isEmpty()){
             return null;
         }else{
             int count = 0;
             ArrayList<Integer> systemid = new ArrayList();
             ArrayList<Integer> playerid = new ArrayList();
+            ArrayList<Integer> permissionid = new ArrayList();
             if(p.hasPermission("mailbox.see.system")){
                 getUnMailList(p, "system");
                 systemid = MailListSystemId.get(p.getName()).get("as"+playertype);
@@ -292,6 +297,11 @@ public class MailBoxGui extends VexGui{
                 playerid = MailListPlayerId.get(p.getName()).get("as"+playertype);
                 count += playerid.size();
             }
+            if(p.hasPermission("mailbox.see.permission")){
+                getUnMailList(p, "permission");
+                permissionid = MailListPermissionId.get(p.getName()).get("as"+playertype);
+                count += permissionid.size();
+            }
             if(count==0) return null;
             int mh = count*list_sh+list_oh;
             if(mh<list_mh) mh=list_mh;
@@ -299,6 +309,7 @@ public class MailBoxGui extends VexGui{
             int i=0;
             for(int mid: systemid) vsl = writeMail(systemmail.get(mid),vsl,i++);
             for(int mid: playerid) vsl = writeMail(playermail.get(mid),vsl,i++);
+            for(int mid: permissionid) vsl = writeMail(permissionmail.get(mid),vsl,i++);
             return vsl;
         }
     }

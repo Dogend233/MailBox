@@ -31,6 +31,7 @@ public class JoinAndQuit implements Listener {
         // 获取可领取邮件列表
         MailBox.getUnMailList(player, "system");
         MailBox.getUnMailList(player, "player");
+        MailBox.getUnMailList(player, "permission");
         // 移除HUD
         if(enVexView) VexViewAPI.removeHUD(player, MailBoxHud.id);
         // 设置HUD

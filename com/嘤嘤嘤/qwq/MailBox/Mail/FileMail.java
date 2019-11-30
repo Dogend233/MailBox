@@ -34,14 +34,14 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     // 附件点券
     private int point;
     
-    public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename){
-        super(type, id, sender, recipient, topic, content, date);
+    public FileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String filename){
+        super(type, id, sender, recipient, permission, topic, content, date);
         this.fileName = filename;
         getFile();
     }
     
-    public FileMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
-        super(type, id, sender, recipient, topic, content, date);
+    public FileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
+        super(type, id, sender, recipient, permission, topic, content, date);
         this.fileName = filename;
         this.itemList = isl;
         this.commandList = cl;
@@ -69,6 +69,11 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         // 判断收件人
         if(getType().equals("player") && !getRecipient().contains(p.getName())){
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你不是这个邮件的收件人！");
+            return false;
+        }
+        // 判断权限
+        if(getType().equals("permission") && !getRecipient().contains(p.getName())){
+            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有领取这个邮件的权限！");
             return false;
         }
         // 发送邮件附件
@@ -146,7 +151,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
                 if(MailBoxAPI.saveMailFiles(this)){
                     // 删除玩家背包里想要发送的物品
                     if(removeItem(itemList, p)){
-                        if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getTopic(), getContent(), getDate(), fileName)){
+                        if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getPermission(), getTopic(), getContent(), getDate(), fileName)){
                             // 扣钱
                             if(removeCoin(p, coin)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+coin+GlobalConfig.vaultDisplay);
                             if(removePoint(p, point)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+point+GlobalConfig.playerPointsDisplay);

@@ -9,6 +9,7 @@ public class GlobalConfig {
     
     private static String mailDisplay_SYSTEM;
     private static String mailDisplay_PLAYER;
+    private static String mailDisplay_PERMISSION;
     public static String pluginPrefix;
     public static String normal;
     public static String success;
@@ -44,6 +45,7 @@ public class GlobalConfig {
         String warning,
         String mailDisplay_SYSTEM,
         String mailDisplay_PLAYER,
+        String mailDisplay_PERMISSION,
         String fileDiv,
         String fileCmdPlayer,
         String expiredDay,
@@ -60,6 +62,7 @@ public class GlobalConfig {
         GlobalConfig.warning = warning;// 失败 插件信息颜色
         GlobalConfig.mailDisplay_SYSTEM = mailDisplay_SYSTEM;// system 邮件显示名称
         GlobalConfig.mailDisplay_PLAYER = mailDisplay_PLAYER;// player 邮件显示名称
+        GlobalConfig.mailDisplay_PERMISSION = mailDisplay_PERMISSION;// permission 邮件显示名称
         // 附件
         GlobalConfig.fileDiv = fileDiv;// 分割符
         GlobalConfig.fileCmdPlayer = fileCmdPlayer;// 领取邮件的玩家变量
@@ -80,6 +83,8 @@ public class GlobalConfig {
                 return mailDisplay_SYSTEM;
             case "player": 
                 return mailDisplay_PLAYER;
+            case "permission": 
+                return mailDisplay_PERMISSION;
             default:
                 return null;
         }

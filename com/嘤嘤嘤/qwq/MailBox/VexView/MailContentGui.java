@@ -1,9 +1,9 @@
 package com.嘤嘤嘤.qwq.MailBox.VexView;
 
-import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
+import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPermissionId;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayerId;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListSystemId;
 import static com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui.openMailBoxGui;
@@ -130,10 +130,14 @@ public class MailContentGui extends VexGui{
                 buttonString.get("collect")[0],buttonString.get("collect")[1],buttonString.get("collect")[2],buttonString.get("collect")[3],
                 buttonInt.get("collect")[0],buttonInt.get("collect")[1],buttonInt.get("collect")[2],buttonInt.get("collect")[3],player -> {
                     if(player.hasPermission("mailbox.collect."+tm.getType())){
-                        // 领取邮件
-                        tm.Collect(player);
-                        // 关闭GUI
-                        player.closeInventory();
+                        if(tm.getType().equals("permission") && !p.hasPermission(tm.getPermission())){
+                            player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限领取这封邮件");
+                        }else{
+                            // 领取邮件
+                            tm.Collect(player);
+                            // 关闭GUI
+                            player.closeInventory();
+                        }
                     }else{
                         player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限领取此类型邮件");
                     }
@@ -155,6 +159,12 @@ public class MailContentGui extends VexGui{
             case "player":
             {
                 ArrayList<Integer> l = MailListPlayerId.get(p.getName()).get("asRecipient");
+                collecte = l.contains(tm.getId());
+                break;
+            }
+            case "permission":
+            {
+                ArrayList<Integer> l = MailListPermissionId.get(p.getName()).get("asRecipient");
                 collecte = l.contains(tm.getId());
                 break;
             }
@@ -392,8 +402,21 @@ public class MailContentGui extends VexGui{
             tl.add(t);
         }
         VexText vtp = new VexText(text_topic_x,text_topic_y,tl,text_topic_size);
-        // 附件类型+ID
-        if(p.hasPermission("mailbox.content.id")) vtp.setHover(new VexHoverText(Arrays.asList(tm.getType()+"-"+tm.getId())));
+        // 邮件类型+ID+信息
+        if(p.hasPermission("mailbox.content.id")){
+            switch (type){
+                case "player":
+                    List<String> playerReci = tm.getRecipient();
+                    playerReci.add(0, tm.getTypeName()+" - "+tm.getId());
+                    vtp.setHover(new VexHoverText(playerReci));
+                    break;
+                case "permission":
+                    vtp.setHover(new VexHoverText(Arrays.asList(tm.getTypeName()+" - "+tm.getId(),tm.getPermission())));
+                    break;
+                default: 
+                    vtp.setHover(new VexHoverText(Arrays.asList(tm.getTypeName()+" - "+tm.getId())));
+            }
+        }
         this.addComponent(vtp);
         // 发送时间
         if(text_date_display.contains(type) && tm.getDate()!=null) this.addComponent(new VexText(text_date_x,text_date_y,Arrays.asList(text_date_prefix+tm.getDate()),text_date_size));
@@ -427,11 +450,11 @@ public class MailContentGui extends VexGui{
     // 对附件邮件的操作
     private void fileMail(TextMail tm, Player p, int mail){
         FileMail fm = (FileMail) tm;
-        if((fm.isHasItem() && !fm.getItemList().isEmpty()) || (fm.isHasCommand() && !fm.getCommandList().isEmpty()) || fm.getCoin()!=0){
+        if((fm.isHasItem() && !fm.getItemList().isEmpty()) || (fm.isHasCommand() && !fm.getCommandList().isEmpty()) || fm.getCoin()!=0 || fm.getPoint()!=0){
             // 附件文字
             VexText vtF = text_file_yes;
             // 附件类型+名称
-            if(p.hasPermission("mailbox.content.filename")) vtF.setHover(new VexHoverText(Arrays.asList(fm.getType()+"-"+fm.getFileName())));
+            if(p.hasPermission("mailbox.content.filename")) vtF.setHover(new VexHoverText(Arrays.asList(fm.getType()+" - "+fm.getFileName())));
             this.addComponent(vtF);
             // 附件物品
             if(fm.isHasItem()){

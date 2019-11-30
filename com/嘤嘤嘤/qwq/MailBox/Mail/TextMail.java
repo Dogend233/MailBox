@@ -23,6 +23,8 @@ public class TextMail{
     private String sender;
     // 邮件接收者
     private List<String> recipient;
+    // 领取邮件需要权限
+    private String permission;
     // 邮件主题
     private String topic;
     // 邮件内容
@@ -33,11 +35,12 @@ public class TextMail{
     private boolean modify;
     
     // 普通文本邮件（无附件）
-    public TextMail(String type, int id, String sender, List<String> recipient, String topic, String content, String date){
+    public TextMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date){
         this.type = type;
         this.id = id;
         this.sender = sender;
         this.recipient = recipient;
+        this.permission = permission;
         this.topic = topic;
         this.content = content;
         this.date = date;
@@ -68,7 +71,7 @@ public class TextMail{
             // 获取时间
             date = DateTime.get("ymdhms");
             // 新建邮件
-            return setSend(type, id, sender, getRecipientString(), topic, content, date, "0");
+            return setSend(type, id, sender, getRecipientString(), permission, topic, content, date, "0");
         }else{
             // 修改已有邮件
             return false;
@@ -127,6 +130,15 @@ public class TextMail{
         for(String n: recipient) str += " "+n;
         str = str.substring(1);
         return str;
+    }
+    
+    public void setPermission(String permission){
+        this.permission = permission;
+    }
+    
+    public String getPermission(){
+        if(!type.equals("permission")) return null;
+        return this.permission;
     }
         
     public void setTopic(String topic){

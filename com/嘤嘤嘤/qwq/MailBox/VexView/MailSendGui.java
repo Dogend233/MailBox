@@ -4,7 +4,6 @@ import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
-import static com.嘤嘤嘤.qwq.MailBox.GlobalConfig.vaultDisplay;
 import static com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui.openMailBoxGui;
 import static com.嘤嘤嘤.qwq.MailBox.VexView.MailContentGui.openMailContentGui;
 import java.io.IOException;
@@ -38,9 +37,11 @@ public class MailSendGui extends VexInventoryGui{
     private static int gui_ix;
     private static int gui_iy;
     private static VexButton button_return;
-    private static VexButton button_preview;
+    private static String[] button_preview;
+    private static List<String> button_preview_hover;
     private static VexText text_topic;
     private static VexText text_recipient;
+    private static VexText text_permission;
     private static VexText text_text;
     private static VexText text_command;
     private static VexText text_description;
@@ -77,8 +78,9 @@ public class MailSendGui extends VexInventoryGui{
             }
         }
         this.addComponent(button_return);
-        this.addComponent(button_preview);
-        this.getButtonById(button_preview.getId()).setFunction(player -> previewMail(player));
+        VexButton vbp = new VexButton(button_preview[0],button_preview[1],button_preview[2],button_preview[3],Integer.parseInt(button_preview[4]),Integer.parseInt(button_preview[5]),Integer.parseInt(button_preview[6]),Integer.parseInt(button_preview[7]),player -> previewMail(player));
+        if(!button_preview_hover.isEmpty()) vbp.setHover(new VexHoverText(button_preview_hover));
+        this.addComponent(vbp);
         this.addComponent(text_topic);
         this.addComponent(getTextField(field.get("topic")));
         this.addComponent(text_text);
@@ -98,6 +100,11 @@ public class MailSendGui extends VexInventoryGui{
             case "player" :
                 this.addComponent(text_recipient);
                 this.addComponent(getTextField(field.get("recipient")));
+                break;
+            case "permission":
+                this.addComponent(text_permission);
+                this.addComponent(getTextField(field.get("permission")));
+                break;
         }
         if(enVault && perm_coin){
             bal_coin = MailBoxAPI.getEconomyBalance(p);
@@ -152,6 +159,10 @@ public class MailSendGui extends VexInventoryGui{
         int text_recipient_y,
         double text_recipient_size,
         String text_recipient_text,
+        int text_permission_x,
+        int text_permission_y,
+        double text_permission_size,
+        String text_permission_text,
         int text_text_x,
         int text_text_y,
         double text_text_size,
@@ -178,6 +189,11 @@ public class MailSendGui extends VexInventoryGui{
         int field_recipient_w,
         int field_recipient_h,
         int field_recipient_max,
+        int field_permission_x,
+        int field_permission_y,
+        int field_permission_w,
+        int field_permission_h,
+        int field_permission_max,
         int field_text_x,
         int field_text_y,
         int field_text_w,
@@ -233,11 +249,12 @@ public class MailSendGui extends VexInventoryGui{
         button_return = new VexButton(button_return_id,button_return_text,button_return_img_1,button_return_img_2,button_return_x,button_return_y,button_return_w,button_return_h, player -> openMailBoxGui(player, "Recipient"));
         if(!button_return_hover.isEmpty()) button_return.setHover(new VexHoverText(button_return_hover));
         // 预览按钮
-        button_preview = new VexButton(button_preview_id,button_preview_text,button_preview_img_1,button_preview_img_2,button_preview_x,button_preview_y,button_preview_w,button_preview_h);
-        if(!button_preview_hover.isEmpty()) button_preview.setHover(new VexHoverText(button_preview_hover));
+        button_preview = new String[]{button_preview_id,button_preview_text,button_preview_img_1,button_preview_img_2,Integer.toString(button_preview_x),Integer.toString(button_preview_y),Integer.toString(button_preview_w),Integer.toString(button_preview_h)};
+        MailSendGui.button_preview_hover = button_preview_hover;
         // 文本框提示文字
         text_topic = new VexText(text_topic_x,text_topic_y,Arrays.asList(text_topic_text),text_topic_size);
         text_recipient = new VexText(text_recipient_x,text_recipient_y,Arrays.asList(text_recipient_text),text_recipient_size);
+        text_permission = new VexText(text_permission_x,text_permission_y,Arrays.asList(text_permission_text),text_permission_size);
         text_text = new VexText(text_text_x,text_text_y,Arrays.asList(text_text_text),text_text_size);
         text_command = new VexText(text_command_x,text_command_y,Arrays.asList(text_command_text),text_command_size);
         text_description = new VexText(text_description_x,text_description_y,Arrays.asList(text_description_text),text_description_size);
@@ -246,11 +263,12 @@ public class MailSendGui extends VexInventoryGui{
         field.clear();
         field.put("topic", new int[]{field_topic_x,field_topic_y,field_topic_w,field_topic_h,field_topic_max,1});
         field.put("recipient", new int[]{field_recipient_x,field_recipient_y,field_recipient_w,field_recipient_h,field_recipient_max,2});
-        field.put("text", new int[]{field_text_x,field_text_y,field_text_w,field_text_h,field_text_max,3});
-        field.put("command", new int[]{field_command_x,field_command_y,field_command_w,field_command_h,field_command_max,4});
-        field.put("description", new int[]{field_description_x,field_description_y,field_description_w,field_description_h,field_description_max,5});
-        field.put("coin", new int[]{field_coin_x,field_coin_y,field_coin_w,field_coin_h,field_coin_max,6,0});
-        field.put("point", new int[]{field_point_x,field_point_y,field_point_w,field_point_h,field_point_max,7,0});
+        field.put("permission", new int[]{field_permission_x,field_permission_y,field_permission_w,field_permission_h,field_permission_max,2});
+        field.put("text", new int[]{field_text_x,field_text_y,field_text_w,field_text_h,field_text_max,4});
+        field.put("command", new int[]{field_command_x,field_command_y,field_command_w,field_command_h,field_command_max,5});
+        field.put("description", new int[]{field_description_x,field_description_y,field_description_w,field_description_h,field_description_max,6});
+        field.put("coin", new int[]{field_coin_x,field_coin_y,field_coin_w,field_coin_h,field_coin_max,7,0});
+        field.put("point", new int[]{field_point_x,field_point_y,field_point_w,field_point_h,field_point_max,8,0});
         // [Vault]提示图
         image_coin = new VexImage(image_coin_url,image_coin_x,image_coin_y,image_coin_w,image_coin_h);
         // [PlayerPoints]提示图
@@ -281,6 +299,7 @@ public class MailSendGui extends VexInventoryGui{
         String topic = ovg.getVexGui().getTextField(field.get("topic")[5]).getTypedText();
         String text = ovg.getVexGui().getTextField(field.get("text")[5]).getTypedText();
         List<String> rl = new ArrayList();
+        String perm = null;
         List<String> cl = new ArrayList();
         List<String> cd = new ArrayList();
         ArrayList<ItemStack> al = new ArrayList();
@@ -326,16 +345,15 @@ public class MailSendGui extends VexInventoryGui{
         switch (type) {
             case "player":
                 String[] recipient = divide(ovg.getVexGui().getTextField(field.get("recipient")[5]).getTypedText(), "recipient");
-                if(recipient==null){
-                    p.sendMessage(GlobalConfig.warning+"[邮件预览]：收件人不能为空");
-                    return;
-                }else{
-                    rl.addAll(Arrays.asList(recipient));
-                    valid = valid(p, topic, text, recipient);
-                }
+                rl.addAll(Arrays.asList(recipient));
+                valid = valid(p, topic, text, recipient, null);
+                break;
+            case "permission":
+                perm = ovg.getVexGui().getTextField(field.get("permission")[5]).getTypedText();
+                valid = valid(p, topic, text, null, perm);
                 break;
             case "system":
-                valid = valid(p, topic, text, null);
+                valid = valid(p, topic, text, null,null);
                 break;
         }
         if(valid){
@@ -349,14 +367,14 @@ public class MailSendGui extends VexInventoryGui{
                 al = getItem(ovg);
             }
             if(al.isEmpty() && cl.isEmpty() && cd.isEmpty() && co==0 && po==0){
-                TextMail tm = new TextMail(type, 0, p.getName(), rl, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null);
+                TextMail tm = new TextMail(type, 0, p.getName(), rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null);
                 try{
                     openMailContentGui(p, tm, this, false);
                 }catch(IOException e){
                     p.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
                 }
             }else{
-                FileMail fm = new FileMail(type, 0, p.getName(), rl, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null, "0", al, cl, cd, co, po);
+                FileMail fm = new FileMail(type, 0, p.getName(), rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null, "0", al, cl, cd, co, po);
                 try{
                     openMailContentGui(p, fm, this, false);
                 }catch(IOException e){
@@ -366,8 +384,8 @@ public class MailSendGui extends VexInventoryGui{
         }
     }
     
-    // 验证邮件主题、内容和收件人
-    private boolean valid(Player p, String t, String c, String[] r){
+    // 验证邮件主题、内容、收件人和权限
+    private boolean valid(Player p, String t, String c, String[] r, String pe){
         if(t.equals("")){
             p.sendMessage(GlobalConfig.warning+"[邮件预览]：主题不能为空");
             return false;
@@ -378,7 +396,14 @@ public class MailSendGui extends VexInventoryGui{
             }else{
                 switch (type) {
                     case "system":
-                        return true;  
+                        return true;
+                    case "permission":
+                        if(pe==null || pe.equals("")){
+                            p.sendMessage(GlobalConfig.warning+"[邮件预览]：权限不能为空");
+                            return false;
+                        }else{
+                            return true;
+                        }
                     case "player":
                         if(r.length<1){
                             p.sendMessage(GlobalConfig.warning+"[邮件预览]：收件人不能为空");
@@ -452,9 +477,13 @@ public class MailSendGui extends VexInventoryGui{
     // 获取附件物品
     private ArrayList<ItemStack> getItem(OpenedVexGui ovg){
         ArrayList<ItemStack> oldi = new ArrayList();
+        for(int i=0;i<perm_item;i++){
+            ItemStack t = ovg.getVexGui().getSlotById(i).getItem();
+            if(t.getType()!=null && t.getType()!=AIR) oldi.add(t);
+        }
+        /*for(int i=0;i<perm_item;i++) oldi.add(ovg.getVexGui().getSlotById(i).getItem());
         ArrayList<ItemStack> newi = new ArrayList();
         ArrayList<Integer> no = new ArrayList();
-        for(int i=0;i<perm_item;i++) oldi.add(ovg.getVexGui().getSlotById(i).getItem());
         for(int i=0;i<perm_item;i++){
             if(!no.contains(i)){
                 if(oldi.get(i).getType()!=null && oldi.get(i).getType()!=AIR){
@@ -472,7 +501,8 @@ public class MailSendGui extends VexInventoryGui{
                 }
             }
         }
-        return newi;
+        return newi;*/
+        return oldi;
     }
     
     // 打开发送邮件GUI
