@@ -450,6 +450,7 @@ public class MailContentGui extends VexGui{
     // 对附件邮件的操作
     private void fileMail(TextMail tm, Player p, int mail){
         FileMail fm = (FileMail) tm;
+        fm.getFile();
         if((fm.isHasItem() && !fm.getItemList().isEmpty()) || (fm.isHasCommand() && !fm.getCommandList().isEmpty()) || fm.getCoin()!=0 || fm.getPoint()!=0){
             // 附件文字
             VexText vtF = text_file_yes;

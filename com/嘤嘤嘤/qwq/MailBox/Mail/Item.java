@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-interface ItemMail {
-    public void getFileItemList();
+interface Item {
     public boolean giveItem(Player p);
     public boolean hasItem(ArrayList<ItemStack> isl, Player p);
     public boolean removeItem(ArrayList<ItemStack> isl, Player p);

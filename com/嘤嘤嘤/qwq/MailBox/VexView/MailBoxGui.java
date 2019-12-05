@@ -9,7 +9,6 @@ import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPermissionId;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayer;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayerId;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.getUnMailList;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.updateMailList;
 import static com.嘤嘤嘤.qwq.MailBox.VexView.MailContentGui.openMailContentGui;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -274,9 +273,6 @@ public class MailBoxGui extends VexGui{
     
     // 获取邮件列表
     private VexScrollingList getBoxList(Player p, String playertype){
-        updateMailList(null, "system");
-        updateMailList(null, "player");
-        updateMailList(null, "permission");
         HashMap<Integer, TextMail> systemmail = MailListSystem;
         HashMap<Integer, TextMail> playermail = MailListPlayer;
         HashMap<Integer, TextMail> permissionmail = MailListPermission;

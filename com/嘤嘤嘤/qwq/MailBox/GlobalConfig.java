@@ -1,5 +1,6 @@
 package com.嘤嘤嘤.qwq.MailBox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GlobalConfig {
@@ -7,6 +8,7 @@ public class GlobalConfig {
     public static boolean enVault;
     public static boolean enPlayerPoints;
     
+    public static boolean fileSQL;
     private static String mailDisplay_SYSTEM;
     private static String mailDisplay_PLAYER;
     private static String mailDisplay_PERMISSION;
@@ -16,6 +18,9 @@ public class GlobalConfig {
     public static String warning;
     public static String fileDiv;
     public static String fileCmdPlayer;
+    public static int maxItem;
+    public static String fileBanLore;
+    public static List<String> fileBanId;
     public static String expiredDay;
     public static List<Integer> player_out;
     public static String vaultDisplay;
@@ -39,6 +44,7 @@ public class GlobalConfig {
     }
     
     public static void setGlobalConfig(
+        boolean fileSQL,
         String pluginPrefix,
         String normal,
         String success,
@@ -48,6 +54,9 @@ public class GlobalConfig {
         String mailDisplay_PERMISSION,
         String fileDiv,
         String fileCmdPlayer,
+        int maxItem,
+        String fileBanLore,
+        List<String> fileBanId,
         String expiredDay,
         List<Integer> player_out,
         String vaultDisplay,
@@ -55,8 +64,10 @@ public class GlobalConfig {
         String playerPointsDisplay,
         int playerPointsMax
     ){
+        // 是否使用数据库存储附件
+        GlobalConfig.fileSQL = fileSQL;
         // 全局
-        GlobalConfig.pluginPrefix = pluginPrefix;// 插件提示信息前缀
+        GlobalConfig.pluginPrefix = pluginPrefix+" : ";// 插件提示信息前缀
         GlobalConfig.normal = normal;// 普通 插件信息颜色
         GlobalConfig.success = success;// 成功 插件信息颜色
         GlobalConfig.warning = warning;// 失败 插件信息颜色
@@ -64,8 +75,14 @@ public class GlobalConfig {
         GlobalConfig.mailDisplay_PLAYER = mailDisplay_PLAYER;// player 邮件显示名称
         GlobalConfig.mailDisplay_PERMISSION = mailDisplay_PERMISSION;// permission 邮件显示名称
         // 附件
+        if(fileDiv.equals(".") || fileDiv.equals("|")){
+            fileDiv = "\\"+fileDiv;
+        }
         GlobalConfig.fileDiv = fileDiv;// 分割符
         GlobalConfig.fileCmdPlayer = fileCmdPlayer;// 领取邮件的玩家变量
+        GlobalConfig.fileBanLore = fileBanLore;// Lore中包含此文字的物品禁止作为附件发送
+        GlobalConfig.maxItem = maxItem;// 最大发送物品数量
+        GlobalConfig.fileBanId = formatMaterial(fileBanId);// ID在此列表中的物品禁止作为附件发送
         // player邮件
         GlobalConfig.expiredDay = expiredDay;// 过期时间
         GlobalConfig.player_out = player_out;// 玩家发件量
@@ -75,6 +92,17 @@ public class GlobalConfig {
         // [PlayerPoints]设置
         GlobalConfig.playerPointsDisplay = playerPointsDisplay;// 显示名称
         GlobalConfig.playerPointsMax = playerPointsMax;// 单次邮件发送最大值
+    }
+    
+    private static List<String> formatMaterial(List<String> idList){
+        List<String> material = new ArrayList();
+        for(String id:idList){
+            if(id.length()>9 && id.substring(0, 10).equalsIgnoreCase("minecraft:")) id = id.substring(10);
+            if(id.contains(":")) id = id.replace(":", "_");
+            id = id.toUpperCase();
+            material.add(id);
+        }
+        return material;
     }
     
     public static String getTypeName(String type) {

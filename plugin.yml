@@ -1,6 +1,6 @@
 name: VexMailBox
 main: com.嘤嘤嘤.qwq.MailBox.MailBox
-version: 1.2.4
+version: 1.2.6
 description: 嘤嘤嘤邮箱插件
 author: Dogend
 website: qwq.嘤嘤嘤.com
@@ -11,12 +11,17 @@ commands:
         description: 嘤嘤嘤邮箱插件的指令
         aliases: mb
         usage: |
-            /mailbox 打开邮箱
             /mailbox 打开邮箱GUI
             /mailbox reload 重载插件
             /mailbox check 手动检查更新
-            /mailbox system update 更新"system"类型邮件列表
-            /mailbox player update 更新"player"类型邮件列表
+            /mailbox item id 查看手上物品的Material_ID
+            /mailbox item export 导出手上的物品
+            /mailbox [邮件类型] update 更新目标类型邮件列表
+            /mailbox [邮件类型] upload [邮件ID] 将目标邮件的本地附件上传到数据库
+            /mailbox [邮件类型] upload all 将目标邮件类型的全部本地附件上传到数据库
+            /mailbox [邮件类型] download [邮件ID] 将目标邮件的数据库附件下载到本地
+            /mailbox [邮件类型] download all 将目标邮件类型的全部数据库附件下载到本地
             /mailbox player clean 手动清理"player"类型过期邮件
             /mailbox system send [filename] 从custom文件夹取一个名为filename的邮件作为system邮件预览
-            /mailbox player send [filename] <player1> <player2> <player3> ... 从custom文件夹取一个名为filename的邮件作为player邮件预览,并将player1(player2、player3等)写入收件人
+            /mailbox permission send [filename] [permission] 从custom文件夹取一个名为filename的邮件作为permission邮件预览,并将permission写入领取邮件需要的权限
+            /mailbox player send [filename] [player1] <player2> <player3> ... 从custom文件夹取一个名为filename的邮件作为player邮件预览,并将player1(player2、player3等)写入收件人

@@ -15,7 +15,7 @@ import org.bukkit.command.CommandException;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class FileMail extends TextMail implements ItemMail, CommandMail{
+public class FileMail extends TextMail implements Item, Command{
     
     // 附件名
     private String fileName;
@@ -37,7 +37,6 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     public FileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String filename){
         super(type, id, sender, recipient, permission, topic, content, date);
         this.fileName = filename;
-        getFile();
     }
     
     public FileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
@@ -53,14 +52,12 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     }
     
     // 获取附件信息
-    private void getFile(){
-        getFileHasCommand();
-        if(hasCommand){
-            getFileCommandList();
-            getFileCommandDescription();
+    public void getFile(){
+        if(GlobalConfig.fileSQL){
+            MailBoxAPI.getMailFilesSQL(this);
+        }else{
+            MailBoxAPI.getMailFilesLocal(this);
         }
-        getFileItemList();
-        getFileMoney();
     }
     
     // 设置玩家领取邮件
@@ -96,7 +93,6 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
         // 设置玩家领取邮件
         if(MailBoxAPI.setCollect(getType(), getId(), p.getName())){
             // 给钱
-            //if(giveCoin(p, coin)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+coin+GlobalConfig.vaultDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getEconomyFormat(MailBoxAPI.getEconomyBalance(p))+GlobalConfig.success+GlobalConfig.vaultDisplay);
             if(giveCoin(p, coin)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+coin+GlobalConfig.vaultDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getEconomyBalance(p)+GlobalConfig.success+GlobalConfig.vaultDisplay);
             if(givePoint(p, point)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+point+GlobalConfig.playerPointsDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getPoints(p)+GlobalConfig.success+GlobalConfig.playerPointsDisplay);
             MailCollectEvent mce = new MailCollectEvent(this, p);
@@ -148,7 +144,11 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
                     p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
                     return false;
                 }
-                if(MailBoxAPI.saveMailFiles(this)){
+                boolean saveFile;
+                // 保存附件
+                if(GlobalConfig.fileSQL) saveFile = MailBoxAPI.saveMailFilesSQL(this);
+                else saveFile = MailBoxAPI.saveMailFilesLocal(this);
+                if(saveFile){
                     // 删除玩家背包里想要发送的物品
                     if(removeItem(itemList, p)){
                         if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getPermission(), getTopic(), getContent(), getDate(), fileName)){
@@ -192,33 +192,7 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     
     // 删除这封邮件的附件
     public boolean DeleteFile(){
-        return MailBoxAPI.setDeleteFile(getType(),fileName);
-    }
-    
-    // 获取附件包含金钱
-    private void getFileMoney() {
-        double money[] = MailBoxAPI.getFileMoney(getType(), fileName);
-        coin = money[0];
-        point = (int) money[1];
-    }
-
-    // 判断附件是否启用指令
-    @Override
-    public void getFileHasCommand() {
-        hasCommand = MailBoxAPI.hasFileCommands(getType(), fileName);
-        if(hasCommand) ;
-    }
-
-    // 获取指令列表
-    @Override
-    public void getFileCommandList() {
-        commandList = MailBoxAPI.getFileCommands(getType(), fileName);
-    }
-    
-    // 获取指令描述
-    @Override
-    public void getFileCommandDescription() {
-        commandDescription = MailBoxAPI.getFileCommandsDescription(getType(), fileName);
+        return (MailBoxAPI.setDeleteFile(fileName) | MailBoxAPI.setDeleteFile(getType(),fileName));
     }
 
     // 执行指令
@@ -243,12 +217,6 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 获取指令信息失败");
             return false;
         }
-    }
-
-    @Override
-    public void getFileItemList() {
-        itemList = MailBoxAPI.getFileItems(getType(), fileName);
-        hasItem = !(itemList==null || itemList.isEmpty());
     }
 
     @Override
@@ -361,7 +329,6 @@ public class FileMail extends TextMail implements ItemMail, CommandMail{
     
     public void setFileName(String fileName){
         this.fileName = fileName;
-        getFile();
     }
     
     public String getFileName(){

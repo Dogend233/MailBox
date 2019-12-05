@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import lk.vexview.api.VexViewAPI;
-import lk.vexview.gui.OpenedVexGui;
 import lk.vexview.gui.VexGui;
 import lk.vexview.gui.VexInventoryGui;
 import lk.vexview.gui.components.VexButton;
@@ -295,9 +294,8 @@ public class MailSendGui extends VexInventoryGui{
     
     // 预览邮件
     private void previewMail(Player p){
-        OpenedVexGui ovg = VexViewAPI.getPlayerCurrentGui(p);
-        String topic = ovg.getVexGui().getTextField(field.get("topic")[5]).getTypedText();
-        String text = ovg.getVexGui().getTextField(field.get("text")[5]).getTypedText();
+        String topic = getTextField(field.get("topic")[5]).getTypedText();
+        String text = getTextField(field.get("text")[5]).getTypedText();
         List<String> rl = new ArrayList();
         String perm = null;
         List<String> cl = new ArrayList();
@@ -306,7 +304,7 @@ public class MailSendGui extends VexInventoryGui{
         double co = 0;
         int po = 0;
         if(enVault && perm_coin){
-            String t = ovg.getVexGui().getTextField(field.get("coin")[5]).getTypedText();
+            String t = getTextField(field.get("coin")[5]).getTypedText();
             if(t!=null && !t.equals("")){
                 try{
                     co = Double.parseDouble(t);
@@ -324,7 +322,7 @@ public class MailSendGui extends VexInventoryGui{
             }
         }
         if(enPlayerPoints && perm_point){
-            String t = ovg.getVexGui().getTextField(field.get("point")[5]).getTypedText();
+            String t = getTextField(field.get("point")[5]).getTypedText();
             if(t!=null && !t.equals("")){
                 try{
                     po = Integer.parseInt(t);
@@ -344,12 +342,12 @@ public class MailSendGui extends VexInventoryGui{
         boolean valid = false;
         switch (type) {
             case "player":
-                String[] recipient = divide(ovg.getVexGui().getTextField(field.get("recipient")[5]).getTypedText(), "recipient");
+                String[] recipient = divide(getTextField(field.get("recipient")[5]).getTypedText(), "recipient");
                 rl.addAll(Arrays.asList(recipient));
                 valid = valid(p, topic, text, recipient, null);
                 break;
             case "permission":
-                perm = ovg.getVexGui().getTextField(field.get("permission")[5]).getTypedText();
+                perm = getTextField(field.get("permission")[5]).getTypedText();
                 valid = valid(p, topic, text, null, perm);
                 break;
             case "system":
@@ -358,15 +356,15 @@ public class MailSendGui extends VexInventoryGui{
         }
         if(valid){
             if(perm_cmd){
-                String[] command = divide(ovg.getVexGui().getTextField(field.get("command")[5]).getTypedText(), "command");
-                String[] description = divide(ovg.getVexGui().getTextField(field.get("description")[5]).getTypedText(), "description");
+                String[] command = divide(getTextField(field.get("command")[5]).getTypedText(), "command");
+                String[] description = divide(getTextField(field.get("description")[5]).getTypedText(), "description");
                 if(command!=null) cl.addAll(Arrays.asList(command));
                 if(description!=null) cd.addAll(Arrays.asList(description));
             }
             if(perm_item!=0){
-                al = getItem(ovg);
+                al = getItem(p);
             }
-            if(al.isEmpty() && cl.isEmpty() && cd.isEmpty() && co==0 && po==0){
+            if(al.isEmpty() && cl.isEmpty() && co==0 && po==0){
                 TextMail tm = new TextMail(type, 0, p.getName(), rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null);
                 try{
                     openMailContentGui(p, tm, this, false);
@@ -475,11 +473,18 @@ public class MailSendGui extends VexInventoryGui{
     }
     
     // 获取附件物品
-    private ArrayList<ItemStack> getItem(OpenedVexGui ovg){
+    private ArrayList<ItemStack> getItem(Player p){
         ArrayList<ItemStack> oldi = new ArrayList();
+        boolean skip = p.hasPermission("mailbox.admin.send.check.ban");
         for(int i=0;i<perm_item;i++){
-            ItemStack t = ovg.getVexGui().getSlotById(i).getItem();
-            if(t.getType()!=null && t.getType()!=AIR) oldi.add(t);
+            ItemStack t = getSlotById(i).getItem();
+            if(t.getType()!=null && t.getType()!=AIR){
+                if(skip || MailBoxAPI.isAllowSend(t)){
+                    oldi.add(t);
+                }else{
+                    p.sendMessage(GlobalConfig.warning+"第"+(i+1)+"个物品无法作为邮件发送，已忽略");
+                }
+            }
         }
         /*for(int i=0;i<perm_item;i++) oldi.add(ovg.getVexGui().getSlotById(i).getItem());
         ArrayList<ItemStack> newi = new ArrayList();

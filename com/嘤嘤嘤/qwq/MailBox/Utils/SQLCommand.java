@@ -3,17 +3,17 @@ package com.嘤嘤嘤.qwq.MailBox.Utils;
 public enum SQLCommand {
     
     //获取邮件列表
-    FIND_LIST_MAIL(
+    SELECT_LIST_MAIL(
         "SELECT * FROM `", "_", "`"
     ),
     
     //获取玩家已领取的"system"邮件ID列表
-    FIND_COLLECTED_SYSTEM_MAIL(
+    SELECT_COLLECTED_SYSTEM_MAIL(
         "SELECT mail FROM `", "_system_collect` WHERE `user` = ? "
     ),
     
     //获取玩家已领取的"permission"邮件ID列表
-    FIND_COLLECTED_PERMISSION_MAIL(
+    SELECT_COLLECTED_PERMISSION_MAIL(
         "SELECT mail FROM `", "_permission_collect` WHERE `user` = ? "
     ),
     
@@ -37,7 +37,7 @@ public enum SQLCommand {
         "(`sender`, `topic`, `text`, `sendtime`, `filename`, `permission`)" +
         "VALUES (?, ?, ?, ?, ?, ?)"
     ),
-    
+
     //删除一封"system"邮件
     DELETE_SYSTEM_MAIL(
         "DELETE FROM `", "_system` WHERE `mail` = ?"
@@ -87,6 +87,35 @@ public enum SQLCommand {
         "INSERT INTO `", "_permission_collect` " +
         "(`mail`, `user`)" +
         "VALUES (?, ?)"
+    ),
+    
+    //发送一个附件
+    SEND_FILE(
+        "INSERT INTO `", "_file` " +
+        "(`type`, `commands`, `descriptions`, `coin`, `point`, `items`, `filename`)" +
+        "VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ),
+    
+    //更新一个附件
+    UPDATE_FILE(
+        "UPDATE `", "_file` " +
+        "SET (`type` = ? , `commands` = ? , `descriptions` = ? , `coin` = ? , `point` = ? , `items` = ? ) " +
+        "WHERE `filename` = ? "
+    ),
+    
+    //获取一个附件
+    SELECT_FILE(
+        "SELECT * FROM `", "_file` WHERE `filename` = ? "
+    ),
+    
+    //获取一个类型所有附件名字
+    SELECT_FILE_NAME(
+        "SELECT `filename` FROM `", "_", "`"
+    ),
+    
+    //删除一个附件
+    DELETE_FILE(
+        "DELETE FROM `", "_file` WHERE `filename` = ?"
     ),
     
     //创建MySQL的"system"邮箱system数据表
@@ -174,6 +203,18 @@ public enum SQLCommand {
         "CREATE TABLE IF NOT EXISTS `", "_permission_collect` (" +
         "`mail` int(11)," +
         "`user` varchar(32))"
+    ),
+
+    //创建统一的file数据表
+    CREATE_FILE(
+        "CREATE TABLE IF NOT EXISTS `", "_file` (" +
+        "`type` varchar(16)," +
+        "`filename` varchar(32)," +
+        "`commands` varchar(255)," +
+        "`descriptions` varchar(255)," +
+        "`coin` varchar(22)," +
+        "`point` varchar(20)," +
+        "`items` text)"
     );
 
     private String command_1;

@@ -6,7 +6,6 @@ import com.嘤嘤嘤.qwq.MailBox.API.Listener.MailSendEvent;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.getUnMailList;
 import static com.嘤嘤嘤.qwq.MailBox.MailBox.updateMailList;
 import java.io.IOException;
 import org.bukkit.Bukkit;
@@ -39,7 +38,7 @@ public class Mail implements Listener {
         TextMail tm = e.getMail();
         String type = tm.getType();
         // 更新玩家可领取邮件列表
-        getUnMailList(e.getPlayer(), type);
+        // getUnMailList(e.getPlayer(), type);
         // 关闭GUI
         e.getPlayer().closeInventory();
         // 输出到控制台

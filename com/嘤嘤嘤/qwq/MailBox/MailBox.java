@@ -4,6 +4,7 @@ import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import static com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI.getCustomMail;
 import com.嘤嘤嘤.qwq.MailBox.Events.JoinAndQuit;
 import com.嘤嘤嘤.qwq.MailBox.Events.Mail;
+import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.Utils.SQLManager;
 import com.嘤嘤嘤.qwq.MailBox.Utils.UpdateCheck;
@@ -21,11 +22,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import lk.vexview.api.VexViewAPI;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
+import net.minecraft.server.v1_12_R1.NBTTagCompound;
 import org.black_ixx.playerpoints.PlayerPoints;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -55,6 +64,19 @@ public class MailBox extends JavaPlugin {
         if (label.equalsIgnoreCase("mailbox")||label.equalsIgnoreCase("mb")){
             if(args.length==0 && enCmdOpen){
                 if((sender instanceof Player)){
+                    /*Player p = (Player)sender;
+                    ItemStack itemStack = p.getInventory().getItemInMainHand();
+                    net.minecraft.server.v1_12_R1.ItemStack nmsItemStack = CraftItemStack.asNMSCopy(itemStack);
+                    net.minecraft.server.v1_12_R1.NBTTagCompound compound = new NBTTagCompound();
+                    compound = nmsItemStack.save(compound);
+                    String json = compound.toString();
+                    BaseComponent[] hoverEventComponents = new BaseComponent[]{
+                            new TextComponent(json)
+                    };
+                    HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM, hoverEventComponents);
+                    TextComponent component = new TextComponent("附件");
+                    component.setHoverEvent(event);
+                    p.spigot().sendMessage(component);*/
                     MailBoxGui.openMailBoxGui((Player) sender, "Recipient");
                     return true;
                 }else{
@@ -62,19 +84,7 @@ public class MailBox extends JavaPlugin {
                     return true;
                 }
             }else if(args.length==1){
-                if(args[0].equalsIgnoreCase("export")){
-                    if(sender instanceof Player && sender.hasPermission("mailbox.admin.export")){
-                        ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
-                        if(is!=null && MailBoxAPI.saveItem(is)){
-                            sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
-                        }else{
-                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品的失败");
-                        }
-                        return true;
-                    }
-                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有导出物品的权限");
-                    return true;
-                }else if(args[0].equalsIgnoreCase("reload")){
+                if(args[0].equalsIgnoreCase("reload")){
                     if(sender.hasPermission("mailbox.admin.reload")){
                         reloadPlugin();
                         sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"插件已重载");
@@ -100,7 +110,33 @@ public class MailBox extends JavaPlugin {
                     return true;
                 }
             }else if(args.length>=2){
-                if(args[0].equalsIgnoreCase("system") || args[0].equalsIgnoreCase("player") || args[0].equalsIgnoreCase("permission")){
+                if(args[0].equalsIgnoreCase("item")){
+                    if(args[1].equalsIgnoreCase("export")){
+                        if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.export")){
+                            ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
+                            if(is!=null && MailBoxAPI.saveItem(is)){
+                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
+                            }else{
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
+                            }
+                            return true;
+                        }
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有导出物品的权限");
+                        return true;
+                    }else if(args[1].equalsIgnoreCase("id")){
+                        if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.id")){
+                            ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
+                            if(is!=null){
+                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品的Material_ID为: "+GlobalConfig.normal+is.getType().name());
+                            }else{
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品Material_ID失败");
+                            }
+                            return true;
+                        }
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有获取物品ID的权限");
+                        return true;
+                    }
+                }else if(args[0].equalsIgnoreCase("system") || args[0].equalsIgnoreCase("player") || args[0].equalsIgnoreCase("permission")){
                     String type = args[0];
                     if(args.length==2){
                         if(args[1].equalsIgnoreCase("update")){
@@ -169,6 +205,100 @@ public class MailBox extends JavaPlugin {
                                 }
                             }else{
                                 sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                                return true;
+                            }
+                        }else if(args[1].equalsIgnoreCase("upload")){
+                            if(args[2].equalsIgnoreCase("all") && args.length==3) {
+                                if(sender.hasPermission("mailbox.admin.upload."+type+".all")){
+                                    MailBoxAPI.uploadFile(sender, type);
+                                }else{
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                                }
+                                return true;
+                            }else if(args.length==3) {
+                                if(sender.hasPermission("mailbox.admin.download."+type)){
+                                    int mail;
+                                    try{
+                                        mail = Integer.parseInt(args[2]);
+                                        TextMail tm = null;
+                                        switch (type) {
+                                            case "system":
+                                                tm=MailListSystem.get(mail);
+                                                break;
+                                            case "permission":
+                                                tm=MailListPermission.get(mail);
+                                                break;
+                                            case "player":
+                                                tm=MailListPlayer.get(mail);
+                                                break;
+                                        }
+                                        if(tm!=null && (tm instanceof FileMail)){
+                                            String filename = ((FileMail)tm).getFileName();
+                                            if(MailBoxAPI.uploadFile(type, filename)){
+                                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件: "+filename+"上传成功");
+                                            }else{
+                                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"附件: "+filename+"上传失败");
+                                            }
+                                        }else{
+                                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标邮件不存在或无附件");
+                                        }
+                                    }
+                                    catch(NumberFormatException e){
+                                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                                    }
+                                }else{
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                                }
+                                return true;
+                            }else{
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"Error");
+                                return true;
+                            }
+                        }else if(args[1].equalsIgnoreCase("download")){
+                            if(args[2].equalsIgnoreCase("all") && args.length==3) {
+                                if(sender.hasPermission("mailbox.admin.download."+type+".all")){
+                                    MailBoxAPI.downloadFile(sender, type);
+                                }else{
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                                }
+                                return true;
+                            }else if(args.length==3) {
+                                if(sender.hasPermission("mailbox.admin.download."+type)){
+                                    int mail;
+                                    try{
+                                        mail = Integer.parseInt(args[2]);
+                                        TextMail tm = null;
+                                        switch (type) {
+                                            case "system":
+                                                tm=MailListSystem.get(mail);
+                                                break;
+                                            case "permission":
+                                                tm=MailListPermission.get(mail);
+                                                break;
+                                            case "player":
+                                                tm=MailListPlayer.get(mail);
+                                                break;
+                                        }
+                                        if(tm!=null && (tm instanceof FileMail)){
+                                            String filename = ((FileMail)tm).getFileName();
+                                            if(MailBoxAPI.downloadFile(type, filename)){
+                                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件: "+filename+"下载成功");
+                                            }else{
+                                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"附件: "+filename+"下载失败");
+                                            }
+                                        }else{
+                                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标邮件不存在或无附件");
+                                        }
+                                    }
+                                    catch(NumberFormatException e){
+                                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                                    }
+                                }else{
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                                }
+                                return true;
+                            }else{
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"Error");
                                 return true;
                             }
                         }else{
@@ -372,20 +502,20 @@ public class MailBox extends JavaPlugin {
     // 设置Config
     private void setConfig(){
         // 设置GlobalConfig
-        String fileDivS = config.getString("mailbox.file.divide");
-        if(fileDivS.equals(".") || fileDivS.equals("|")){
-            fileDivS = "\\"+fileDivS;
-        }
         GlobalConfig.setGlobalConfig(
-            config.getString("mailbox.prefix")+" : ",
+            config.getBoolean("database.fileSQL"),
+            config.getString("mailbox.prefix"),
             config.getString("mailbox.normalMessage"),
             config.getString("mailbox.successMessage"),
             config.getString("mailbox.warningMessage"),
             config.getString("mailbox.name.system"),
             config.getString("mailbox.name.player"),
             config.getString("mailbox.name.permission"),
-            fileDivS,
+            config.getString("mailbox.file.divide"),
             config.getString("mailbox.file.command.player"),
+            config.getInt("mailbox.file.maxItem"),
+            config.getString("mailbox.file.ban.lore"),
+            config.getStringList("mailbox.file.ban.id"),
             config.getString("mailbox.player_maxtime"),
             config.getIntegerList("mailbox.player_max.out"),
             config.getString("mailbox.vault.display"),
