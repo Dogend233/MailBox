@@ -2,6 +2,8 @@ package com.嘤嘤嘤.qwq.MailBox.Mail;
 
 import com.嘤嘤嘤.qwq.MailBox.API.Listener.MailCollectEvent;
 import com.嘤嘤嘤.qwq.MailBox.API.Listener.MailDeleteEvent;
+import com.嘤嘤嘤.qwq.MailBox.API.Listener.MailSendEvent;
+import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import static com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI.setCollect;
 import static com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI.setDelete;
 import static com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI.setSend;
@@ -68,10 +70,36 @@ public class TextMail{
     // 发送这封邮件
     public boolean Send(Player p){
         if(id==0){
+            double needCoin = getExpandCoin();
+            int needPoint = getExpandPoint();
+            // 判断玩家coin够不够
+            if(GlobalConfig.enVault && !p.hasPermission("mailbox.admin.send.check.coin") && GlobalConfig.vaultExpand!=0){
+                if(MailBoxAPI.getEconomyBalance(p)<needCoin){
+                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needCoin);
+                    return false;
+                }
+            }
+            // 判断玩家point够不够
+            if(GlobalConfig.enPlayerPoints && !p.hasPermission("mailbox.admin.send.check.point") && GlobalConfig.playerPointsExpand!=0){
+                if(MailBoxAPI.getPoints(p)<needPoint){
+                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needPoint);
+                    return false;
+                }
+            }
             // 获取时间
             date = DateTime.get("ymdhms");
             // 新建邮件
-            return setSend(type, id, sender, getRecipientString(), permission, topic, content, date, "0");
+            if(setSend(type, id, sender, getRecipientString(), permission, topic, content, date, "0")){
+                // 扣钱
+                if(needCoin!=0 && !p.hasPermission("mailbox.admin.send.noconsume.coin") && removeCoin(p, needCoin)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
+                if(needPoint!=0 && !p.hasPermission("mailbox.admin.send.noconsume.point") && removePoint(p, needPoint)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
+                MailSendEvent mse = new MailSendEvent(this, p);
+                Bukkit.getServer().getPluginManager().callEvent(mse);
+                return true;
+            }else{
+                p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                return false;
+            }
         }else{
             // 修改已有邮件
             return false;
@@ -163,6 +191,30 @@ public class TextMail{
     
     public String getDate(){
         return this.date;
+    }
+    
+    public boolean removeCoin(Player p, double coin){
+        return MailBoxAPI.reduceEconomy(p, coin);
+    }
+    
+    public double getExpandCoin(){
+        if(GlobalConfig.enVault && GlobalConfig.vaultExpand!=0){
+            return GlobalConfig.vaultExpand;
+        }else{
+            return 0;
+        }
+    }
+    
+    public boolean removePoint(Player p, int point){
+        return MailBoxAPI.reducePoints(p, point);
+    }
+    
+    public int getExpandPoint(){
+        if(GlobalConfig.enPlayerPoints && GlobalConfig.playerPointsExpand!=0){
+            return GlobalConfig.playerPointsExpand;
+        }else{
+            return 0;
+        }
     }
     
     @Override

@@ -520,8 +520,12 @@ public class MailBox extends JavaPlugin {
             config.getIntegerList("mailbox.player_max.out"),
             config.getString("mailbox.vault.display"),
             config.getDouble("mailbox.vault.max"),
+            config.getDouble("mailbox.vault.expand"),
+            config.getDouble("mailbox.vault.item"),
             config.getString("mailbox.player_points.display"),
-            config.getInt("mailbox.player_points.max")
+            config.getInt("mailbox.player_points.max"),
+            config.getInt("mailbox.player_points.expand"),
+            config.getInt("mailbox.player_points.item")
         );
         // 设置VexViewConfig
         if(GlobalConfig.enVexView) VexViewConfigSet();

@@ -76,9 +76,17 @@ mailbox:
     display: '§e金币'
     #玩家单封邮件可发送的最大数量
     max: 5000
+    #发送邮件时所消耗的金钱
+    expand: 10
+    #每多一个附件物品增加的金钱消耗
+    item: 50
   #PlayerPoints点券插件
   player_points:
     #显示名称
     display: '§b点券'
     #玩家单封邮件可发送的最大数量
     max: 5000
+    #发送邮件时所消耗的金钱
+    expand: 0
+    #每多一个附件物品增加的金钱消耗
+    item: 0

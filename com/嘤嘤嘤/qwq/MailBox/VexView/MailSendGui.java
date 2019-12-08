@@ -64,6 +64,7 @@ public class MailSendGui extends VexInventoryGui{
     
     public MailSendGui(Player p, String type) {
         super(gui_img,gui_x,gui_y,gui_w,gui_h,gui_ww,gui_hh,gui_ix,gui_iy);
+        this.setClosable(false);
         enVault = GlobalConfig.enVault;
         enPlayerPoints = GlobalConfig.enPlayerPoints;
         this.type = type;

@@ -35,7 +35,7 @@ public class MailContentGui extends VexGui{
     private static int gui_hh;
     private static HashMap<String, String[]> buttonString = new HashMap();
     private static HashMap<String, int[]> buttonInt = new HashMap();
-    private static HashMap<String, List> buttonHover = new HashMap();
+    private static HashMap<String, List<String>> buttonHover = new HashMap();
     private static int text_topic_x;
     private static int text_topic_y;
     private static double text_topic_size;
@@ -116,15 +116,14 @@ public class MailContentGui extends VexGui{
         vbs = new VexButton(
                 buttonString.get("send")[0],buttonString.get("send")[1],buttonString.get("send")[2],buttonString.get("send")[3],
                 buttonInt.get("send")[0],buttonInt.get("send")[1],buttonInt.get("send")[2],buttonInt.get("send")[3],player -> {
+                    // 关闭GUI
+                    player.closeInventory();
                     if(tm.Send(player)){
                         player.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件发送成功");
-                        // 关闭GUI
-                        player.closeInventory();
                     }else{
                         player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件发送失败");
                     }
                 });
-        if(!buttonHover.get("send").isEmpty()) vbs.setHover(new VexHoverText(buttonHover.get("send")));
         // 领取按钮
         vbc = new VexButton(
                 buttonString.get("collect")[0],buttonString.get("collect")[1],buttonString.get("collect")[2],buttonString.get("collect")[3],
@@ -133,10 +132,10 @@ public class MailContentGui extends VexGui{
                         if(tm.getType().equals("permission") && !p.hasPermission(tm.getPermission())){
                             player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限领取这封邮件");
                         }else{
-                            // 领取邮件
-                            tm.Collect(player);
                             // 关闭GUI
                             player.closeInventory();
+                            // 领取邮件
+                            tm.Collect(player);
                         }
                     }else{
                         player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限领取此类型邮件");
@@ -430,7 +429,11 @@ public class MailContentGui extends VexGui{
         }else{
             this.addComponent(text_file_no);
             if(mail==0){
-                p.sendMessage(GlobalConfig.success+"[邮件预览]：你阅读了这封邮件");
+                List<String> hover = new ArrayList();
+                if(!buttonHover.get("send").isEmpty()) buttonHover.get("send").forEach(v -> hover.add(v));
+                if(tm.getExpandCoin()!=0) hover.add("§6消耗: §r"+tm.getExpandCoin()+" "+GlobalConfig.vaultDisplay);
+                if(tm.getExpandPoint()!=0) hover.add("§6消耗: §r"+tm.getExpandPoint()+" "+GlobalConfig.playerPointsDisplay);
+                if(!hover.isEmpty()) vbs.setHover(new VexHoverText(hover));
                 this.addComponent(vbs);
             }else{
                 // 如果邮件不是附件邮件且为未读状态，则设置为已读
@@ -497,6 +500,11 @@ public class MailContentGui extends VexGui{
             }
             // 发送邮件/领取附件按钮
             if(mail==0){
+                List<String> hover = new ArrayList();
+                if(!buttonHover.get("send").isEmpty()) buttonHover.get("send").forEach(v -> hover.add(v));
+                if(fm.getExpandCoin()!=0) hover.add("§6消耗: §r"+fm.getExpandCoin()+" "+GlobalConfig.vaultDisplay);
+                if(fm.getExpandPoint()!=0) hover.add("§6消耗: §r"+fm.getExpandPoint()+" "+GlobalConfig.playerPointsDisplay);
+                if(!hover.isEmpty()) vbs.setHover(new VexHoverText(hover));
                 this.addComponent(vbs);
             }else{
                 if(collecte) {

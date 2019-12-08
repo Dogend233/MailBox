@@ -25,8 +25,12 @@ public class GlobalConfig {
     public static List<Integer> player_out;
     public static String vaultDisplay;
     public static double vaultMax;
+    public static double vaultExpand;
+    public static double vaultItem;
     public static String playerPointsDisplay;
     public static int playerPointsMax;
+    public static int playerPointsExpand;
+    public static int playerPointsItem;
     
     public static boolean setVexView(boolean vv){
         enVexView = vv;
@@ -61,8 +65,12 @@ public class GlobalConfig {
         List<Integer> player_out,
         String vaultDisplay,
         double vaultMax,
+        double vaultExpand,
+        double vaultItem,
         String playerPointsDisplay,
-        int playerPointsMax
+        int playerPointsMax,
+        int playerPointsExpand,
+        int playerPointsItem
     ){
         // 是否使用数据库存储附件
         GlobalConfig.fileSQL = fileSQL;
@@ -89,9 +97,13 @@ public class GlobalConfig {
         // [Vault]设置
         GlobalConfig.vaultDisplay = vaultDisplay;// 显示名称
         GlobalConfig.vaultMax = vaultMax;// 单次邮件发送最大值
+        GlobalConfig.vaultExpand = vaultExpand;// 发送邮件时所消耗的金钱
+        GlobalConfig.vaultItem = vaultItem;// 每多一个附件物品增加的金钱消耗
         // [PlayerPoints]设置
         GlobalConfig.playerPointsDisplay = playerPointsDisplay;// 显示名称
         GlobalConfig.playerPointsMax = playerPointsMax;// 单次邮件发送最大值
+        GlobalConfig.playerPointsExpand = playerPointsExpand;// 发送邮件时所消耗的点券
+        GlobalConfig.playerPointsItem = playerPointsItem;// 每多一个附件物品增加的点券消耗
     }
     
     private static List<String> formatMaterial(List<String> idList){
