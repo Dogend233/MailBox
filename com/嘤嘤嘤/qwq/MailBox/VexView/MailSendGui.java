@@ -71,7 +71,7 @@ public class MailSendGui extends VexInventoryGui{
         perm_cmd = p.hasPermission("mailbox.admin.send.command");
         perm_coin = p.hasPermission("mailbox.send.money.coin");
         perm_point = p.hasPermission("mailbox.send.money.point");
-        for(int i=5;i>0;i--){
+        for(int i=GlobalConfig.maxItem;i>0;i--){
             if(p.hasPermission("mailbox.send.item."+i)){
                 perm_item = i;
                 break;
