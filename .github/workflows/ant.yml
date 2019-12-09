@@ -15,10 +15,3 @@ jobs:
         java-version: 1.8
     - name: Build with Ant
       run: ant -noinput -buildfile build.xml
-    - name: Release
-      uses: Ricky-Hao/action-release@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        ASSET_PATH: VexMailBox/dist
-        TAG_NAME: Latest
-        NAME: Latest
