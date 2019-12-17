@@ -56,7 +56,7 @@ public class UpdateCheck {
     public static void check(CommandSender sender){
         count = true;
         ArrayList<String> info = getVersion("http://qwq.xn--o5raa.com/plugins/mailbox/version.php");
-        if(!info.isEmpty()){
+        if(info!=null && !info.isEmpty()){
             String[] nsl = info.get(0).split("\\.");
             String[] osl = MailBoxAPI.getVersion().split("\\.");
             for(int i=0;i<3;i++){
@@ -69,10 +69,10 @@ public class UpdateCheck {
                     break;
                 }else{
                     sender.sendMessage("§c-----[MailBox更新检测]:检测到新版本："+info.get(0)+" 更新时间："+info.get(1));
-                    sender.sendMessage("&6更新内容：");
+                    sender.sendMessage("§6更新内容：");
                     String[] in = info.get(2).split("#");
                     for(int j=0;j<in.length;j++){
-                        sender.sendMessage("§b"+(j+1)+": "+in[j]+".");
+                        sender.sendMessage("§b"+(j+1)+": "+in[j]);
                     }
                     break;
                 }

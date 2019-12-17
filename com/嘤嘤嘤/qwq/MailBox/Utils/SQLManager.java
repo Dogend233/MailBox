@@ -14,7 +14,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 import org.bukkit.Bukkit;
-import static org.bukkit.Bukkit.getLogger;
 import org.bukkit.entity.Player;
 import java.util.Arrays;
 import java.util.List;
@@ -68,7 +67,7 @@ public class SQLManager {
             ps.executeUpdate();
             creatTable();
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
         }
     }
     
@@ -79,11 +78,11 @@ public class SQLManager {
             // 覆盖时间格式
             Properties pro = new Properties();
             pro.put("date_string_format", "yyyy-MM-dd HH:mm:ss"); 
-            connection = DriverManager.getConnection("jdbc:sqlite:plugins/VexMailBox/" + databaseName + ".db", pro);
+            connection = DriverManager.getConnection("jdbc:sqlite:plugins/MailBox/" + databaseName + ".db", pro);
             Bukkit.getConsoleSender().sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"SQLite数据库连接成功！");
         } catch (SQLException e) {
             Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"SQLite数据库连接失败！");
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
         }
     }
 
@@ -104,7 +103,7 @@ public class SQLManager {
             ps.executeUpdate();
             creatTable();
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
         }
     }
     
@@ -116,7 +115,7 @@ public class SQLManager {
             Bukkit.getConsoleSender().sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"MySQL数据库连接成功！");
         } catch (SQLException e) {
             Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"MySQL数据库连接失败！");
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
         }
     }
     
@@ -135,7 +134,7 @@ public class SQLManager {
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
         }
     }
     
@@ -144,12 +143,63 @@ public class SQLManager {
         try {
             connection.close();
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
+        }
+    }
+    
+    //获取某玩家是否可以领取某封邮件
+    public boolean getMailCollectable(String type, int id, String playername){
+        String sql1;
+        switch (type) {
+            case "system" :
+                sql1 = SQLCommand.SELECT_SYSTEM_MAIL.commandToString(SQLPrefix);
+                break;
+            case "permission" :
+                sql1 = SQLCommand.SELECT_PERMISSION_MAIL.commandToString(SQLPrefix);
+                break;
+            case "player" :
+                sql1 = SQLCommand.SELECT_PLAYER_MAIL.commandToString(SQLPrefix);
+                break;
+            default:
+                return false;
+        }
+        try {
+            PreparedStatement ps;
+            ResultSet rs;
+            switch (type) {
+                case "system" :
+                    ps = connection.prepareStatement(sql1);
+                    ps.setInt(1, id);
+                    ps.setString(2, playername);
+                    rs = ps.executeQuery();
+                    return !rs.next();
+                case "permission" :
+                    ps = connection.prepareStatement(sql1);
+                    ps.setInt(1, id);
+                    ps.setString(2, playername);
+                    rs = ps.executeQuery();
+                    return !rs.next();
+                case "player" :
+                    ps = connection.prepareStatement(sql1);
+                    ps.setInt(1, id);
+                    rs = ps.executeQuery();
+                    if (rs.next()){
+                        List<String> pl = new ArrayList<String>(Arrays.asList(rs.getString("recipient").split(" ")));
+                        return (!pl.isEmpty() && pl.contains(playername));
+                    }else{
+                        return false;
+                    }
+            }
+            return true;
+        } catch (SQLException e) {
+            Bukkit.getLogger().info(e.getLocalizedMessage());
+            return false;
         }
     }
     
     //设置一封邮件已被某玩家领取
     public boolean setMailCollect(String type, int id, String playername) {
+        if(!getMailCollectable(type,id,playername)) return false;
         String sql1;
         String sql2 = null;
         switch (type) {
@@ -205,7 +255,7 @@ public class SQLManager {
             }
             return true;
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
             return false;
         }
     }
@@ -245,7 +295,7 @@ public class SQLManager {
             ps.executeUpdate();
             return true;
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
             return false;
         }
     }
@@ -281,7 +331,7 @@ public class SQLManager {
             }
             return true;
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
             return false;
         }
     }
@@ -321,7 +371,7 @@ public class SQLManager {
             }
         } catch (SQLException e) {
             Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取"+typeName+"邮件列表失败.");
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
         }
         return hm;
     }
@@ -352,65 +402,62 @@ public class SQLManager {
             while (rs.next()) l.add(rs.getInt("mail"));
         } catch (SQLException e) {
             Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"查询"+p.getName()+"已领取"+typeName+"邮件失败");
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
         }
         return l;
     }
     
     //发送/更新一个附件
-    public boolean sendMailFiles(String filename, YamlConfiguration fileyml) {
-        String sql = SQLCommand.SELECT_FILE.commandToString(SQLPrefix);
-        YamlConfiguration fy;
+    public boolean sendMailFiles(String filename, YamlConfiguration fileyml) { 
         try {
+            String sql;
             PreparedStatement ps;
-            ps = connection.prepareStatement(sql);
-            ps.setString(1, filename);
-            ResultSet rs = ps.executeQuery();
-            if(rs.next()){
+            YamlConfiguration fy;
+            String type = fileyml.getString("type");
+            if(existMailFiles(filename, type)){
                 sql = SQLCommand.UPDATE_FILE.commandToString(SQLPrefix);
                 ps = connection.prepareStatement(sql);
             }else{
                 sql = SQLCommand.SEND_FILE.commandToString(SQLPrefix);
                 ps = connection.prepareStatement(sql);
-                
             }
-            
-            ps.setString(1, fileyml.getString("type"));
             if(fileyml.getBoolean("cmd.enable")){
                 fy = new YamlConfiguration();
                 fy.set("commands", fileyml.getStringList("cmd.commands"));
-                ps.setString(2, fy.saveToString());
+                ps.setString(1, fy.saveToString());
                 fy = new YamlConfiguration();
                 fy.set("descriptions", fileyml.getStringList("cmd.descriptions"));
-                ps.setString(3, fy.saveToString());
+                ps.setString(2, fy.saveToString());
             }else{
+                ps.setString(1, null);
                 ps.setString(2, null);
-                ps.setString(3, null);
             }
-            ps.setString(4, Double.toString(fileyml.getDouble("money.coin")));
-            ps.setString(5, Integer.toString(fileyml.getInt("money.point")));
+            ps.setString(3, Double.toString(fileyml.getDouble("money.coin")));
+            ps.setString(4, Integer.toString(fileyml.getInt("money.point")));
             int count = fileyml.getInt("is.count");
             fy = new YamlConfiguration();
             fy.set("is.count", count);
             for(int i=0;i<count;i++){
                 fy.set("is.is_"+(i+1), fileyml.getItemStack("is.is_"+(i+1)));
             }
-            ps.setString(6, fy.saveToString());
-            ps.setString(7, filename);
+            ps.setString(5, fy.saveToString());
+            ps.setString(6, filename);
+            ps.setString(7, type);
             ps.executeUpdate();
             return true;
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
             return false;
         }
     }
     
     //获取一个附件
-    public YamlConfiguration getMailFiles(String filename) {
+    public YamlConfiguration getMailFiles(String filename, String type) {
         String sql = SQLCommand.SELECT_FILE.commandToString(SQLPrefix);
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, filename);
+            ps.setString(2, type);
             ResultSet rs = ps.executeQuery();
             if(rs.next()){
                 YamlConfiguration fy = new YamlConfiguration();
@@ -441,10 +488,26 @@ public class SQLManager {
                 return fy;
             }
         } catch (SQLException | InvalidConfigurationException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
             
         }
         return null;
+    }
+    
+    // 判断某邮件是否已存在
+    public boolean existMailFiles(String filename, String type){
+        String sql = SQLCommand.SELECT_FILE.commandToString(SQLPrefix);
+        try {
+            PreparedStatement ps;
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, filename);
+            ps.setString(2, type);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        }catch(SQLException e){
+            Bukkit.getLogger().info(e.getLocalizedMessage());
+            return true;
+        }
     }
     
     //获取某类型邮件所有附件名字
@@ -463,22 +526,23 @@ public class SQLManager {
             }
             return L;
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
             return L;
         }
     }
     
     //删除一个附件
-    public boolean deleteMailFiles(String filename) {
+    public boolean deleteMailFiles(String filename, String type) {
         String sql = SQLCommand.DELETE_FILE.commandToString(SQLPrefix);
         try {
             PreparedStatement ps;
             ps = connection.prepareStatement(sql);
             ps.setString(1, filename);
+            ps.setString(2, type);
             ps.executeUpdate();
             return true;
         } catch (SQLException e) {
-            getLogger().info(e.getLocalizedMessage());
+            Bukkit.getLogger().info(e.getLocalizedMessage());
             return false;
         }
     }

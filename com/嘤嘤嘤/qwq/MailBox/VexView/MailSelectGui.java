@@ -1,7 +1,6 @@
 package com.嘤嘤嘤.qwq.MailBox.VexView;
 
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.MailSendGui.openMailSendGui;
 import java.util.HashMap;
 import java.util.List;
 import lk.vexview.api.VexViewAPI;
@@ -32,7 +31,7 @@ public class MailSelectGui extends VexGui{
         int i=0;
         for(String type: button_list){
             if(p.hasPermission("mailbox.admin.send."+type)){
-                this.addComponent(new VexButton(button_id.get(type),GlobalConfig.getTypeName(type),button_img_1,button_img_2,button_x.get(i),button_y.get(i),button_w,button_h,player -> openMailSendGui(player, type, null)));
+                this.addComponent(new VexButton(button_id.get(type),GlobalConfig.getTypeName(type),button_img_1,button_img_2,button_x.get(i),button_y.get(i),button_w,button_h,player -> MailSendGui.openMailSendGui(player, type, null)));
                 i++;
             }
         }
@@ -83,7 +82,7 @@ public class MailSelectGui extends VexGui{
         if(p.hasPermission("mailbox.admin.send.player") || p.hasPermission("mailbox.admin.send.system") || p.hasPermission("mailbox.admin.send.permission")){
             VexViewAPI.openGui(p, new MailSelectGui(p));
         }else if(p.hasPermission("mailbox.send.player.only")){
-            openMailSendGui(p, "player", null);
+            MailSendGui.openMailSendGui(p, "player", null);
         }else{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 你没有权限发送邮件");
         }

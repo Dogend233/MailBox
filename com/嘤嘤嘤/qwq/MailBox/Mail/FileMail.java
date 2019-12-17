@@ -12,6 +12,8 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandException;
+import org.bukkit.command.CommandSender;
+import org.bukkit.conversations.ConversationContext;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -73,28 +75,28 @@ public class FileMail extends TextMail implements Item, Command{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有领取这个邮件的权限！");
             return false;
         }
-        // 发送邮件附件
-        if(hasItem){
-            if(giveItem(p)){
-                p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件发送完毕.");
-            }else{
-                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+getTypeName()+" - "+getId()+" 邮件附件失败.");
-                return false;
-            }
-        }
-        // 执行邮件指令
-        if(hasCommand){
-            if(doCommand(p)){
-                p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"指令执行完毕.");
-            }else{
-                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 执行 "+getTypeName()+" - "+getId()+" 邮件指令失败.");
-            }
-        }
         // 设置玩家领取邮件
         if(MailBoxAPI.setCollect(getType(), getId(), p.getName())){
+            // 发送邮件附件
+            if(hasItem){
+                if(giveItem(p)){
+                    p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件发送完毕.");
+                }else{
+                    Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+getTypeName()+" - "+getId()+" 邮件附件失败.");
+                    return false;
+                }
+            }
+            // 执行邮件指令
+            if(hasCommand){
+                if(doCommand(p)){
+                    p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"指令执行完毕.");
+                }else{
+                    Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 执行 "+getTypeName()+" - "+getId()+" 邮件指令失败.");
+                }
+            }
             // 给钱
-            if(giveCoin(p, coin)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+coin+GlobalConfig.vaultDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getEconomyBalance(p)+GlobalConfig.success+GlobalConfig.vaultDisplay);
-            if(givePoint(p, point)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+point+GlobalConfig.playerPointsDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getPoints(p)+GlobalConfig.success+GlobalConfig.playerPointsDisplay);
+            if(coin!=0 && giveCoin(p, coin)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+coin+GlobalConfig.vaultDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getEconomyBalance(p)+GlobalConfig.success+GlobalConfig.vaultDisplay);
+            if(point!=0 && givePoint(p, point)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+point+GlobalConfig.playerPointsDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getPoints(p)+GlobalConfig.success+GlobalConfig.playerPointsDisplay);
             MailCollectEvent mce = new MailCollectEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mce);
             p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件领取成功！");
@@ -107,71 +109,164 @@ public class FileMail extends TextMail implements Item, Command{
         }
     }
     
-    // 发送这封邮件
     @Override
-    public boolean Send(Player p){
-        if(getId()==0){
-            // 新建邮件
-            // 判断玩家背包里是否有想要发送的物品
-            if(hasItem && !p.hasPermission("mailbox.admin.send.check.item")){
-                if(!hasItem(itemList, p)){
-                    return false;
-                }
-            }
-            double needCoin = getExpandCoin();
-            int needPoint = getExpandPoint();
-            // 判断玩家coin够不够
-            if(GlobalConfig.enVault && !p.hasPermission("mailbox.admin.send.check.coin") && (coin!=0 || GlobalConfig.vaultExpand!=0 || (hasItem && GlobalConfig.vaultItem!=0))){
-                if(MailBoxAPI.getEconomyBalance(p)<needCoin){
+    public boolean enoughMoney(Player p,double needCoin,int needPoint, ConversationContext cc){
+        // 判断玩家coin够不够
+        if(GlobalConfig.enVault && !p.hasPermission("mailbox.admin.send.check.coin") && (coin!=0 || GlobalConfig.vaultExpand!=0 || (hasItem && GlobalConfig.vaultItem!=0))){
+            if(MailBoxAPI.getEconomyBalance(p)<needCoin){
+                if(cc==null){
                     p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needCoin);
-                    return false;
+                }else{
+                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needCoin);
                 }
-            }
-            // 判断玩家point够不够
-            if(GlobalConfig.enPlayerPoints && !p.hasPermission("mailbox.admin.send.check.point") && (point!=0 || GlobalConfig.playerPointsExpand!=0 || (hasItem && GlobalConfig.playerPointsItem!=0))){
-                if(MailBoxAPI.getPoints(p)<needPoint){
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needPoint);
-                    return false;
-                }
-            }
-            // 获取时间
-            setDate(DateTime.get("ymdhms"));
-            try {
-                // 生成一个文件名
-                fileName = MailBoxAPI.getMD5(getType());
-            } catch (IOException ex) {
-                p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
                 return false;
             }
-            boolean saveFile;
-            // 保存附件
-            if(GlobalConfig.fileSQL) saveFile = MailBoxAPI.saveMailFilesSQL(this);
-            else saveFile = MailBoxAPI.saveMailFilesLocal(this);
-            if(saveFile){
-                // 删除玩家背包里想要发送的物品
-                if(removeItem(itemList, p)){
-                    if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getPermission(), getTopic(), getContent(), getDate(), fileName)){
-                        // 扣钱
-                        if(needCoin!=0 && !p.hasPermission("mailbox.admin.send.noconsume.coin") && removeCoin(p, needCoin)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
-                        if(needPoint!=0 && !p.hasPermission("mailbox.admin.send.noconsume.point") && removePoint(p, needPoint)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
-                        MailSendEvent mse = new MailSendEvent(this, p);
-                        Bukkit.getServer().getPluginManager().callEvent(mse);
-                        return true;
+        }
+        // 判断玩家point够不够
+        if(GlobalConfig.enPlayerPoints && !p.hasPermission("mailbox.admin.send.check.point") && (point!=0 || GlobalConfig.playerPointsExpand!=0 || (hasItem && GlobalConfig.playerPointsItem!=0))){
+            if(MailBoxAPI.getPoints(p)<needPoint){
+                if(cc==null){
+                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.playerPointsDisplay+GlobalConfig.normal+"不足，共需要"+needPoint);
+                }else{
+                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.playerPointsDisplay+GlobalConfig.normal+"不足，共需要"+needPoint);
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // 发送这封邮件
+    @Override
+    public boolean Send(CommandSender send, ConversationContext cc){
+        if(getId()==0){
+            if(send instanceof Player){
+                Player p = (Player)send;
+                if(isMax(p)) return false;
+                // 新建邮件
+                // 判断玩家背包里是否有想要发送的物品
+                if(hasItem && !p.hasPermission("mailbox.admin.send.check.item")){
+                    if(!hasItem(itemList, p, cc)){
+                        return false;
+                    }
+                }
+                double needCoin = getExpandCoin();
+                int needPoint = getExpandPoint();
+                if(!enoughMoney(p,needCoin,needPoint,cc)) return false;
+                // 获取时间
+                setDate(DateTime.get("ymdhms"));
+                try {
+                    // 生成一个文件名
+                    fileName = MailBoxAPI.getMD5(getType());
+                } catch (IOException ex) {
+                    if(cc==null){
+                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
                     }else{
-                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
+                    }
+                    return false;
+                }
+                boolean saveFile;
+                // 保存附件
+                if(GlobalConfig.fileSQL) saveFile = MailBoxAPI.saveMailFilesSQL(this);
+                else saveFile = MailBoxAPI.saveMailFilesLocal(this);
+                if(saveFile){
+                    if(isMax(p)){
+                        DeleteFile();
+                        return false;
+                    }
+                    if(!enoughMoney(p,needCoin,needPoint,cc)){
+                        DeleteFile();
+                        return false;
+                    }
+                    // 删除玩家背包里想要发送的物品
+                    if(removeItem(itemList, p, cc)){
+                        if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getPermission(), getTopic(), getContent(), getDate(), fileName)){
+                            // 扣钱
+                            if(needCoin!=0 && !p.hasPermission("mailbox.admin.send.noconsume.coin") && removeCoin(p, needCoin)){
+                                if(cc==null){
+                                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
+                                }else{
+                                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
+                                }
+                            }
+                            if(needPoint!=0 && !p.hasPermission("mailbox.admin.send.noconsume.point") && removePoint(p, needPoint)){
+                                if(cc==null){
+                                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
+                                }else{
+                                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
+                                }
+                            }
+                            MailSendEvent mse = new MailSendEvent(this, p);
+                            Bukkit.getServer().getPluginManager().callEvent(mse);
+                            return true;
+                        }else{
+                            if(cc==null){
+                                p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                            }else{
+                                cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                            }
+                            return false;
+                        }
+                    }else{
+                        if(cc==null){
+                            p.sendMessage(GlobalConfig.normal+"[邮件预览]：从背包中移除发送物品失败");
+                        }else{
+                            cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：从背包中移除发送物品失败");
+                        }
+                        DeleteFile();
                         return false;
                     }
                 }else{
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：从背包中移除发送物品失败");
-                    DeleteFile();
+                    StringBuilder str = new StringBuilder(GlobalConfig.normal+"[邮件预览]：保存为附件失败");
+                    if(p.isOp()) str.append(",附件名:"+fileName);
+                    if(cc==null){
+                        p.sendMessage(str.toString());
+                    }else{
+                        cc.getForWhom().sendRawMessage(str.toString());
+                    }
                     return false;
                 }
             }else{
-                p.sendMessage(GlobalConfig.normal+"[邮件预览]：保存为附件失败");
-                if(p.isOp())p.sendMessage(GlobalConfig.normal+"[邮件预览]：附件名:"+fileName);
-                return false;
+                setDate(DateTime.get("ymdhms"));
+                try {
+                    // 生成一个文件名
+                    fileName = MailBoxAPI.getMD5(getType());
+                } catch (IOException ex) {
+                    if(cc==null){
+                        send.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
+                    }else{
+                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
+                    }
+                    return false;
+                }
+                boolean saveFile;
+                if(GlobalConfig.fileSQL) saveFile = MailBoxAPI.saveMailFilesSQL(this);
+                else saveFile = MailBoxAPI.saveMailFilesLocal(this);
+                if(saveFile){
+                    if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getPermission(), getTopic(), getContent(), getDate(), fileName)){
+                        MailSendEvent mse = new MailSendEvent(this, send);
+                        Bukkit.getServer().getPluginManager().callEvent(mse);
+                        return true;
+                    }else{
+                        if(cc==null){
+                                send.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                            }else{
+                                cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                            }
+                            return false;
+                    }
+                }else{
+                    StringBuilder str = new StringBuilder(GlobalConfig.normal+"[邮件预览]：保存为附件失败");
+                    if(send.isOp()) str.append(",附件名:"+fileName);
+                    if(cc==null){
+                        send.sendMessage(str.toString());
+                    }else{
+                        cc.getForWhom().sendRawMessage(str.toString());
+                    }
+                    return false;
+                }
             }
-
         }else{
             //TODO 修改已有邮件
             return false;
@@ -190,7 +285,7 @@ public class FileMail extends TextMail implements Item, Command{
     
     // 删除这封邮件的附件
     public boolean DeleteFile(){
-        return (MailBoxAPI.setDeleteFile(fileName) | MailBoxAPI.setDeleteFile(getType(),fileName));
+        return (MailBoxAPI.setDeleteFileSQL(fileName, getType()) | MailBoxAPI.setDeleteFile(fileName, getType()));
     }
 
     // 执行指令
@@ -216,10 +311,10 @@ public class FileMail extends TextMail implements Item, Command{
             return false;
         }
     }
-
+    
     @Override
-    public boolean giveItem(Player p) {
-        // 检查背包空位够不够
+    public boolean hasBlank(Player p){
+         // 检查背包空位够不够
         int x = 0;
         boolean hasBlank = false;
         for(int i = 0;i<36;i++){
@@ -229,7 +324,13 @@ public class FileMail extends TextMail implements Item, Command{
                 break;
             }
         }
-        if(hasBlank){
+        return hasBlank;
+    }
+
+    @Override
+    public boolean giveItem(Player p) {
+        // 检查背包空位够不够
+        if(hasBlank(p)){
             ItemStack[] isa = {new ItemStack(Material.AIR),new ItemStack(Material.AIR),new ItemStack(Material.AIR),new ItemStack(Material.AIR),new ItemStack(Material.AIR)};
             for(int i = 0 ;i<itemList.size();i++){
                 ItemStack is = itemList.get(i);
@@ -245,9 +346,14 @@ public class FileMail extends TextMail implements Item, Command{
     
     // 判断玩家背包里是否有想要发送的物品
     @Override
-    public boolean hasItem(ArrayList<ItemStack> isl, Player p){
+    public boolean hasItem(ArrayList<ItemStack> isl, Player p, ConversationContext cc){
         for(int i=0;i<isl.size();i++){
             if(!p.getInventory().containsAtLeast(isl.get(i), isl.get(i).getAmount())) {
+                if(cc==null){
+                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：要发送的第"+(i+1)+"个物品不足");
+                }else{
+                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：要发送的第"+(i+1)+"个物品不足");
+                }
                 return false;
             }
         }
@@ -256,7 +362,7 @@ public class FileMail extends TextMail implements Item, Command{
     
     // 移除玩家背包里想要发送的物品
     @Override
-    public boolean removeItem(ArrayList<ItemStack> isl, Player p){
+    public boolean removeItem(ArrayList<ItemStack> isl, Player p, ConversationContext cc){
         if(p.hasPermission("mailbox.admin.send.noconsume.item"))return true;
         boolean success = true;
         ArrayList<Integer> clearList = new ArrayList();
@@ -304,7 +410,11 @@ public class FileMail extends TextMail implements Item, Command{
                 });
             }
         }else{
-            p.sendMessage(error);
+            if(cc==null){
+                p.sendMessage(error);
+            }else{
+                cc.getForWhom().sendRawMessage(error);
+            }
         }
         return success;
     }
@@ -412,12 +522,17 @@ public class FileMail extends TextMail implements Item, Command{
     }
     
     @Override
+    public boolean hasFile(){
+        return true;
+    }
+    
+    @Override
     public String toString(){
         String str = super.toString();
-        if(hasItem && !itemList.isEmpty()) str += "-含物品"+itemList.size()+"个";
-        if(hasCommand && !commandList.isEmpty()) str += "-含指令"+commandList.size()+"条";
-        if(coin!=0) str += "-含"+coin+GlobalConfig.vaultDisplay;
-        if(point!=0) str += "-含"+point+GlobalConfig.playerPointsDisplay;
+        if(hasItem && !itemList.isEmpty()) str += "§r-含物品"+itemList.size()+"个";
+        if(hasCommand && !commandList.isEmpty()) str += "§r-含指令"+commandList.size()+"条";
+        if(coin!=0) str += "§r-含"+coin+GlobalConfig.vaultDisplay;
+        if(point!=0) str += "§r-含"+point+GlobalConfig.playerPointsDisplay;
         return str;
     }
     

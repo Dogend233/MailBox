@@ -1,6 +1,8 @@
 package com.嘤嘤嘤.qwq.MailBox.VexView;
 
+import lk.vexview.api.VexViewAPI;
 import lk.vexview.hud.VexImageShow;
+import org.bukkit.entity.Player;
 
 public class MailBoxHud extends VexImageShow{
     
@@ -26,6 +28,10 @@ public class MailBoxHud extends VexImageShow{
         MailBoxHud.h = h;
         MailBoxHud.ww = ww;
         MailBoxHud.hh = hh;
+    }
+    
+    public static void setMailBoxHud(Player p){
+        VexViewAPI.sendHUD(p, new MailBoxHud());
     }
     
 }

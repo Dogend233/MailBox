@@ -63,6 +63,11 @@ public enum SQLCommand {
         "DELETE FROM `", "_permission_collect` WHERE `mail` = ?"
     ),
     
+    //获取一封"system"邮件的收件人
+    SELECT_SYSTEM_MAIL(
+        "SELECT * FROM `", "_system_collect` WHERE `mail` = ? AND `user` = ?"
+    ),
+    
     //设置一封"system"邮件已被某玩家领取
     COLLECT_SYSTEM_MAIL(
         "INSERT INTO `", "_system_collect` " +
@@ -82,6 +87,11 @@ public enum SQLCommand {
         "WHERE `mail` = ?"
     ),
     
+    //获取一封"permission"邮件的收件人
+    SELECT_PERMISSION_MAIL(
+        "SELECT * FROM `", "_permission_collect` WHERE `mail` = ? AND `user` = ?"
+    ),
+    
     //设置一封"permission"邮件已被某玩家领取
     COLLECT_PERMISSION_MAIL(
         "INSERT INTO `", "_permission_collect` " +
@@ -92,20 +102,20 @@ public enum SQLCommand {
     //发送一个附件
     SEND_FILE(
         "INSERT INTO `", "_file` " +
-        "(`type`, `commands`, `descriptions`, `coin`, `point`, `items`, `filename`)" +
+        "(`commands`, `descriptions`, `coin`, `point`, `items`, `filename`, `type`)" +
         "VALUES (?, ?, ?, ?, ?, ?, ?)"
     ),
     
     //更新一个附件
     UPDATE_FILE(
         "UPDATE `", "_file` " +
-        "SET (`type` = ? , `commands` = ? , `descriptions` = ? , `coin` = ? , `point` = ? , `items` = ? ) " +
-        "WHERE `filename` = ? "
+        "SET (`commands` = ? , `descriptions` = ? , `coin` = ? , `point` = ? , `items` = ? ) " +
+        "WHERE `filename` = ? AND `type` = ?"
     ),
     
     //获取一个附件
     SELECT_FILE(
-        "SELECT * FROM `", "_file` WHERE `filename` = ? "
+        "SELECT * FROM `", "_file` WHERE `filename` = ? AND `type` = ?"
     ),
     
     //获取一个类型所有附件名字
@@ -115,7 +125,7 @@ public enum SQLCommand {
     
     //删除一个附件
     DELETE_FILE(
-        "DELETE FROM `", "_file` WHERE `filename` = ?"
+        "DELETE FROM `", "_file` WHERE `filename` = ? AND `type` = ?"
     ),
     
     //创建MySQL的"system"邮箱system数据表

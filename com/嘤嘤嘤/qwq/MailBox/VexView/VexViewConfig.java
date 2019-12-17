@@ -4,19 +4,12 @@ import com.嘤嘤嘤.qwq.MailBox.Events.DoubleKeyPress;
 import com.嘤嘤嘤.qwq.MailBox.Events.JoinAndQuit;
 import com.嘤嘤嘤.qwq.MailBox.Events.SingleKeyPress;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.getInstance;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui.setBoxConfig;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxHud.setHudConfig;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.MailContentGui.setContentConfig;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.MailSelectGui.setSelectConfig;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.MailSendGui.setSendConfig;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import org.bukkit.Bukkit;
-import static org.bukkit.Bukkit.getLogger;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class VexViewConfig {
@@ -32,12 +25,12 @@ public class VexViewConfig {
     }
     
     public void ConfigSet(YamlConfiguration hud, YamlConfiguration box, YamlConfiguration content, YamlConfiguration select, YamlConfiguration send){
-        MailBox mb = getInstance();
+        MailBox mb = MailBox.getInstance();
         // 配置Hud
         if(hud.getBoolean("hud.enable")){
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 加入/退出 事件");
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, true), mb);
-            setHudConfig(
+            MailBoxHud.setHudConfig(
                 hud.getString("hud.id"),
                 hud.getString("hud.img"),
                 hud.getInt("hud.x"),
@@ -52,7 +45,7 @@ public class VexViewConfig {
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, false), mb);
         }
         // 配置BoxGui
-        getInstance().setOpenCmd(box.getBoolean("gui.openCmd"));
+        MailBox.getInstance().setOpenCmd(box.getBoolean("gui.openCmd"));
         String key = box.getString("gui.openKey");
         if(key.equals("0")){
             Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:已关闭按键打开邮箱GUI");
@@ -68,7 +61,7 @@ public class VexViewConfig {
                 Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:已启用单按键打开邮箱GUI");
             }
         }
-        setBoxConfig(
+        MailBoxGui.setBoxConfig(
             box.getString("gui.img"),
             box.getInt("gui.x"),
             box.getInt("gui.y"),
@@ -140,7 +133,7 @@ public class VexViewConfig {
             box.getStringList("mail.icon.display")
         );
         // 配置ContentGui
-        setContentConfig(
+        MailContentGui.setContentConfig(
             content.getString("gui.img"),
             content.getInt("gui.x"),
             content.getInt("gui.y"),
@@ -251,7 +244,7 @@ public class VexViewConfig {
             content.getIntegerList("slot.y")
         );
         // 配置SelectGui
-        setSelectConfig(
+        MailSelectGui.setSelectConfig(
             select.getString("gui.img"),
             select.getInt("gui.x"),
             select.getInt("gui.y"),
@@ -271,7 +264,7 @@ public class VexViewConfig {
             select.getStringList("button.list")
         );
         // 配置SendGui
-        setSendConfig(
+        MailSendGui.setSendConfig(
             send.getString("gui.img"),
             send.getInt("gui.x"),
             send.getInt("gui.y"),
@@ -423,7 +416,7 @@ public class VexViewConfig {
                 Bukkit.getConsoleSender().sendMessage("§a-----"+filename+"配置文件创建成功");
             } catch (IOException ex) {
                 Bukkit.getConsoleSender().sendMessage("§c-----"+filename+"配置文件创建失败");
-                getLogger().info(ex.getLocalizedMessage());
+                Bukkit.getLogger().info(ex.getLocalizedMessage());
                 return null;
             }
         }

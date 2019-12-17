@@ -4,14 +4,15 @@ import com.嘤嘤嘤.qwq.MailBox.API.Listener.MailCollectEvent;
 import com.嘤嘤嘤.qwq.MailBox.API.Listener.MailDeleteEvent;
 import com.嘤嘤嘤.qwq.MailBox.API.Listener.MailSendEvent;
 import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
-import static com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI.setCollect;
-import static com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI.setDelete;
-import static com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI.setSend;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.conversations.ConversationContext;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class TextMail{
     
@@ -57,7 +58,7 @@ public class TextMail{
     
     // 让玩家阅读这封邮件
     public boolean Read(Player p){
-        if(setCollect(type, id, p.getName())){
+        if(MailBoxAPI.setCollect(type, id, p.getName())){
             MailCollectEvent mce = new MailCollectEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mce);
             return true;
@@ -67,38 +68,98 @@ public class TextMail{
         }
     }
     
-    // 发送这封邮件
-    public boolean Send(Player p){
-        if(id==0){
-            double needCoin = getExpandCoin();
-            int needPoint = getExpandPoint();
-            // 判断玩家coin够不够
-            if(GlobalConfig.enVault && !p.hasPermission("mailbox.admin.send.check.coin") && GlobalConfig.vaultExpand!=0){
-                if(MailBoxAPI.getEconomyBalance(p)<needCoin){
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needCoin);
-                    return false;
-                }
-            }
-            // 判断玩家point够不够
-            if(GlobalConfig.enPlayerPoints && !p.hasPermission("mailbox.admin.send.check.point") && GlobalConfig.playerPointsExpand!=0){
-                if(MailBoxAPI.getPoints(p)<needPoint){
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needPoint);
-                    return false;
-                }
-            }
-            // 获取时间
-            date = DateTime.get("ymdhms");
-            // 新建邮件
-            if(setSend(type, id, sender, getRecipientString(), permission, topic, content, date, "0")){
-                // 扣钱
-                if(needCoin!=0 && !p.hasPermission("mailbox.admin.send.noconsume.coin") && removeCoin(p, needCoin)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
-                if(needPoint!=0 && !p.hasPermission("mailbox.admin.send.noconsume.point") && removePoint(p, needPoint)) p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
-                MailSendEvent mse = new MailSendEvent(this, p);
-                Bukkit.getServer().getPluginManager().callEvent(mse);
+    // 判断发件量是否达到上限
+    public boolean isMax(Player p){
+        if(type.equals("player")){
+            int out = MailBoxAPI.playerAsSenderAllow(p);
+            int outed = MailBoxAPI.playerAsSender(p);
+            if((out-outed)<=0){
+                p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你的"+GlobalConfig.getTypeName(type)+"邮件发送数量达到上限");
                 return true;
-            }else{
-                p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+            }
+        }
+        return false;
+    }
+    
+    public boolean enoughMoney(Player p,double needCoin,int needPoint, ConversationContext cc){
+        // 判断玩家coin够不够
+        if(GlobalConfig.enVault && !p.hasPermission("mailbox.admin.send.check.coin") && GlobalConfig.vaultExpand!=0){
+            if(MailBoxAPI.getEconomyBalance(p)<needCoin){
+                if(cc==null){
+                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needCoin);
+                }else{
+                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needCoin);
+                }
                 return false;
+            }
+        }
+        // 判断玩家point够不够
+        if(GlobalConfig.enPlayerPoints && !p.hasPermission("mailbox.admin.send.check.point") && GlobalConfig.playerPointsExpand!=0){
+            if(MailBoxAPI.getPoints(p)<needPoint){
+                if(cc==null){
+                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.playerPointsDisplay+GlobalConfig.normal+"不足，共需要"+needPoint);
+                }else{
+                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.playerPointsDisplay+GlobalConfig.normal+"不足，共需要"+needPoint);
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // 发送这封邮件
+    public boolean Send(CommandSender send, ConversationContext cc){
+        if(id==0){
+            if(send instanceof Player){
+                Player p = (Player)send;
+                if(isMax(p)) return false;
+                double needCoin = getExpandCoin();
+                int needPoint = getExpandPoint();
+                if(!enoughMoney(p,needCoin,needPoint,cc)) return false;
+                // 获取时间
+                date = DateTime.get("ymdhms");
+                // 新建邮件
+                if(MailBoxAPI.setSend(type, id, sender, getRecipientString(), permission, topic, content, date, "0")){
+                    // 扣钱
+                    if(needCoin!=0 && !p.hasPermission("mailbox.admin.send.noconsume.coin") && removeCoin(p, needCoin)){
+                        if(cc==null){
+                            p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
+                        }else{
+                            cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
+                        }
+                    }
+                    if(needPoint!=0 && !p.hasPermission("mailbox.admin.send.noconsume.point") && removePoint(p, needPoint)){
+                        if(cc==null){
+                            p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
+                        }else{
+                            cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
+                        }
+                    }
+                    MailSendEvent mse = new MailSendEvent(this, p);
+                    Bukkit.getServer().getPluginManager().callEvent(mse);
+                    return true;
+                }else{
+                    if(cc==null){
+                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                    }else{
+                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                    }
+                    return false;
+                }
+            }else{
+                date = DateTime.get("ymdhms");
+                if(MailBoxAPI.setSend(type, id, sender, getRecipientString(), permission, topic, content, date, "0")){
+                    MailSendEvent mse = new MailSendEvent(this, send);
+                    Bukkit.getServer().getPluginManager().callEvent(mse);
+                    return true;
+                }else{
+                    if(cc==null){
+                        send.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                    }else{
+                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                    }
+                    return false;
+                }
             }
         }else{
             // 修改已有邮件
@@ -113,7 +174,7 @@ public class TextMail{
     
     // 删除这封邮件的MySQL数据
     public boolean DeleteData(Player p){
-        if(setDelete(type, id)){
+        if(MailBoxAPI.setDelete(type, id)){
             if(p!=null) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件删除成功！");
             MailDeleteEvent mde = new MailDeleteEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mde);
@@ -217,10 +278,18 @@ public class TextMail{
         }
     }
     
+    public boolean hasFile(){
+        return false;
+    }
+    
+    public FileMail toFileMail(){
+        return new FileMail(type,id,sender,recipient,permission,topic,content,date,"0",new ArrayList<ItemStack>(),new ArrayList<String>(),new ArrayList<String>(),0,0);
+    }
+    
     @Override
     public String toString(){
-        String str = typeName+"-"+id+"-"+topic+"-"+content+"-"+sender+"-"+date;
-        if(!recipient.isEmpty()) str += "-收件人："+getRecipientString();
+        String str = typeName+"§r-"+id+"§r-"+topic+"§r-"+content+"§r-"+sender+"§r-"+date;
+        if(type.equals("player") && !recipient.isEmpty()) str += "§r-收件人："+getRecipientString();
         return str;
     }
     

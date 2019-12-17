@@ -5,6 +5,7 @@ import java.util.List;
 
 public class GlobalConfig {
     public static boolean enVexView;
+    public static boolean lowVexView;
     public static boolean enVault;
     public static boolean enPlayerPoints;
     
@@ -35,6 +36,11 @@ public class GlobalConfig {
     public static boolean setVexView(boolean vv){
         enVexView = vv;
         return enVexView;
+    }
+    
+    public static boolean setLowVexView(boolean vv){
+        lowVexView = vv;
+        return lowVexView;
     }
     
     public static boolean setVault(boolean v){

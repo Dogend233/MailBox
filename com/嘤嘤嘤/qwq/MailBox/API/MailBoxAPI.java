@@ -4,10 +4,6 @@ import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPermission;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayer;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayerId;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListSystem;
 import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import com.嘤嘤嘤.qwq.MailBox.Utils.MD5;
 import com.嘤嘤嘤.qwq.MailBox.Utils.SQLManager;
@@ -21,7 +17,7 @@ import java.util.List;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.black_ixx.playerpoints.PlayerPoints;
-import static org.bukkit.Bukkit.getLogger;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -33,7 +29,7 @@ public class MailBoxAPI {
     private static Economy economy = null;
     private static PlayerPoints points = null;
     private static String VERSION;
-    private static final String DATA_FOLDER = "plugins/VexMailBox";
+    private static final String DATA_FOLDER = "plugins/MailBox";
     
     // 设置插件版本
     public static void setVersion(){
@@ -103,21 +99,21 @@ public class MailBoxAPI {
         ArrayList<Integer> recipientList = new ArrayList();
         switch (type) {
             case "player":
-                MailListPlayer.forEach((k, v) -> {
+                MailBox.MailListPlayer.forEach((k, v) -> {
                     if(v.getSender().equals(name)) senderList.add(k);
                     if(v.getRecipient().contains(name)) recipientList.add(k);
                 });
                 break;
             case "system":
                 ArrayList<Integer> collectedSystem = SQLManager.get().getCollectedMailList(p, type);
-                MailListSystem.forEach((k, v) -> {
+                MailBox.MailListSystem.forEach((k, v) -> {
                     if(v.getSender().equals(name)) senderList.add(k);
                     if(!collectedSystem.contains(k)) recipientList.add(k);
                 });
                 break;
             case "permission":
                 ArrayList<Integer> collectedPermission = SQLManager.get().getCollectedMailList(p, type);
-                MailListPermission.forEach((k, v) -> {
+                MailBox.MailListPermission.forEach((k, v) -> {
                     if(v.getSender().equals(name)) senderList.add(k);
                     if(p.hasPermission(v.getPermission()) && !collectedPermission.contains(k)) recipientList.add(k);
                 });
@@ -160,6 +156,9 @@ public class MailBoxAPI {
         f = new File(DATA_FOLDER+"/MailFiles/"+type, fileName+".yml");
         return f.exists();
     }
+    public static boolean existFilesSQL(String fileName, String type){
+        return SQLManager.get().existMailFiles(fileName, type);
+    }
     
     // 保存附件文件到数据库
     public static boolean saveMailFilesSQL(FileMail fm){ 
@@ -183,7 +182,7 @@ public class MailBoxAPI {
     
     // 从数据库获取附件数据
     public static void getMailFilesSQL(FileMail fm){
-        YamlConfiguration mf = SQLManager.get().getMailFiles(fm.getFileName());
+        YamlConfiguration mf = SQLManager.get().getMailFiles(fm.getFileName(), fm.getType());
         if(mf!=null){
             if(mf.getBoolean("cmd.enable")){
                 fm.setCommandList(mf.getStringList("cmd.commands"));
@@ -330,7 +329,7 @@ public class MailBoxAPI {
     }
     
     // 删除某一封邮件的附件文件
-    public static boolean setDeleteFile(String type, String fileName){
+    public static boolean setDeleteFile( String fileName, String type){
         File f = new File(DATA_FOLDER+"/MailFiles/"+type, fileName+".yml");
         if(f.exists()){
             return f.delete();
@@ -338,8 +337,8 @@ public class MailBoxAPI {
             return true;
         }
     }
-    public static boolean setDeleteFile(String filename){
-        return SQLManager.get().deleteMailFiles(filename);
+    public static boolean setDeleteFileSQL(String filename, String type){
+        return SQLManager.get().deleteMailFiles(filename, type);
     }
     
     // 将手上物品写入itemstack.yml
@@ -362,6 +361,46 @@ public class MailBoxAPI {
         } catch (IOException ex) {
             return false;
         }
+    }
+    // 将手上物品写入ItemExport文件夹的自定义文件名.yml
+    public static boolean saveItem(ItemStack is, String filename){
+        File f = new File(DATA_FOLDER+"/ItemExport");
+        if(!f.exists())f.mkdir();
+        YamlConfiguration mailFiles = new YamlConfiguration();
+        f = new File(DATA_FOLDER+"/ItemExport", filename+".yml");
+        if(!f.exists()){
+            try {
+                f.createNewFile();
+            } catch (IOException ex) {
+                return false;
+            }
+        }
+        mailFiles.set("itemstack", is);
+        try {
+            mailFiles.save(f);
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+    
+    // 将itemstack.yml的物品拿到手上
+    public static ItemStack readItem(){
+        File f = new File(DATA_FOLDER);
+        if(!f.exists()) return null;
+        f = new File(DATA_FOLDER, "itemstack.yml");
+        if(!f.exists()) return null;
+        YamlConfiguration mailFiles = YamlConfiguration.loadConfiguration(f);
+        return mailFiles.getItemStack("itemstack");
+    }
+    // 将ItemExport文件夹的自定义文件名.yml的物品拿到手上
+    public static ItemStack readItem(String filename){
+        File f = new File(DATA_FOLDER);
+        if(!f.exists()) return null;
+        f = new File(DATA_FOLDER+"/ItemExport", filename+".yml");
+        if(!f.exists()) return null;
+        YamlConfiguration mailFiles = YamlConfiguration.loadConfiguration(f);
+        return mailFiles.getItemStack("itemstack");
     }
     
     // 取出一封自定义邮件
@@ -423,16 +462,13 @@ public class MailBoxAPI {
     
     // 获取该玩家player发件数量
     public static int playerAsSender(Player p){
-        if(MailListPlayerId.containsKey(p.getName())){
-            return MailListPlayerId.get(p.getName()).get("asSender").size();
-        }else{
-            return getRelevantMail(p, "player").get("asSender").size();
-        }
+        MailBox.updateRelevantMailList(p, "player");
+        return MailBox.getRelevantMailList(p, "player").get("asSender").size();
     }
     
     // 获取该玩家player可以发件的数量
-    public static int playerAsSenderAllow(Player p, List<Integer> player_out){
-        for(int count:player_out){
+    public static int playerAsSenderAllow(Player p){
+        for(int count : GlobalConfig.player_out){
             if(p.hasPermission("mailbox.send.player.out."+count)){
                 return count;
             }
@@ -440,24 +476,17 @@ public class MailBoxAPI {
         return 0;
     }
     
-    // 获取该玩家player收件数量
-    /*public static int playerAsRecipient(Player p){
-        if(MailListPlayerId.containsKey(p.getName())){
-            return MailListPlayerId.get(p.getName()).get("asRecipient").size();
-        }else{
-            return getRelevantMail(p, "player").get("asRecipient").size();
-        }
-    }*/
-    
-    // 获取该玩家player可以收件的数量
-    /*public static int playerAsRecipientAllow(Player p, List<Integer> player_in){
-        for(int count:player_in){
-            if(p.hasPermission("mailbox.send.player.in."+count)){
-                return count;
+    // 获取该玩家可发送的物品数量
+    public static int playerSendItemAllow(Player p){
+        int item = 0;
+        for(int i=GlobalConfig.maxItem;i>0;i--){
+            if(p.hasPermission("mailbox.send.item."+i)){
+                item = i;
+                break;
             }
         }
-        return 0;
-    }*/
+        return item;
+    }
     
     // 判断这封邮件是否过期
     public static boolean isExpired(TextMail tm){
@@ -472,7 +501,7 @@ public class MailBoxAPI {
             long nt = df.parse(nowTime).getTime();
             return st+dt<=nt;
         } catch (ParseException ex) {
-            getLogger().info(ex.getLocalizedMessage());
+            Bukkit.getLogger().info(ex.getLocalizedMessage());
         }
         return false;
     }
@@ -499,7 +528,7 @@ public class MailBoxAPI {
     // 生成一个32位MD5码
     public static String getMD5(String type) throws IOException{
         String md5 = MD5.Hex(DateTime.get("ms"));
-        while(existFiles(md5, type)){
+        while(existFiles(md5, type) || existFilesSQL(md5, type)){
             md5 = MD5.Hex(DateTime.get("ms"));
         }
         return md5;

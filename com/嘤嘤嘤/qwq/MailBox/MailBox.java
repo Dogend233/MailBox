@@ -1,16 +1,20 @@
 package com.嘤嘤嘤.qwq.MailBox;
 
 import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
-import static com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI.getCustomMail;
+import com.嘤嘤嘤.qwq.MailBox.API.Placeholder;
 import com.嘤嘤嘤.qwq.MailBox.Events.JoinAndQuit;
-import com.嘤嘤嘤.qwq.MailBox.Events.Mail;
+import com.嘤嘤嘤.qwq.MailBox.Events.MailChange;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
+import com.嘤嘤嘤.qwq.MailBox.Original.MailList;
+import com.嘤嘤嘤.qwq.MailBox.Original.MailNew;
+import com.嘤嘤嘤.qwq.MailBox.Original.MailView;
+import com.嘤嘤嘤.qwq.MailBox.Utils.NMS;
 import com.嘤嘤嘤.qwq.MailBox.Utils.SQLManager;
 import com.嘤嘤嘤.qwq.MailBox.Utils.UpdateCheck;
 import com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.MailContentGui.openMailContentGui;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.VexViewConfig.VexViewConfigSet;
+import com.嘤嘤嘤.qwq.MailBox.VexView.MailContentGui;
+import com.嘤嘤嘤.qwq.MailBox.VexView.VexViewConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -22,19 +26,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import lk.vexview.api.VexViewAPI;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.milkbowl.vault.economy.Economy;
-import net.minecraft.server.v1_12_R1.NBTTagCompound;
 import org.black_ixx.playerpoints.PlayerPoints;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -47,44 +44,48 @@ public class MailBox extends JavaPlugin {
     // 首次启动
     private static boolean FirstEnable = true;
     // config 配置文件
-    private static final String DATA_FOLDER = "plugins/VexMailBox";
+    private static final String DATA_FOLDER = "plugins/MailBox";
     private static FileConfiguration config;
     // system 类型邮件
     public static HashMap<Integer, TextMail> MailListSystem = new HashMap();
-    public static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListSystemId = new HashMap();
+    private static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListSystemRelevant = new HashMap();
     // player 类型邮件
     public static HashMap<Integer, TextMail> MailListPlayer = new HashMap();
-    public static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListPlayerId = new HashMap();
+    private static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListPlayerRelevant = new HashMap();
     // permission 类型邮件
     public static HashMap<Integer, TextMail> MailListPermission = new HashMap();
-    public static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListPermissionId = new HashMap();
+    private static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListPermissionRelevant = new HashMap();
     
     @Override    
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
         if (label.equalsIgnoreCase("mailbox")||label.equalsIgnoreCase("mb")){
-            if(args.length==0 && enCmdOpen){
-                if((sender instanceof Player)){
-                    /*Player p = (Player)sender;
-                    ItemStack itemStack = p.getInventory().getItemInMainHand();
-                    net.minecraft.server.v1_12_R1.ItemStack nmsItemStack = CraftItemStack.asNMSCopy(itemStack);
-                    net.minecraft.server.v1_12_R1.NBTTagCompound compound = new NBTTagCompound();
-                    compound = nmsItemStack.save(compound);
-                    String json = compound.toString();
-                    BaseComponent[] hoverEventComponents = new BaseComponent[]{
-                            new TextComponent(json)
-                    };
-                    HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM, hoverEventComponents);
-                    TextComponent component = new TextComponent("附件");
-                    component.setHoverEvent(event);
-                    p.spigot().sendMessage(component);*/
-                    MailBoxGui.openMailBoxGui((Player) sender, "Recipient");
-                    return true;
+            if(args.length==0){
+                if(GlobalConfig.enVexView){
+                    if((sender instanceof Player)){
+                        if(enCmdOpen) MailBoxGui.openMailBoxGui((Player) sender, "Recipient");
+                        else MailList.list(sender, "Recipient");
+                    }else{
+                        MailList.list(sender, "Recipient");
+                    }
                 }else{
-                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以打开GUI");
-                    return true;
+                    MailList.list(sender, "Recipient");
                 }
+                return true;
             }else if(args.length==1){
-                if(args[0].equalsIgnoreCase("reload")){
+                if(args[0].equalsIgnoreCase("sendbox") || args[0].equalsIgnoreCase("sb")){
+                    if((sender instanceof Player)){
+                        MailList.list(sender, "Sender");
+                    }else{
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以查看发件箱");
+                    }
+                    return true;
+                }else if(args[0].equalsIgnoreCase("receivebox") || args[0].equalsIgnoreCase("rb")){
+                    MailList.list(sender, "Recipient");
+                    return true;
+                }else if(args[0].equalsIgnoreCase("new")){
+                    new MailNew(sender,this);
+                    return true;
+                }else if(args[0].equalsIgnoreCase("reload")){
                     if(sender.hasPermission("mailbox.admin.reload")){
                         reloadPlugin();
                         sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"插件已重载");
@@ -114,14 +115,45 @@ public class MailBox extends JavaPlugin {
                     if(args[1].equalsIgnoreCase("export")){
                         if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.export")){
                             ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
-                            if(is!=null && MailBoxAPI.saveItem(is)){
-                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
+                            if(args.length==3){
+                                if(is!=null && MailBoxAPI.saveItem(is, args[2])){
+                                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出至"+args[2]+".yml成功");
+                                }else{
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
+                                }
                             }else{
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
+                                if(is!=null && MailBoxAPI.saveItem(is)){
+                                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
+                                }else{
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
+                                }
                             }
                             return true;
                         }
                         sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有导出物品的权限");
+                        return true;
+                    }else if(args[1].equalsIgnoreCase("import")){
+                        if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.import")){
+                            if(args.length==3){
+                                ItemStack is = MailBoxAPI.readItem(args[2]);
+                                if(is!=null){
+                                    ((Player)sender).getInventory().setItemInMainHand(is);
+                                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"取出"+args[2]+".yml物品成功");
+                                }else{
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"取出物品失败");
+                                }
+                            }else{
+                                ItemStack is = MailBoxAPI.readItem();
+                                if(is!=null){
+                                    ((Player)sender).getInventory().setItemInMainHand(is);
+                                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"取出物品成功");
+                                }else{
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"取出物品失败");
+                                }
+                            }
+                            return true;
+                        }
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有取出物品的权限");
                         return true;
                     }else if(args[1].equalsIgnoreCase("id")){
                         if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.id")){
@@ -168,7 +200,34 @@ public class MailBox extends JavaPlugin {
                             return true;
                         }
                     }else if(args.length>=3){
-                        if(args[1].equalsIgnoreCase("send")){
+                        if(args[1].equalsIgnoreCase("see")){
+                            int mail = 0;
+                            try{
+                                mail = Integer.parseInt(args[2]);
+                            }catch(NumberFormatException e){
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                            }
+                            MailView.view(type, mail, sender);
+                            return true;
+                        }else if(args[1].equalsIgnoreCase("collect")){
+                            int mail = 0;
+                            try{
+                                mail = Integer.parseInt(args[2]);
+                            }catch(NumberFormatException e){
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                            }
+                            MailView.collect(type, mail, sender);
+                            return true;
+                        }else if(args[1].equalsIgnoreCase("delete")){
+                            int mail = 0;
+                            try{
+                                mail = Integer.parseInt(args[2]);
+                            }catch(NumberFormatException e){
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                            }
+                            MailView.delete(type, mail, sender);
+                            return true;
+                        }else if(args[1].equalsIgnoreCase("send")){
                             ArrayList<String> rl = new ArrayList();
                             if(type.equals("player") && args.length<4) {
                                 sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"请至少填写一个以上的收件人");
@@ -184,7 +243,7 @@ public class MailBox extends JavaPlugin {
                             if(sender.hasPermission("mailbox.admin.send.custom."+type)){
                                 if((sender instanceof Player)){
                                     Player p = (Player) sender;
-                                    TextMail tm = getCustomMail(args[2], type);
+                                    TextMail tm = MailBoxAPI.getCustomMail(args[2], type);
                                     if(tm==null){
                                         sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标文件不存在");
                                         return true;
@@ -193,7 +252,7 @@ public class MailBox extends JavaPlugin {
                                         if(type.equals("player")) tm.setRecipient(rl);
                                         if(type.equals("permission")) tm.setPermission(rl.get(0));
                                         try {
-                                            openMailContentGui(p, tm, null, false);
+                                            MailContentGui.openMailContentGui(p, tm, null, false);
                                         } catch (IOException ex) {
                                             getLogger().log(Level.SEVERE, null, ex);
                                         }
@@ -323,50 +382,59 @@ public class MailBox extends JavaPlugin {
         // 插件启动
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件正在启动......");
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:版本："+this.getDescription().getVersion());
+        // 检查前置[PlaceholderAPI]
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[PlaceholderAPI]已安装，版本：".concat(Bukkit.getPluginManager().getPlugin("PlaceholderAPI").getDescription().getVersion()));
+            PlaceholderAPI.unregisterPlaceholderHook("mailbox");
+            new Placeholder().register();
+        } else {
+            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:前置插件[PlaceholderAPI]未安装，已关闭相关功能");
+        }
         // 检查前置[Vault]
         GlobalConfig.setVault(setupEconomy());
         if(GlobalConfig.enVault){
-            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[Vault]已安装");
+            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[Vault]已安装，版本：".concat(Bukkit.getPluginManager().getPlugin("Vault").getDescription().getVersion()));
         }else{
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:前置插件[Vault]未安装，已关闭相关功能");
         }
         // 检查前置[PlayerPoints]
         GlobalConfig.setPlayerPoints(setupPoints());
         if(GlobalConfig.enPlayerPoints){
-            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[PlayerPoints]已安装");
+            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[PlayerPoints]已安装，版本：".concat(Bukkit.getPluginManager().getPlugin("PlayerPoints").getDescription().getVersion()));
         }else{
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:前置插件[PlayerPoints]未安装，已关闭相关功能");
         }
         // 检查前置[VexView]
         if(Bukkit.getPluginManager().isPluginEnabled("VexView")){
             String version = VexViewAPI.getVexView().getVersion();
-            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[VexView]已安装，版本："+version);
+            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[VexView]已安装，版本：".concat(version));
             // 检查[VexView]版本号
             if(UpdateCheck.check(version, "2.5.0")){
-                // 加载插件
-                instance = this;
                 GlobalConfig.setVexView(true);
-                reloadPlugin();
-                Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件启动完成");
-                // 检查更新
-                if(config.getBoolean("mailbox.updateCheck")){
-                    new BukkitRunnable(){
-                        @Override
-                        public void run(){
-                            UpdateCheck.check(Bukkit.getConsoleSender());
-                        }
-                    }.runTaskAsynchronously(this);
-                }
+                GlobalConfig.setLowVexView(false);
             }else{
-                Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]版本小于2.5");
-                GlobalConfig.setVexView(false);
-                this.enCmdOpen = false;
-                Bukkit.getPluginManager().disablePlugin(this);
+                Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]版本小于2.5, 已关闭发送邮件GUI, 使用指令代替");
+                GlobalConfig.setVexView(true);
+                GlobalConfig.setLowVexView(true);
             }
         }else{
-            Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]未安装，卸载插件");
+            Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]未安装，已关闭相关功能");
             GlobalConfig.setVexView(false);
-            Bukkit.getPluginManager().disablePlugin(this);
+            GlobalConfig.setLowVexView(true);
+        }
+        // 加载插件
+        instance = this;
+        reloadPlugin();
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:获取NMS版本: "+NMS.getNMSVersion());
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件启动完成");
+        // 检查更新
+        if(config.getBoolean("mailbox.updateCheck")){
+            new BukkitRunnable(){
+                @Override
+                public void run(){
+                    UpdateCheck.check(Bukkit.getConsoleSender());
+                }
+            }.runTaskAsynchronously(this);
         }
     }
     
@@ -442,7 +510,7 @@ public class MailBox extends JavaPlugin {
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(false, false), this);
         }
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 邮件 事件");
-        Bukkit.getPluginManager().registerEvents(new Mail(), this);
+        Bukkit.getPluginManager().registerEvents(new MailChange(), this);
         // 邮件文件夹（总）
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查邮件文件夹是否存在");
         f = new File(DATA_FOLDER+"/MailFiles/");
@@ -528,7 +596,7 @@ public class MailBox extends JavaPlugin {
             config.getInt("mailbox.player_points.item")
         );
         // 设置VexViewConfig
-        if(GlobalConfig.enVexView) VexViewConfigSet();
+        if(GlobalConfig.enVexView) VexViewConfig.VexViewConfigSet();
     }
     
     //更新邮件列表
@@ -557,23 +625,51 @@ public class MailBox extends JavaPlugin {
         }
     }
     
-    // 获取玩家可领取的邮件列表
-    public static void getUnMailList(Player p, String type){
+    // 获取玩家相关邮件列表
+    public static HashMap<String, ArrayList<Integer>> getRelevantMailList(Player p, String type){
         switch (type) {
             case "system" :
-                MailListSystemId.remove(p.getName());
-                MailListSystemId.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                if(!MailListSystemRelevant.containsKey(p.getName())) updateRelevantMailList(p,type);
+                return MailListSystemRelevant.get(p.getName());
+            case "player" :
+                if(!MailListPlayerRelevant.containsKey(p.getName())) updateRelevantMailList(p,type);
+                return MailListPlayerRelevant.get(p.getName());
+            case "permission" :
+                if(!MailListPermissionRelevant.containsKey(p.getName())) updateRelevantMailList(p,type);
+                return MailListPermissionRelevant.get(p.getName());
+            default:
+                return null;
+        }
+    }
+    
+    // 更新玩家相关邮件列表
+    public static void updateRelevantMailList(Player p, String type){
+        switch (type) {
+            case "system" :
+                MailListSystemRelevant.remove(p.getName());
+                MailListSystemRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
                 break;
             case "player" :
-                MailListPlayerId.remove(p.getName());
-                MailListPlayerId.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                MailListPlayerRelevant.remove(p.getName());
+                MailListPlayerRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
                 break;
             case "permission" :
-                MailListPermissionId.remove(p.getName());
-                MailListPermissionId.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                MailListPermissionRelevant.remove(p.getName());
+                MailListPermissionRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
                 break;
+            default:
+                removeRelevantMailList(p);
+                MailListSystemRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                MailListPlayerRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                MailListPermissionRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
         }
-        
+    }
+    
+    // 将玩家移出相关邮件列表
+    public static void removeRelevantMailList(Player p){
+        MailListSystemRelevant.remove(p.getName());
+        MailListPlayerRelevant.remove(p.getName());
+        MailListPermissionRelevant.remove(p.getName());
     }
     
     // 获取此类

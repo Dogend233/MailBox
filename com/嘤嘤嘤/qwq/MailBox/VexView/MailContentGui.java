@@ -3,11 +3,7 @@ package com.嘤嘤嘤.qwq.MailBox.VexView;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPermissionId;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListPlayerId;
-import static com.嘤嘤嘤.qwq.MailBox.MailBox.MailListSystemId;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui.openMailBoxGui;
-import static com.嘤嘤嘤.qwq.MailBox.VexView.MailSendGui.openMailSendGui;
+import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,18 +95,23 @@ public class MailContentGui extends VexGui{
                 buttonInt.get("return")[0],buttonInt.get("return")[1],buttonInt.get("return")[2],buttonInt.get("return")[3]);
         if(!buttonHover.get("return").isEmpty()) vbr.setHover(new VexHoverText(buttonHover.get("return")));
         if(asSender){
-            vbr.setFunction(player -> openMailBoxGui(player, "Recipient"));
+            vbr.setFunction(player -> MailBoxGui.openMailBoxGui(player, "Recipient"));
         }else{
-            vbr.setFunction(player -> openMailBoxGui(player, "Sender"));
+            vbr.setFunction(player -> MailBoxGui.openMailBoxGui(player, "Sender"));
         }
         if(vg!=null){
-            vbr.setFunction(player -> openMailSendGui(player, tm.getType(), vg));
+            vbr.setFunction(player -> MailSendGui.openMailSendGui(player, tm.getType(), vg));
         }
         this.addComponent(vbr);
         // 删除按钮
         vbd = new VexButton(
                 buttonString.get("delete")[0],buttonString.get("delete")[1],buttonString.get("delete")[2],buttonString.get("delete")[3],
-                buttonInt.get("delete")[0],buttonInt.get("delete")[1],buttonInt.get("delete")[2],buttonInt.get("delete")[3],player -> tm.Delete(player));
+                buttonInt.get("delete")[0],buttonInt.get("delete")[1],buttonInt.get("delete")[2],buttonInt.get("delete")[3],player -> {
+                    // 关闭GUI
+                    player.closeInventory();
+                    // 删除邮件
+                    tm.Delete(player);
+                });
         if(!buttonHover.get("delete").isEmpty()) vbd.setHover(new VexHoverText(buttonHover.get("delete")));
         // 发送按钮
         vbs = new VexButton(
@@ -118,7 +119,8 @@ public class MailContentGui extends VexGui{
                 buttonInt.get("send")[0],buttonInt.get("send")[1],buttonInt.get("send")[2],buttonInt.get("send")[3],player -> {
                     // 关闭GUI
                     player.closeInventory();
-                    if(tm.Send(player)){
+                    // 发送邮件
+                    if(tm.Send(player, null)){
                         player.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件发送成功");
                     }else{
                         player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件发送失败");
@@ -148,27 +150,8 @@ public class MailContentGui extends VexGui{
                 buttonInt.get("collected")[0],buttonInt.get("collected")[1],buttonInt.get("collected")[2],buttonInt.get("collected")[3]);
         if(!buttonHover.get("collected").isEmpty()) vbcd.setHover(new VexHoverText(buttonHover.get("collected")));
         // 获取玩家是否可以领取这封邮件
-        switch (tm.getType()) {
-            case "system":
-            {
-                ArrayList<Integer> l = MailListSystemId.get(p.getName()).get("asRecipient");
-                collecte = l.contains(tm.getId());
-                break;
-            }
-            case "player":
-            {
-                ArrayList<Integer> l = MailListPlayerId.get(p.getName()).get("asRecipient");
-                collecte = l.contains(tm.getId());
-                break;
-            }
-            case "permission":
-            {
-                ArrayList<Integer> l = MailListPermissionId.get(p.getName()).get("asRecipient");
-                collecte = l.contains(tm.getId());
-                break;
-            }
-            default: collecte = false;
-        } 
+        ArrayList<Integer> l = MailBox.getRelevantMailList(p, tm.getType()).get("asRecipient");
+        collecte = l.contains(tm.getId());
         textMail(tm, p);
     }
     
@@ -405,8 +388,11 @@ public class MailContentGui extends VexGui{
         if(p.hasPermission("mailbox.content.id")){
             switch (type){
                 case "player":
-                    List<String> playerReci = tm.getRecipient();
-                    playerReci.add(0, tm.getTypeName()+" - "+tm.getId());
+                    List<String> playerReci = new ArrayList();
+                    playerReci.add(tm.getTypeName()+" - "+tm.getId());
+                    for(String s:tm.getRecipient()){
+                        playerReci.add(s);
+                    }
                     vtp.setHover(new VexHoverText(playerReci));
                     break;
                 case "permission":
