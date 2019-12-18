@@ -81,6 +81,7 @@ public class TextMail{
         return false;
     }
     
+    // 判断玩家余额够不够
     public boolean enoughMoney(Player p,double needCoin,int needPoint, ConversationContext cc){
         // 判断玩家coin够不够
         if(GlobalConfig.enVault && !p.hasPermission("mailbox.admin.send.check.coin") && GlobalConfig.vaultExpand!=0){
@@ -293,4 +294,12 @@ public class TextMail{
         return str;
     }
     
+    @Override
+    public TextMail clone(){
+        return new TextMail(type,id,sender,recipient,permission,topic,content,date);
+    }
+    
+    public boolean equals(TextMail tm){
+        return false;
+    }
 }

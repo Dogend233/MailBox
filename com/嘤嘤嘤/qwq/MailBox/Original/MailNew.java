@@ -5,8 +5,10 @@ import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
+import com.嘤嘤嘤.qwq.MailBox.VexView.MailContentGui;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -41,6 +43,9 @@ public class MailNew {
             sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 你没有权限发送邮件");
         }
     }
+    public MailNew(CommandSender sender, TextMail tm){
+        
+    }
     public void create(CommandSender sender, MailBox mb){
         Conversation conversation = new ConversationFactory(mb)
             .withFirstPrompt(new TypeSelect(sender))
@@ -65,6 +70,9 @@ public class MailNew {
             })
             .buildConversation((Conversable) sender);
         conversation.begin();
+    }
+    public static String color(String target){
+        return target.replace('&', '§');
     }
     public static boolean sendable(CommandSender sender, String type, ConversationContext cc){
         if(sender instanceof Player){
@@ -107,17 +115,12 @@ public class MailNew {
     }
     public static int itemable(CommandSender sender){
         if(sender instanceof Player){
-            int item = 0;
-            item = MailBoxAPI.playerSendItemAllow((Player)sender);
-            return item;
+            return MailBoxAPI.playerSendItemAllow((Player)sender);
         }else if(sender instanceof ConsoleCommandSender){
             return GlobalConfig.maxItem;
         }else{
             return 0;
         }
-    }
-    public static String color(String target){
-        return target.replace('&', '§');
     }
 }
 
@@ -453,9 +456,9 @@ class File extends ValidatingPrompt{
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
         if(str.equals(OriginalConfig.stopStr)) return Prompt.END_OF_CONVERSATION;
         if(file){
-            if(sender.hasPermission("mailbox.send.money.coin")){
+            if(GlobalConfig.enVault && sender.hasPermission("mailbox.send.money.coin")){
                 return new Coin(tm.toFileMail(), sender, false);
-            }else if(sender.hasPermission("mailbox.send.money.point")){
+            }else if(GlobalConfig.enPlayerPoints && sender.hasPermission("mailbox.send.money.point")){
                 return new Point(tm.toFileMail(), sender, false);
             }else if(MailNew.itemable(sender)>0){
                 return new Item(tm.toFileMail(), sender, false);
@@ -778,41 +781,78 @@ class CommandDescription extends ValidatingPrompt{
 }
 
 class Preview extends ValidatingPrompt{
+    private final static HashMap<Integer,String> OPTION = new HashMap();
+    static {
+        OPTION.put(1, "§b[邮件预览]: 输入 0 修改标题");
+        OPTION.put(2, "§b[邮件预览]: 输入 0 修改内容");
+        OPTION.put(3, "§b[邮件预览]: 输入 0 修改发件人");
+        OPTION.put(4, "§b[邮件预览]: 输入 0 修改收件人");
+        OPTION.put(5, "§b[邮件预览]: 输入 0 修改权限");
+        OPTION.put(6, "§b[邮件预览]: 输入 0 修改"+GlobalConfig.vaultDisplay);
+        OPTION.put(7, "§b[邮件预览]: 输入 0 修改"+GlobalConfig.playerPointsDisplay);
+        OPTION.put(8, "§b[邮件预览]: 输入 0 修改指令");
+        OPTION.put(9, "§b[邮件预览]: 输入 0 修改指令描述");
+        OPTION.put(10, "§b[邮件预览]: 输入 0 修改物品");
+        OPTION.put(11, "§b[邮件预览]: 输入 0 添加附件");
+        OPTION.put(12, "§b[邮件预览]: 输入 0 移除所有附件");
+    }
     TextMail tm;
     CommandSender sender;
-    int zero;
-    String option;
+    HashMap<Integer,Integer> optional;
     int change = 0;
     Preview(TextMail tm, CommandSender sender){
         this.tm = tm;
         this.sender = sender;
     }
+    public static HashMap<Integer,Integer> optional(TextMail tm, CommandSender sender){
+        HashMap<Integer,Integer> o = new HashMap();
+        int i = 1;
+        o.put((i++), 1);
+        o.put((i++), 2);
+        if(sender.hasPermission("改发件人")){
+            o.put((i++), 3);
+        }
+        switch (tm.getType()){
+            case "player":
+                o.put((i++), 4);
+                break;
+            case "permission":
+                o.put((i++), 5);
+                break;
+        }
+        if(tm instanceof FileMail){
+            if(GlobalConfig.enVault && sender.hasPermission("mailbox.send.money.coin")) o.put((i++), 6);
+            if(GlobalConfig.enPlayerPoints && sender.hasPermission("mailbox.send.money.point")) o.put((i++), 7);
+            if(sender.hasPermission("mailbox.admin.send.command")){
+                o.put((i++), 8);
+                o.put((i++), 9);
+            }
+            if(MailNew.itemable(sender)>0) o.put((i++), 10);
+            o.put((i++), 12);
+        }else{
+            if(MailNew.filable(sender)) o.put((i++), 11);
+        }
+        return o;
+    }
     @Override
     public String getPromptText(ConversationContext cc) {
-        option = MailView.preview(tm, sender, cc);
-        if(option.contains(" 1")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 1 修改标题");
-        if(option.contains(" 2")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 2 修改内容");
-        if(option.contains(" 3")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 3 修改发件人");
-        if(option.contains(" 4")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 4 修改收件人");
-        if(option.contains(" 5")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 5 修改权限");
-        if(option.contains(" 6")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 6 修改"+GlobalConfig.vaultDisplay);
-        if(option.contains(" 7")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 7 修改"+GlobalConfig.playerPointsDisplay);
-        if(option.contains(" 8")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 8 修改指令");
-        if(option.contains(" 9")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 9 修改指令描述");
-        if(option.contains(" 10")) cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入 10 修改物品");
+        optional = optional(tm, sender);
+        if((sender instanceof Player) && GlobalConfig.enVexView && GlobalConfig.lowVexView) MailContentGui.openMailContentGui((Player)sender, tm);
+        MailView.preview(tm, sender, cc);
+        optional.forEach((k,v) -> {
+            cc.getForWhom().sendRawMessage(OPTION.get(v).replace("0", Integer.toString(k)));
+        });
         return OriginalConfig.msgPreview+'\n'+OriginalConfig.msgCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
         if(str.equals(OriginalConfig.stopStr)) return true;
         try{
-            zero = Integer.parseInt(str);
-            if(zero==0){
-                change = zero;
+            change = Integer.parseInt(str);
+            if(change==0){
                 return true;
             }else{
-                if(option.contains(" "+zero)){
-                    change = zero;
+                if(optional.containsKey(change)){
                     return true;
                 }else{
                     cc.getForWhom().sendRawMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标选项不存在");
@@ -827,7 +867,7 @@ class Preview extends ValidatingPrompt{
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
         if(str.equals(OriginalConfig.stopStr)) return Prompt.END_OF_CONVERSATION;
-        if(zero==0){
+        if(change==0){
             if(!MailNew.sendable(sender, tm.getType(), cc)){
                 cc.getForWhom().sendRawMessage(GlobalConfig.warning+"你无权发送邮件");
                 return new Preview(tm, sender);
@@ -840,7 +880,7 @@ class Preview extends ValidatingPrompt{
                 return new Preview(tm, sender);
             }
         }else{
-            switch (change){
+            switch (optional.get(change)){
                 case 1:
                     return new Topic(tm, sender, true);
                 case 2:
@@ -861,6 +901,20 @@ class Preview extends ValidatingPrompt{
                     return new CommandDescription((FileMail)tm, sender, true);
                 case 10:
                     return new Item((FileMail)tm, sender, true);
+                case 11:
+                    if(GlobalConfig.enVault && sender.hasPermission("mailbox.send.money.coin")){
+                        return new Coin(tm.toFileMail(), sender, false);
+                    }else if(GlobalConfig.enPlayerPoints && sender.hasPermission("mailbox.send.money.point")){
+                        return new Point(tm.toFileMail(), sender, false);
+                    }else if(MailNew.itemable(sender)>0){
+                        return new Item(tm.toFileMail(), sender, false);
+                    }else if(sender.hasPermission("mailbox.admin.send.command")){
+                        return new Command(tm.toFileMail(), sender, false);
+                    }else{
+                        return new Preview(tm, sender);
+                    }
+                case 12:
+                    return new Preview(((FileMail)tm).toTextMail(), sender);
                 default:
                     cc.getForWhom().sendRawMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标选项不存在");
                     return new Preview(tm, sender);

@@ -362,14 +362,14 @@ public class MailSendGui extends VexInventoryGui{
                 TextMail tm = new TextMail(type, 0, p.getName(), rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null);
                 try{
                     MailContentGui.openMailContentGui(p, tm, this, false);
-                }catch(IOException e){
+                }catch(Exception e){
                     p.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
                 }
             }else{
                 FileMail fm = new FileMail(type, 0, p.getName(), rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null, "0", al, cl, cd, co, po);
                 try{
                     MailContentGui.openMailContentGui(p, fm, this, false);
-                }catch(IOException e){
+                }catch(Exception e){
                     p.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
                 }
             }

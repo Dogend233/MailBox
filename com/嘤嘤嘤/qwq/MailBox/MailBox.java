@@ -181,7 +181,6 @@ public class MailBox extends JavaPlugin {
                                 return true;
                             }
                         }else if(args[1].equalsIgnoreCase("clean") && args[0].equalsIgnoreCase("player")){
-                            int count = 0;
                             if(sender.hasPermission("mailbox.admin.clean."+type)){
                                 temp = 0;
                                 MailListPlayer.forEach((Integer k, TextMail v) -> {
@@ -251,11 +250,7 @@ public class MailBox extends JavaPlugin {
                                         if(tm.getSender()==null) tm.setSender(p.getName());
                                         if(type.equals("player")) tm.setRecipient(rl);
                                         if(type.equals("permission")) tm.setPermission(rl.get(0));
-                                        try {
-                                            MailContentGui.openMailContentGui(p, tm, null, false);
-                                        } catch (IOException ex) {
-                                            getLogger().log(Level.SEVERE, null, ex);
-                                        }
+                                        MailContentGui.openMailContentGui(p, tm, null, false);
                                         return true;
                                     }
                                 }else{

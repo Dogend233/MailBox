@@ -94,7 +94,9 @@ public class MailContentGui extends VexGui{
                 buttonString.get("return")[0],buttonString.get("return")[1],buttonString.get("return")[2],buttonString.get("return")[3],
                 buttonInt.get("return")[0],buttonInt.get("return")[1],buttonInt.get("return")[2],buttonInt.get("return")[3]);
         if(!buttonHover.get("return").isEmpty()) vbr.setHover(new VexHoverText(buttonHover.get("return")));
-        if(asSender){
+        if(GlobalConfig.lowVexView){
+            vbr.setFunction(player -> player.closeInventory());
+        }else if(asSender){
             vbr.setFunction(player -> MailBoxGui.openMailBoxGui(player, "Recipient"));
         }else{
             vbr.setFunction(player -> MailBoxGui.openMailBoxGui(player, "Sender"));
@@ -524,12 +526,15 @@ public class MailContentGui extends VexGui{
     }
     
     // 打开邮件GUI
-    public static void openMailContentGui(Player p, TextMail tm, VexGui a, boolean asSender) throws IOException{
+    public static void openMailContentGui(Player p, TextMail tm, VexGui a, boolean asSender){
         if(p.hasPermission("mailbox.gui.mailcontent")){
             VexViewAPI.openGui(p, new MailContentGui(p, tm, a, asSender));
         }else{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限打开此GUI");
         }
+    }
+    public static void openMailContentGui(Player p, TextMail tm){
+        VexViewAPI.openGui(p, new MailContentGui(p, tm, null, false));
     }
     
 }

@@ -523,7 +523,11 @@ public class FileMail extends TextMail implements Item, Command{
     
     @Override
     public boolean hasFile(){
-        return true;
+        return ((GlobalConfig.enVault && coin!=0) || (GlobalConfig.enPlayerPoints && point!=0) || hasCommand || hasItem);
+    }
+    
+    public TextMail toTextMail(){
+        return new TextMail(getType(),getId(),getSender(),getRecipient(),getPermission(),getTopic(),getContent(),getDate());
     }
     
     @Override
@@ -534,6 +538,15 @@ public class FileMail extends TextMail implements Item, Command{
         if(coin!=0) str += "§r-含"+coin+GlobalConfig.vaultDisplay;
         if(point!=0) str += "§r-含"+point+GlobalConfig.playerPointsDisplay;
         return str;
+    }
+    
+    @Override
+    public FileMail clone(){
+        if(fileName.equals("0")){
+            return new FileMail(getType(),getId(),getSender(),getRecipient(),getPermission(),getTopic(),getContent(),getDate(),fileName);
+        }else{
+            return new FileMail(getType(),getId(),getSender(),getRecipient(),getPermission(),getTopic(),getContent(),getDate(),fileName,itemList,commandList,commandDescription,coin,point);
+        }
     }
     
 }

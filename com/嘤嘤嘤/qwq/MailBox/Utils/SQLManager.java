@@ -128,11 +128,9 @@ public class SQLManager {
             cmd = SQLCommand.CREATE_PERMISSION_COLLECT.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
-            if(GlobalConfig.fileSQL){
-                cmd = SQLCommand.CREATE_FILE.commandToString(SQLPrefix);
-                ps = connection.prepareStatement(cmd);
-                ps.executeUpdate();
-            }
+            cmd = SQLCommand.CREATE_FILE.commandToString(SQLPrefix);
+            ps = connection.prepareStatement(cmd);
+            ps.executeUpdate();
         } catch (SQLException e) {
             Bukkit.getLogger().info(e.getLocalizedMessage());
         }

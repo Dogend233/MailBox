@@ -14,7 +14,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class VexViewConfig {
         
-    public static final String DATA_FOLDER = "plugins/VexMailBox/VexView";
+    public static final String DATA_FOLDER = "plugins/MailBox/VexView";
     
     // 配置VexView
     public static void VexViewConfigSet(){

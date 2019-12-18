@@ -334,11 +334,7 @@ public class MailBoxGui extends VexGui{
                 player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已过期，自动删除");
                 if(tm.Delete(player)) player.closeInventory();
             }else{
-                try {
-                    MailContentGui.openMailContentGui(player, tm, null, asSender);
-                } catch (IOException ex) {
-                    System.out.println(ex);
-                }
+                MailContentGui.openMailContentGui(player, tm, null, asSender);
             }
         }));
         return vsl;

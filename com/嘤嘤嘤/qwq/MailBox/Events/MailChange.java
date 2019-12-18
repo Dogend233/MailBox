@@ -48,7 +48,7 @@ public class MailChange implements Listener {
         // 更新邮件列表
         updateMailList(e.getPlayer(), type);
         // 输出到控制台
-        Bukkit.getConsoleSender().sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+e.getPlayer().getName()+"删除了邮件: <"+tm.getTypeName()+" - "+tm.getId()+">");
+        Bukkit.getConsoleSender().sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+e.getName()+"删除了邮件: <"+tm.getTypeName()+" - "+tm.getId()+">");
     }
     
 }
