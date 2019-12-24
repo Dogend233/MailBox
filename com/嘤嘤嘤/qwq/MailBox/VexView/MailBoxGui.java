@@ -5,15 +5,14 @@ import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import lk.vexview.api.VexViewAPI;
 import lk.vexview.gui.VexGui;
 import lk.vexview.gui.components.VexButton;
 import lk.vexview.gui.components.VexComponents;
-import lk.vexview.gui.components.VexHoverText;
 import lk.vexview.gui.components.VexImage;
 import lk.vexview.gui.components.VexScrollingList;
 import lk.vexview.gui.components.VexText;
@@ -70,8 +69,7 @@ public class MailBoxGui extends VexGui{
     private static double mail_type_size;
     private static String mail_type_prefix;
     private static List<String> mail_type_display;
-    private static String mail_icon_image_1;
-    private static String mail_icon_image_2;
+    private static String mail_icon_image;
     private static int mail_icon_x;
     private static int mail_icon_y;
     private static int mail_icon_w;
@@ -165,8 +163,7 @@ public class MailBoxGui extends VexGui{
         double mail_type_size,
         String mail_type_prefix,
         List<String> mail_type_display,
-        String mail_icon_image_1,
-        String mail_icon_image_2,
+        String mail_icon_image,
         int mail_icon_x,
         int mail_icon_y,
         int mail_icon_w,
@@ -183,11 +180,11 @@ public class MailBoxGui extends VexGui{
         MailBoxGui.gui_hh = gui_hh;
         // 新邮件按钮
         button_new = new VexButton(button_new_id,button_new_text,button_new_img_1,button_new_img_2,button_new_x,button_new_y,button_new_w,button_new_h,player -> {
-            if(GlobalConfig.lowVexView){
+            if(GlobalConfig.lowVexView_2_5){
                 player.closeInventory();
                 player.performCommand("mailbox new");
             }else{
-                if(player.hasPermission("mailbox.gui.send")){
+                if(MailBoxAPI.hasPlayerPermission(player, "mailbox.gui.send")){
                     MailSelectGui.openMailSelectGui(player);
                 }else{
                     player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限打开此GUI");
@@ -202,7 +199,7 @@ public class MailBoxGui extends VexGui{
         button_outbox = new VexButton(button_new_id+"S","发件箱",button_new_img_1,button_new_img_2,button_new_x,button_new_y+button_new_h+1,button_new_w,button_new_h,player -> {
             openMailBoxGui(player, "Sender");
         });
-        if(!button_new_hover.isEmpty()) button_new.setHover(new VexHoverText(button_new_hover));
+        if(!button_new_hover.isEmpty()) VexViewConfig.setHover(button_new, button_new_hover);
         // 标题
         MailBoxGui.title_enable = title_enable;
         if(title_enable){
@@ -258,8 +255,7 @@ public class MailBoxGui extends VexGui{
         MailBoxGui.mail_type_prefix = mail_type_prefix;
         MailBoxGui.mail_type_display = mail_type_display;
         // 附件图标
-        MailBoxGui.mail_icon_image_1 = mail_icon_image_1;
-        MailBoxGui.mail_icon_image_2 = mail_icon_image_2;
+        MailBoxGui.mail_icon_image = mail_icon_image;
         MailBoxGui.mail_icon_x = mail_icon_x;
         MailBoxGui.mail_icon_y = mail_icon_y;
         MailBoxGui.mail_icon_w = mail_icon_w;
@@ -269,50 +265,74 @@ public class MailBoxGui extends VexGui{
     
     // 获取邮件列表
     private VexScrollingList getBoxList(Player p, String playertype){
-        if(MailBox.MailListSystem.isEmpty() && MailBox.MailListPlayer.isEmpty() && MailBox.MailListPermission.isEmpty()){
-            return null;
-        }else{
-            int count = 0;
-            ArrayList<Integer> systemid = new ArrayList();
-            ArrayList<Integer> playerid = new ArrayList();
-            ArrayList<Integer> permissionid = new ArrayList();
-            if(p.hasPermission("mailbox.see.system")){
-                MailBox.updateRelevantMailList(p, "system");
-                systemid = MailBox.getRelevantMailList(p, "system").get("as"+playertype);
-                count += systemid.size();
+        int count = 0;
+        HashMap<String, ArrayList<Integer>> idMap = new HashMap();
+        for(String type:MailBoxAPI.getAllType()){
+            if(MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+type)){
+                MailBox.updateRelevantMailList(p, type);
+                ArrayList<Integer> id = MailBox.getRelevantMailList(p, type).get("as"+playertype);
+                idMap.put(type, id);
+                count += id.size();
             }
-            if(p.hasPermission("mailbox.see.permission")){
-                MailBox.updateRelevantMailList(p, "permission");
-                permissionid = MailBox.getRelevantMailList(p, "permission").get("as"+playertype);
-                count += permissionid.size();
-            }
-            if(p.hasPermission("mailbox.see.player")){
-                MailBox.updateRelevantMailList(p, "player");
-                playerid = MailBox.getRelevantMailList(p, "player").get("as"+playertype);
-                count += playerid.size();
-            }
-            if(count==0) return null;
-            int mh = count*list_sh+list_oh;
-            if(mh<list_mh) mh=list_mh;
-            VexScrollingList vsl = new VexScrollingList(list_x,list_y,list_w,list_h,mh);
-            int i=0;
-            for(int mid: systemid) vsl = writeMail(MailBox.MailListSystem.get(mid),vsl,i++);
-            for(int mid: permissionid) vsl = writeMail(MailBox.MailListPermission.get(mid),vsl,i++);
-            for(int mid: playerid) vsl = writeMail(MailBox.MailListPlayer.get(mid),vsl,i++);
-            return vsl;
         }
+        if(count==0) return null;
+        int mh = count*list_sh+list_oh;
+        if(mh<list_mh) mh=list_mh;
+        VexScrollingList vsl = new VexScrollingList(list_x,list_y,list_w,list_h,mh);
+        int i=0;
+        for(String type:MailBoxAPI.getAllType()){
+            if(idMap.containsKey(type)){
+                for(int mid:idMap.get(type)){
+                    vsl = writeMail(MailBox.getHashMap(type).get(mid),vsl,i++);
+                }
+            }
+        }
+        return vsl;
+        /*int count = 0;
+        ArrayList<Integer> dateid = new ArrayList();
+        ArrayList<Integer> systemid = new ArrayList();
+        ArrayList<Integer> playerid = new ArrayList();
+        ArrayList<Integer> permissionid = new ArrayList();
+        if(MailBoxAPI.hasPlayerPermission(p, "mailbox.see.date")){
+            MailBox.updateRelevantMailList(p, "date");
+            dateid = MailBox.getRelevantMailList(p, "date").get("as"+playertype);
+            count += dateid.size();
+        }
+        if(MailBoxAPI.hasPlayerPermission(p, "mailbox.see.system")){
+            MailBox.updateRelevantMailList(p, "system");
+            systemid = MailBox.getRelevantMailList(p, "system").get("as"+playertype);
+            count += systemid.size();
+        }
+        if(MailBoxAPI.hasPlayerPermission(p, "mailbox.see.permission")){
+            MailBox.updateRelevantMailList(p, "permission");
+            permissionid = MailBox.getRelevantMailList(p, "permission").get("as"+playertype);
+            count += permissionid.size();
+        }
+        if(MailBoxAPI.hasPlayerPermission(p, "mailbox.see.player")){
+            MailBox.updateRelevantMailList(p, "player");
+            playerid = MailBox.getRelevantMailList(p, "player").get("as"+playertype);
+            count += playerid.size();
+        }
+        if(count==0) return null;
+        int mh = count*list_sh+list_oh;
+        if(mh<list_mh) mh=list_mh;
+        VexScrollingList vsl = new VexScrollingList(list_x,list_y,list_w,list_h,mh);
+        int i=0;
+        for(int mid: dateid) vsl = writeMail(MailBox.DATE_LIST.get(mid),vsl,i++);
+        for(int mid: systemid) vsl = writeMail(MailBox.SYSTEM_LIST.get(mid),vsl,i++);
+        for(int mid: permissionid) vsl = writeMail(MailBox.PERMISSION_LIST.get(mid),vsl,i++);
+        for(int mid: playerid) vsl = writeMail(MailBox.PLAYER_LIST.get(mid),vsl,i++);
+        return vsl;*/
     }
     
     // 向列表中写邮件
     private VexScrollingList writeMail(TextMail tm, VexScrollingList vsl, int i){
         String type = tm.getType();
-        String icon_image = mail_icon_image_2;
         boolean file = (tm instanceof FileMail);
         // 邮件主题
         String t = tm.getTopic();
         if(file) {
             t = mail_topic_noFile + t;
-            icon_image = mail_icon_image_1;
         }else{
             t = mail_topic_noRead + t;
         }
@@ -327,10 +347,10 @@ public class MailBoxGui extends VexGui{
         // 邮件类型
         if(mail_type_display.contains(type)) vsl.addComponent(new VexText(mail_type_x,mail_y_offset*i+mail_type_y,Arrays.asList(mail_type_prefix+tm.getTypeName()),mail_type_size));
         // 图标
-        if(file && mail_icon_display.contains(type)) vsl.addComponent(new VexImage(icon_image,mail_icon_x,mail_y_offset*i+mail_icon_y,mail_icon_w,mail_icon_h));
+        if(file && mail_icon_display.contains(type)) vsl.addComponent(new VexImage(mail_icon_image,mail_icon_x,mail_y_offset*i+mail_icon_y,mail_icon_w,mail_icon_h));
         // 查看邮件按钮
         vsl.addComponent(new VexButton(mail_button_id+"_"+i,"",mail_button_image_1,mail_button_image_2,mail_button_x,mail_y_offset*i+mail_button_y,mail_button_w,mail_button_h,player -> {
-            if(tm.getType().equals("player") && MailBoxAPI.isExpired(tm)){
+            if(MailBoxAPI.isExpired(tm)){
                 player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已过期，自动删除");
                 if(tm.Delete(player)) player.closeInventory();
             }else{
@@ -341,7 +361,7 @@ public class MailBoxGui extends VexGui{
     }
     
     public static void openMailBoxGui(Player p, String playertype){
-        if(p.hasPermission("mailbox.gui.mailbox")){
+        if(MailBoxAPI.hasPlayerPermission(p, "mailbox.gui.mailbox")){
             VexViewAPI.openGui(p, new MailBoxGui(p, playertype));
         }else{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限打开此GUI");

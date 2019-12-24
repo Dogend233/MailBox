@@ -1,5 +1,6 @@
-package com.嘤嘤嘤.qwq.MailBox.API;
+package com.嘤嘤嘤.qwq.MailBox.Utils;
 
+import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -14,17 +15,11 @@ public class Placeholder extends PlaceholderExpansion {
             return "";
         }
         
-        // 服务器system邮件数量
-        if(identifier.equals("server_mail_system")){
-            return Integer.toString(MailBox.MailListSystem.size());
-        }
-        // 服务器permission邮件数量
-        if(identifier.equals("server_mail_permission")){
-            return Integer.toString(MailBox.MailListPermission.size());
-        }
-        // 服务器player邮件数量
-        if(identifier.equals("server_mail_player")){
-            return Integer.toString(MailBox.MailListPlayer.size());
+        // 服务器邮件数量
+        for(String type:MailBoxAPI.getAllType()){
+            if(identifier.equals("server_mail_"+type)){
+                return Integer.toString(MailBox.getHashMap(type).size());
+            }
         }
         // 服务器允许发送物品的最大数量
         if(identifier.equals("server_send_item")){
@@ -55,17 +50,11 @@ public class Placeholder extends PlaceholderExpansion {
             return Integer.toString(GlobalConfig.playerPointsMax);
         }
         
-        // 玩家可领取system邮件数量
-        if(identifier.equals("player_mail_system")){
-            return Integer.toString(MailBox.getRelevantMailList(p, "system").get("asRecipient").size());
-        }
-        // 玩家可领取permission邮件数量
-        if(identifier.equals("player_mail_permission")){
-            return Integer.toString(MailBox.getRelevantMailList(p, "permission").get("asRecipient").size());
-        }
-        // 玩家可领取player邮件数量
-        if(identifier.equals("player_mail_player")){
-            return Integer.toString(MailBox.getRelevantMailList(p, "player").get("asRecipient").size());
+        // 玩家可领取邮件数量
+        for(String type:MailBoxAPI.getAllType()){
+            if(identifier.equals("player_mail_"+type)){
+                return Integer.toString(MailBox.getRelevantMailList(p, type).get("asRecipient").size());
+            }
         }
         // 玩家可发送物品的最大数量
         if(identifier.equals("player_send_item")){
@@ -78,6 +67,14 @@ public class Placeholder extends PlaceholderExpansion {
         // 玩家可发送player邮件的最大数量
         if(identifier.equals("player_send_max")){
             return Integer.toString(MailBoxAPI.playerAsSenderAllow(p));
+        }
+        // 玩家收件箱是否有邮件
+        if(identifier.equals("player_hasmail")){
+            for(String type:MailBoxAPI.getAllType()){
+                MailBox.updateRelevantMailList(p, type);
+                if(!MailBox.getRelevantMailList(p, type).get("asRecipient").isEmpty()) return "有";
+            }
+            return "没有";
         }
         
         return null;

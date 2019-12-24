@@ -1,5 +1,6 @@
 package com.嘤嘤嘤.qwq.MailBox.Utils;
 
+import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
@@ -62,6 +63,9 @@ public class SQLManager {
             cmd = SQLCommand.CREATE_PERMISSION_SQLITE.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
+            cmd = SQLCommand.CREATE_DATE_SQLITE.commandToString(SQLPrefix);
+            ps = connection.prepareStatement(cmd);
+            ps.executeUpdate();
             cmd = SQLCommand.CREATE_PLAYER_SQLITE.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
@@ -98,6 +102,9 @@ public class SQLManager {
             cmd = SQLCommand.CREATE_PERMISSION_MYSQL.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
+            cmd = SQLCommand.CREATE_DATE_MYSQL.commandToString(SQLPrefix);
+            ps = connection.prepareStatement(cmd);
+            ps.executeUpdate();
             cmd = SQLCommand.CREATE_PLAYER_MYSQL.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
@@ -128,6 +135,9 @@ public class SQLManager {
             cmd = SQLCommand.CREATE_PERMISSION_COLLECT.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
+            cmd = SQLCommand.CREATE_DATE_COLLECT.commandToString(SQLPrefix);
+            ps = connection.prepareStatement(cmd);
+            ps.executeUpdate();
             cmd = SQLCommand.CREATE_FILE.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
@@ -149,13 +159,12 @@ public class SQLManager {
     public boolean getMailCollectable(String type, int id, String playername){
         String sql1;
         switch (type) {
-            case "system" :
-                sql1 = SQLCommand.SELECT_SYSTEM_MAIL.commandToString(SQLPrefix);
+            case "system":
+            case "permission":
+            case "date":
+                sql1 = SQLCommand.SELECT_MAIL.commandToString(SQLPrefix, type);
                 break;
-            case "permission" :
-                sql1 = SQLCommand.SELECT_PERMISSION_MAIL.commandToString(SQLPrefix);
-                break;
-            case "player" :
+            case "player":
                 sql1 = SQLCommand.SELECT_PLAYER_MAIL.commandToString(SQLPrefix);
                 break;
             default:
@@ -165,19 +174,15 @@ public class SQLManager {
             PreparedStatement ps;
             ResultSet rs;
             switch (type) {
-                case "system" :
+                case "system":
+                case "permission":
+                case "date":
                     ps = connection.prepareStatement(sql1);
                     ps.setInt(1, id);
                     ps.setString(2, playername);
                     rs = ps.executeQuery();
                     return !rs.next();
-                case "permission" :
-                    ps = connection.prepareStatement(sql1);
-                    ps.setInt(1, id);
-                    ps.setString(2, playername);
-                    rs = ps.executeQuery();
-                    return !rs.next();
-                case "player" :
+                case "player":
                     ps = connection.prepareStatement(sql1);
                     ps.setInt(1, id);
                     rs = ps.executeQuery();
@@ -201,13 +206,12 @@ public class SQLManager {
         String sql1;
         String sql2 = null;
         switch (type) {
-            case "system" :
-                sql1 = SQLCommand.COLLECT_SYSTEM_MAIL.commandToString(SQLPrefix);
+            case "system":
+            case "permission":
+            case "date":
+                sql1 = SQLCommand.COLLECT_MAIL.commandToString(SQLPrefix, type);
                 break;
-            case "permission" :
-                sql1 = SQLCommand.COLLECT_PERMISSION_MAIL.commandToString(SQLPrefix);
-                break;
-            case "player" :
+            case "player":
                 sql1 = SQLCommand.SELECT_PLAYER_MAIL.commandToString(SQLPrefix);
                 sql2 = SQLCommand.COLLECT_PLAYER_MAIL.commandToString(SQLPrefix);
                 break;
@@ -217,19 +221,15 @@ public class SQLManager {
         try {
             PreparedStatement ps;
             switch (type) {
-                case "system" :
+                case "system":
+                case "permission":
+                case "date":
                     ps = connection.prepareStatement(sql1);
                     ps.setInt(1, id);
                     ps.setString(2, playername);
                     ps.executeUpdate();
                     break;
-                case "permission" :
-                    ps = connection.prepareStatement(sql1);
-                    ps.setInt(1, id);
-                    ps.setString(2, playername);
-                    ps.executeUpdate();
-                    break;
-                case "player" :
+                case "player":
                     ps = connection.prepareStatement(sql1);
                     ps.setInt(1, id);
                     ResultSet rs = ps.executeQuery();
@@ -259,16 +259,19 @@ public class SQLManager {
     }
     
     //发送一封邮件
-    public boolean sendMail(String type, String mailsender, String mailrecipient, String permission, String topic, String text, String date, String filename) {
+    public boolean sendMail(String type, String mailsender, String mailrecipient, String permission, String topic, String text, String date, String deadline, String filename) {
         String sql;
         switch (type) {
-            case "system" :
+            case "system":
                 sql = SQLCommand.SEND_SYSTEM_MAIL.commandToString(SQLPrefix);
                 break;
-            case "permission" :
+            case "permission":
                 sql = SQLCommand.SEND_PERMISSION_MAIL.commandToString(SQLPrefix);
                 break;
-            case "player" :
+            case "date":
+                sql = SQLCommand.SEND_DATE_MAIL.commandToString(SQLPrefix);
+                break;
+            case "player":
                 sql = SQLCommand.SEND_PLAYER_MAIL.commandToString(SQLPrefix);
                 break;
             default:
@@ -283,11 +286,17 @@ public class SQLManager {
             ps.setString(4, date);
             ps.setString(5, filename);
             switch (type) {
-                case "player" :
+                case "player":
                     ps.setString(6, mailrecipient);
                     break;
-                case "permission" :
+                case "permission":
                     ps.setString(6, permission);
+                    break;
+                case "date":
+                    if(deadline.equals("0")){
+                        deadline = DateTime.getDefault();
+                    }
+                    ps.setString(6, deadline);
                     break;
             }
             ps.executeUpdate();
@@ -303,16 +312,14 @@ public class SQLManager {
         String sql1;
         String sql2 = null;
         switch (type) {
-            case "system" :
-                sql1 = SQLCommand.DELETE_SYSTEM_MAIL.commandToString(SQLPrefix);
-                sql2 = SQLCommand.DELETE_COLLECTED_SYSTEM_MAIL.commandToString(SQLPrefix);
+            case "system":
+            case "permission":
+            case "date":
+                sql1 = SQLCommand.DELETE_MAIL.commandToString(SQLPrefix, type);
+                sql2 = SQLCommand.DELETE_COLLECTED_MAIL.commandToString(SQLPrefix, type);
                 break;
-             case "permission" :
-                sql1 = SQLCommand.DELETE_PERMISSION_MAIL.commandToString(SQLPrefix);
-                sql2 = SQLCommand.DELETE_COLLECTED_PERMISSION_MAIL.commandToString(SQLPrefix);
-                break;
-            case "player" :
-                sql1 = SQLCommand.DELETE_PLAYER_MAIL.commandToString(SQLPrefix);
+            case "player":
+                sql1 = SQLCommand.DELETE_MAIL.commandToString(SQLPrefix, type);
                 break;
             default:
                 return false;
@@ -351,6 +358,7 @@ public class SQLManager {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 List<String> recipient = null;
                 String permission = null;
+                String deadline = null;
                 switch (type) {
                     case "player" :
                         recipient = Arrays.asList(rs.getString("recipient").split(" "));
@@ -358,12 +366,28 @@ public class SQLManager {
                     case "permission":
                         permission = rs.getString("permission");
                         break;
+                    case "date":
+                        deadline = dateFormat.format(new Date(rs.getTimestamp("deadline").getTime()));
+                        if(deadline.equals(DateTime.getDefault())) deadline = null;
+                        break;
                 }
                 if(rs.getString("filename").equals("0")){
-                    TextMail tm = new TextMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())));
+                    TextMail tm = new TextMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline);
+                    if(MailBoxAPI.isExpired(tm)) {
+                        if(MailBoxAPI.setDelete(type, tm.getId())){
+                            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+tm.getTypeName()+"-"+tm.getId()+"邮件已过期，自动删除");
+                            continue;
+                        }
+                    }
                     hm.put(rs.getInt("mail"), tm);
                 }else{
-                    FileMail fm = new FileMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), rs.getString("filename"));
+                    FileMail fm = new FileMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline, rs.getString("filename"));
+                    if(MailBoxAPI.isExpired(fm)) {
+                        if(fm.DeleteFile() & MailBoxAPI.setDelete(type, fm.getId())){
+                            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+fm.getTypeName()+"-"+fm.getId()+"邮件已过期，自动删除");
+                            continue;
+                        }
+                    }
                     hm.put(rs.getInt("mail"), fm);
                 }
             }
@@ -380,10 +404,9 @@ public class SQLManager {
         String sql;
         switch (type) {
             case "system" :
-                sql = SQLCommand.SELECT_COLLECTED_SYSTEM_MAIL.commandToString(SQLPrefix);
-                break;
             case "permission" :
-                sql = SQLCommand.SELECT_COLLECTED_PERMISSION_MAIL.commandToString(SQLPrefix);
+            case "date" :
+                sql = SQLCommand.SELECT_COLLECTED_MAIL.commandToString(SQLPrefix, type);
                 break;
             case "player" :
                 Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"查询可领取邮件失败：此邮件类型不可通过此方法查询");
@@ -510,7 +533,7 @@ public class SQLManager {
     
     //获取某类型邮件所有附件名字
     public List<String> getAllFileName(String type){
-        String sql = SQLCommand.SELECT_FILE_NAME.commandToString(SQLPrefix,type);
+        String sql = SQLCommand.SELECT_FILE_NAME.commandToString(SQLPrefix, type);
         List<String> L = new ArrayList();
         try {
             PreparedStatement ps;

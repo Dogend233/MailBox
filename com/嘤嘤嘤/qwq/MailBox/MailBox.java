@@ -1,7 +1,7 @@
 package com.嘤嘤嘤.qwq.MailBox;
 
 import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
-import com.嘤嘤嘤.qwq.MailBox.API.Placeholder;
+import com.嘤嘤嘤.qwq.MailBox.Utils.Placeholder;
 import com.嘤嘤嘤.qwq.MailBox.Events.JoinAndQuit;
 import com.嘤嘤嘤.qwq.MailBox.Events.MailChange;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
@@ -9,11 +9,11 @@ import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.Original.MailList;
 import com.嘤嘤嘤.qwq.MailBox.Original.MailNew;
 import com.嘤嘤嘤.qwq.MailBox.Original.MailView;
+import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import com.嘤嘤嘤.qwq.MailBox.Utils.NMS;
 import com.嘤嘤嘤.qwq.MailBox.Utils.SQLManager;
 import com.嘤嘤嘤.qwq.MailBox.Utils.UpdateCheck;
 import com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui;
-import com.嘤嘤嘤.qwq.MailBox.VexView.MailContentGui;
 import com.嘤嘤嘤.qwq.MailBox.VexView.VexViewConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -21,10 +21,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.logging.Level;
+import java.util.List;
 import lk.vexview.api.VexViewAPI;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.milkbowl.vault.economy.Economy;
@@ -38,389 +38,33 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class MailBox extends JavaPlugin {
     
-    private int temp;
     private boolean enCmdOpen;
     private static MailBox instance;
-    // 首次启动
-    private static boolean FirstEnable = true;
     // config 配置文件
     private static final String DATA_FOLDER = "plugins/MailBox";
     private static FileConfiguration config;
     // system 类型邮件
-    public static HashMap<Integer, TextMail> MailListSystem = new HashMap();
-    private static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListSystemRelevant = new HashMap();
+    public static final HashMap<Integer, TextMail> SYSTEM_LIST = new HashMap();
+    private static final HashMap<String, HashMap<String, ArrayList<Integer>>> SYSTEM_RELEVANT = new HashMap();
     // player 类型邮件
-    public static HashMap<Integer, TextMail> MailListPlayer = new HashMap();
-    private static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListPlayerRelevant = new HashMap();
+    public static final HashMap<Integer, TextMail> PLAYER_LIST = new HashMap();
+    private static final HashMap<String, HashMap<String, ArrayList<Integer>>> PLAYER_RELEVANT = new HashMap();
     // permission 类型邮件
-    public static HashMap<Integer, TextMail> MailListPermission = new HashMap();
-    private static HashMap<String, HashMap<String, ArrayList<Integer>>> MailListPermissionRelevant = new HashMap();
-    
-    @Override    
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
-        if (label.equalsIgnoreCase("mailbox")||label.equalsIgnoreCase("mb")){
-            if(args.length==0){
-                if(GlobalConfig.enVexView){
-                    if((sender instanceof Player)){
-                        if(enCmdOpen) MailBoxGui.openMailBoxGui((Player) sender, "Recipient");
-                        else MailList.list(sender, "Recipient");
-                    }else{
-                        MailList.list(sender, "Recipient");
-                    }
-                }else{
-                    MailList.list(sender, "Recipient");
-                }
-                return true;
-            }else if(args.length==1){
-                if(args[0].equalsIgnoreCase("sendbox") || args[0].equalsIgnoreCase("sb")){
-                    if((sender instanceof Player)){
-                        MailList.list(sender, "Sender");
-                    }else{
-                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以查看发件箱");
-                    }
-                    return true;
-                }else if(args[0].equalsIgnoreCase("receivebox") || args[0].equalsIgnoreCase("rb")){
-                    MailList.list(sender, "Recipient");
-                    return true;
-                }else if(args[0].equalsIgnoreCase("new")){
-                    new MailNew(sender,this);
-                    return true;
-                }else if(args[0].equalsIgnoreCase("reload")){
-                    if(sender.hasPermission("mailbox.admin.reload")){
-                        reloadPlugin();
-                        sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"插件已重载");
-                        return true;
-                    }else{
-                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
-                        return true;
-                    }
-                }else if(args[0].equalsIgnoreCase("check")){
-                    if(sender.hasPermission("mailbox.admin.check")){
-                        new BukkitRunnable(){
-                            @Override
-                            public void run(){
-                                UpdateCheck.check(sender);
-                            }
-                        }.runTaskAsynchronously(this);
-                        return true;
-                    }else{
-                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
-                        return true;
-                    }
-                }else{
-                    return true;
-                }
-            }else if(args.length>=2){
-                if(args[0].equalsIgnoreCase("item")){
-                    if(args[1].equalsIgnoreCase("export")){
-                        if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.export")){
-                            ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
-                            if(args.length==3){
-                                if(is!=null && MailBoxAPI.saveItem(is, args[2])){
-                                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出至"+args[2]+".yml成功");
-                                }else{
-                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
-                                }
-                            }else{
-                                if(is!=null && MailBoxAPI.saveItem(is)){
-                                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
-                                }else{
-                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
-                                }
-                            }
-                            return true;
-                        }
-                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有导出物品的权限");
-                        return true;
-                    }else if(args[1].equalsIgnoreCase("import")){
-                        if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.import")){
-                            if(args.length==3){
-                                ItemStack is = MailBoxAPI.readItem(args[2]);
-                                if(is!=null){
-                                    ((Player)sender).getInventory().setItemInMainHand(is);
-                                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"取出"+args[2]+".yml物品成功");
-                                }else{
-                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"取出物品失败");
-                                }
-                            }else{
-                                ItemStack is = MailBoxAPI.readItem();
-                                if(is!=null){
-                                    ((Player)sender).getInventory().setItemInMainHand(is);
-                                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"取出物品成功");
-                                }else{
-                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"取出物品失败");
-                                }
-                            }
-                            return true;
-                        }
-                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有取出物品的权限");
-                        return true;
-                    }else if(args[1].equalsIgnoreCase("id")){
-                        if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.id")){
-                            ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
-                            if(is!=null){
-                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品的Material_ID为: "+GlobalConfig.normal+is.getType().name());
-                            }else{
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品Material_ID失败");
-                            }
-                            return true;
-                        }
-                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有获取物品ID的权限");
-                        return true;
-                    }
-                }else if(args[0].equalsIgnoreCase("system") || args[0].equalsIgnoreCase("player") || args[0].equalsIgnoreCase("permission")){
-                    String type = args[0];
-                    if(args.length==2){
-                        if(args[1].equalsIgnoreCase("update")){
-                            if(sender.hasPermission("mailbox.admin.update."+type)){
-                                if(sender instanceof Player) updateMailList((Player) sender, type);
-                                else updateMailList(null, type);
-                                return true;
-                            }else{
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
-                                return true;
-                            }
-                        }else if(args[1].equalsIgnoreCase("clean") && args[0].equalsIgnoreCase("player")){
-                            if(sender.hasPermission("mailbox.admin.clean."+type)){
-                                temp = 0;
-                                MailListPlayer.forEach((Integer k, TextMail v) -> {
-                                    if(MailBoxAPI.isExpired(v)){
-                                        v.Delete(null);
-                                        temp++;
-                                    }
-                                });
-                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已清理player邮件"+temp+"封");
-                                return true;
-                            }else{
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
-                                return true;
-                            }
-                        }else{
-                            return true;
-                        }
-                    }else if(args.length>=3){
-                        if(args[1].equalsIgnoreCase("see")){
-                            int mail = 0;
-                            try{
-                                mail = Integer.parseInt(args[2]);
-                            }catch(NumberFormatException e){
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
-                            }
-                            MailView.view(type, mail, sender);
-                            return true;
-                        }else if(args[1].equalsIgnoreCase("collect")){
-                            int mail = 0;
-                            try{
-                                mail = Integer.parseInt(args[2]);
-                            }catch(NumberFormatException e){
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
-                            }
-                            MailView.collect(type, mail, sender);
-                            return true;
-                        }else if(args[1].equalsIgnoreCase("delete")){
-                            int mail = 0;
-                            try{
-                                mail = Integer.parseInt(args[2]);
-                            }catch(NumberFormatException e){
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
-                            }
-                            MailView.delete(type, mail, sender);
-                            return true;
-                        }else if(args[1].equalsIgnoreCase("send")){
-                            ArrayList<String> rl = new ArrayList();
-                            if(type.equals("player") && args.length<4) {
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"请至少填写一个以上的收件人");
-                                return true;
-                            }else if(type.equals("permission") && args.length!=4) {
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"请填写一个领取邮件所需要的权限");
-                                return true;
-                            }else{
-                                for(int i=3;i<args.length;i++){
-                                    rl.add(args[i]);
-                                }
-                            }
-                            if(sender.hasPermission("mailbox.admin.send.custom."+type)){
-                                if((sender instanceof Player)){
-                                    Player p = (Player) sender;
-                                    TextMail tm = MailBoxAPI.getCustomMail(args[2], type);
-                                    if(tm==null){
-                                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标文件不存在");
-                                        return true;
-                                    }else{
-                                        if(tm.getSender()==null) tm.setSender(p.getName());
-                                        if(type.equals("player")) tm.setRecipient(rl);
-                                        if(type.equals("permission")) tm.setPermission(rl.get(0));
-                                        MailContentGui.openMailContentGui(p, tm, null, false);
-                                        return true;
-                                    }
-                                }else{
-                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以打开GUI");
-                                    return true;
-                                }
-                            }else{
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
-                                return true;
-                            }
-                        }else if(args[1].equalsIgnoreCase("upload")){
-                            if(args[2].equalsIgnoreCase("all") && args.length==3) {
-                                if(sender.hasPermission("mailbox.admin.upload."+type+".all")){
-                                    MailBoxAPI.uploadFile(sender, type);
-                                }else{
-                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
-                                }
-                                return true;
-                            }else if(args.length==3) {
-                                if(sender.hasPermission("mailbox.admin.download."+type)){
-                                    int mail;
-                                    try{
-                                        mail = Integer.parseInt(args[2]);
-                                        TextMail tm = null;
-                                        switch (type) {
-                                            case "system":
-                                                tm=MailListSystem.get(mail);
-                                                break;
-                                            case "permission":
-                                                tm=MailListPermission.get(mail);
-                                                break;
-                                            case "player":
-                                                tm=MailListPlayer.get(mail);
-                                                break;
-                                        }
-                                        if(tm!=null && (tm instanceof FileMail)){
-                                            String filename = ((FileMail)tm).getFileName();
-                                            if(MailBoxAPI.uploadFile(type, filename)){
-                                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件: "+filename+"上传成功");
-                                            }else{
-                                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"附件: "+filename+"上传失败");
-                                            }
-                                        }else{
-                                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标邮件不存在或无附件");
-                                        }
-                                    }
-                                    catch(NumberFormatException e){
-                                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
-                                    }
-                                }else{
-                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
-                                }
-                                return true;
-                            }else{
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"Error");
-                                return true;
-                            }
-                        }else if(args[1].equalsIgnoreCase("download")){
-                            if(args[2].equalsIgnoreCase("all") && args.length==3) {
-                                if(sender.hasPermission("mailbox.admin.download."+type+".all")){
-                                    MailBoxAPI.downloadFile(sender, type);
-                                }else{
-                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
-                                }
-                                return true;
-                            }else if(args.length==3) {
-                                if(sender.hasPermission("mailbox.admin.download."+type)){
-                                    int mail;
-                                    try{
-                                        mail = Integer.parseInt(args[2]);
-                                        TextMail tm = null;
-                                        switch (type) {
-                                            case "system":
-                                                tm=MailListSystem.get(mail);
-                                                break;
-                                            case "permission":
-                                                tm=MailListPermission.get(mail);
-                                                break;
-                                            case "player":
-                                                tm=MailListPlayer.get(mail);
-                                                break;
-                                        }
-                                        if(tm!=null && (tm instanceof FileMail)){
-                                            String filename = ((FileMail)tm).getFileName();
-                                            if(MailBoxAPI.downloadFile(type, filename)){
-                                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件: "+filename+"下载成功");
-                                            }else{
-                                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"附件: "+filename+"下载失败");
-                                            }
-                                        }else{
-                                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标邮件不存在或无附件");
-                                        }
-                                    }
-                                    catch(NumberFormatException e){
-                                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
-                                    }
-                                }else{
-                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
-                                }
-                                return true;
-                            }else{
-                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"Error");
-                                return true;
-                            }
-                        }else{
-                            return false;
-                        }
-                    }else{
-                        return false;
-                    }
-                }else{
-                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"此邮件类型不存在");
-                    return true;
-                }
-            }else{
-                return false;
-            }
-        }
-        return true;
-    }
+    public static final HashMap<Integer, TextMail> PERMISSION_LIST = new HashMap();
+    private static final HashMap<String, HashMap<String, ArrayList<Integer>>> PERMISSION_RELEVANT = new HashMap();
+    // date 类型邮件
+    public static final HashMap<Integer, TextMail> DATE_LIST = new HashMap();
+    private static final HashMap<String, HashMap<String, ArrayList<Integer>>> DATE_RELEVANT = new HashMap();
       
     @Override
     public void onEnable(){
         // 插件启动
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件正在启动......");
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:版本："+this.getDescription().getVersion());
-        // 检查前置[PlaceholderAPI]
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[PlaceholderAPI]已安装，版本：".concat(Bukkit.getPluginManager().getPlugin("PlaceholderAPI").getDescription().getVersion()));
-            PlaceholderAPI.unregisterPlaceholderHook("mailbox");
-            new Placeholder().register();
-        } else {
-            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:前置插件[PlaceholderAPI]未安装，已关闭相关功能");
-        }
-        // 检查前置[Vault]
-        GlobalConfig.setVault(setupEconomy());
-        if(GlobalConfig.enVault){
-            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[Vault]已安装，版本：".concat(Bukkit.getPluginManager().getPlugin("Vault").getDescription().getVersion()));
-        }else{
-            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:前置插件[Vault]未安装，已关闭相关功能");
-        }
-        // 检查前置[PlayerPoints]
-        GlobalConfig.setPlayerPoints(setupPoints());
-        if(GlobalConfig.enPlayerPoints){
-            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[PlayerPoints]已安装，版本：".concat(Bukkit.getPluginManager().getPlugin("PlayerPoints").getDescription().getVersion()));
-        }else{
-            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:前置插件[PlayerPoints]未安装，已关闭相关功能");
-        }
-        // 检查前置[VexView]
-        if(Bukkit.getPluginManager().isPluginEnabled("VexView")){
-            String version = VexViewAPI.getVexView().getVersion();
-            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[VexView]已安装，版本：".concat(version));
-            // 检查[VexView]版本号
-            if(UpdateCheck.check(version, "2.5.0")){
-                GlobalConfig.setVexView(true);
-                GlobalConfig.setLowVexView(false);
-            }else{
-                Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]版本小于2.5, 已关闭发送邮件GUI, 使用指令代替");
-                GlobalConfig.setVexView(true);
-                GlobalConfig.setLowVexView(true);
-            }
-        }else{
-            Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]未安装，已关闭相关功能");
-            GlobalConfig.setVexView(false);
-            GlobalConfig.setLowVexView(true);
-        }
         // 加载插件
         instance = this;
-        reloadPlugin();
-        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:获取NMS版本: "+NMS.getNMSVersion());
+        loadPlugin();
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:获取NMS版本: "+NMS.getVersion());
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件启动完成");
         // 检查更新
         if(config.getBoolean("mailbox.updateCheck")){
@@ -432,53 +76,132 @@ public class MailBox extends JavaPlugin {
             }.runTaskAsynchronously(this);
         }
     }
-    
-    // 设置[Vault]
-    private boolean setupEconomy() {
-        if(getServer().getPluginManager().getPlugin("Vault") == null) return false;
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) return false;
-        return MailBoxAPI.setEconomy(rsp.getProvider());
-    }
-    
-    // 设置[PlayerPoints]
-    private boolean setupPoints() {
-        Plugin plugin = getServer().getPluginManager().getPlugin("PlayerPoints");
-        if(plugin == null) return false;
-        return MailBoxAPI.setPoints(PlayerPoints.class.cast(plugin)); 
-    }
-    
+
     @Override
     public void onDisable(){
-        // 注销监听器
-        HandlerList.unregisterAll(this);
-        try{
-            // 断开MySQL连接
-            SQLManager.get().shutdown();
-        }catch(Exception e){
-            this.getLogger().info(e.getLocalizedMessage());
-        }
-        // 插件关闭
+        unloadPlugin();
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件已卸载");
+    }
+    
+    // 检查前置插件
+    private void checkSoftDepend(){
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查前置插件");
+        // [Vault]
+        if(config.getBoolean("softDepend.Vault")){
+            boolean enable;
+            if(getServer().getPluginManager().getPlugin("Vault") == null){
+                enable = false;
+            }else{
+                RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+                if (rsp == null){
+                    enable = false;
+                }else{
+                    enable = MailBoxAPI.setEconomy(rsp.getProvider());
+                }
+            }
+            if(enable){
+                Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[Vault]已安装，版本：".concat(Bukkit.getPluginManager().getPlugin("Vault").getDescription().getVersion()));
+            }else{
+                Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[Vault]未安装，已关闭相关功能");
+            }
+            GlobalConfig.setVault(enable);
+        }else{
+            Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:未开启[Vault]，已关闭相关功能");
+            GlobalConfig.setVault(false);
+        }
+        // [PlayerPoints]
+        if(config.getBoolean("softDepend.PlayerPoints")){
+            Plugin plugin = getServer().getPluginManager().getPlugin("PlayerPoints");
+            boolean enable;
+            if(plugin == null){
+                enable = false;
+            }else{
+                enable = MailBoxAPI.setPoints(PlayerPoints.class.cast(plugin));
+            }
+            if(enable){
+                Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[PlayerPoints]已安装，版本：".concat(Bukkit.getPluginManager().getPlugin("PlayerPoints").getDescription().getVersion()));
+            }else{
+                Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[PlayerPoints]未安装，已关闭相关功能");
+            }
+            GlobalConfig.setPlayerPoints(enable);
+        }else{
+            Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:未开启[PlayerPoints]，已关闭相关功能");
+            GlobalConfig.setPlayerPoints(false);
+        }
+        // [PlaceholderAPI]
+        if(config.getBoolean("softDepend.PlaceholderAPI")){
+            if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+                Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[PlaceholderAPI]已安装，版本：".concat(Bukkit.getPluginManager().getPlugin("PlaceholderAPI").getDescription().getVersion()));
+                if(PlaceholderAPI.isRegistered("mailbox")) PlaceholderAPI.unregisterPlaceholderHook("mailbox");
+                new Placeholder().register();
+            }else{
+                Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[PlaceholderAPI]未安装，已关闭相关功能");
+            }
+        }else{
+            Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:未开启[PlaceholderAPI]，已关闭相关功能");
+        }
+        // [VexView]
+        if(config.getBoolean("softDepend.VexView")){
+            if(Bukkit.getPluginManager().isPluginEnabled("VexView")){
+                String version = VexViewAPI.getVexView().getVersion();
+                Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:前置插件[VexView]已安装，版本：".concat(version));
+                GlobalConfig.setVexView(true);
+                // 检查[VexView]版本号
+                if(UpdateCheck.check(version, "2.5.0")){
+                    GlobalConfig.setLowVexView_2_5(false);
+                    GlobalConfig.setLowVexView_2_4(false);
+                }else{
+                    Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]版本小于2.5, 已关闭发送邮件GUI, 使用指令代替");
+                    GlobalConfig.setLowVexView_2_5(true);
+                    if(UpdateCheck.check(version, "2.4.0")){
+                        GlobalConfig.setLowVexView_2_4(false);
+                    }else{
+                        Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]版本小于2.4, 已关闭鼠标悬停文字");
+                        GlobalConfig.setLowVexView_2_4(true);
+                    }
+                }
+            }else{
+                Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]未安装，已关闭相关功能");
+                GlobalConfig.setVexView(false);
+                GlobalConfig.setLowVexView_2_5(true);
+                GlobalConfig.setLowVexView_2_4(true);
+            }
+        }else{
+            Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:未开启[VexView]，已关闭相关功能");
+            GlobalConfig.setVexView(false);
+            GlobalConfig.setLowVexView_2_5(true);
+            GlobalConfig.setLowVexView_2_4(true);
+        }
     }
     
     // 重载插件
     private void reloadPlugin(){
-        if(FirstEnable){
-            FirstEnable = false;
-        }else{
-            // 注销监听器
-            HandlerList.unregisterAll(this);
-            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注销监听器");
-            // 断开MySQL连接
-            try{
-                SQLManager.get().shutdown();
-                Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:关闭数据库连接");
-            }catch(Exception e){
-                Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:断开数据库连接失败");
-                this.getLogger().info(e.getLocalizedMessage());
-            }
+        unloadPlugin();
+        loadPlugin();
+    }
+    
+    // 卸载插件
+    private void unloadPlugin(){
+        // 注销监听器
+        HandlerList.unregisterAll(this);
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注销监听器");
+        // 注销PlaceholderAPI占位符
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") && PlaceholderAPI.isRegistered("mailbox")){
+            PlaceholderAPI.unregisterPlaceholderHook("mailbox");
+            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注销PlaceholderAPI变量");
         }
+        // 断开MySQL连接
+        try{
+            SQLManager.get().shutdown();
+            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:关闭数据库连接");
+        }catch(Exception e){
+            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:断开数据库连接失败");
+            this.getLogger().info(e.getLocalizedMessage());
+        }
+    }
+    
+    // 加载插件
+    private void loadPlugin(){
         // 插件文件夹
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查插件文件夹是否存在");
         File f = new File(DATA_FOLDER);
@@ -489,9 +212,7 @@ public class MailBox extends JavaPlugin {
         // 读取config配置文件
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查配置文件是否存在");
         f = new File(DATA_FOLDER,"config.yml");
-        if(f.exists()){
-            
-        }else{
+        if(!f.exists()){
             Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:配置文件不存在");
             saveDefaultConfig();
             Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:创建配置文件");
@@ -499,6 +220,9 @@ public class MailBox extends JavaPlugin {
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:加载配置文件");
         reloadConfig();
         config = getConfig();
+        // 检查前置
+        checkSoftDepend();
+        // 设置
         setConfig();
         if(!GlobalConfig.enVexView) {
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 加入/退出 事件");
@@ -532,11 +256,18 @@ public class MailBox extends JavaPlugin {
             f.mkdir();
             Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:创建permission邮件文件夹");
         }
-        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查custom邮件文件夹是否存在");
-        f = new File(DATA_FOLDER+"/MailFiles/"+"custom");
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查date邮件文件夹是否存在");
+        f = new File(DATA_FOLDER+"/MailFiles/"+"date");
         if(!f.exists()){
             f.mkdir();
-            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:创建cutsom邮件文件夹");
+            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:创建date邮件文件夹");
+        }
+        // 模板文件夹
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查Template邮件文件夹是否存在");
+        f = new File(DATA_FOLDER+"/Template");
+        if(!f.exists()){
+            f.mkdir();
+            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:创建Template邮件文件夹");
         }
         // 连接数据库
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在连接数据库");
@@ -560,6 +291,7 @@ public class MailBox extends JavaPlugin {
         updateMailList(null, "system");
         updateMailList(null, "player");
         updateMailList(null, "permission");
+        updateMailList(null, "date");
     }
     
     // 设置Config
@@ -571,10 +303,12 @@ public class MailBox extends JavaPlugin {
             config.getString("mailbox.normalMessage"),
             config.getString("mailbox.successMessage"),
             config.getString("mailbox.warningMessage"),
+            config.getStringList("mailbox.newMailTips"),
+            config.getString("mailbox.newMailTipsMsg"),
             config.getString("mailbox.name.system"),
             config.getString("mailbox.name.player"),
             config.getString("mailbox.name.permission"),
-            config.getString("mailbox.file.divide"),
+            config.getString("mailbox.name.date"),
             config.getString("mailbox.file.command.player"),
             config.getInt("mailbox.file.maxItem"),
             config.getString("mailbox.file.ban.lore"),
@@ -594,29 +328,452 @@ public class MailBox extends JavaPlugin {
         if(GlobalConfig.enVexView) VexViewConfig.VexViewConfigSet();
     }
     
+    @Override    
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
+        if (label.equals("mailbox") || label.equals("mb")){
+            if(args.length==0){
+                if(GlobalConfig.enVexView){
+                    if(sender instanceof Player && MailBoxAPI.hasPlayerPermission(sender, "mailbox.gui.mailbox")){
+                        if(enCmdOpen) MailBoxGui.openMailBoxGui((Player) sender, "Recipient");
+                        else MailList.list(sender, "Recipient");
+                    }else{
+                        MailList.list(sender, "Recipient");
+                    }
+                }else{
+                    MailList.list(sender, "Recipient");
+                }
+            }else if(args.length==1){
+                onCommandNormal(sender, args[0]);
+            }else if(args.length>=2){
+                switch (args[0]) {
+                    case "item":
+                        onCommandItem(sender,args);
+                        break;
+                    case "template":
+                    case "send":
+                        onCommandTemplate(sender,args);
+                        break;
+                    case "system":
+                    case "player":
+                    case "permission":
+                    case "date":
+                        onCommandMail(sender, args);
+                        break;
+                    default:
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
+                }
+            }else{
+                return true;
+            }
+        }
+        return true;
+    }
+    
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        switch (args.length) {
+            case 1:
+                if(sender.isOp()) return Arrays.asList("new","receivebox","sendbox","date","system","permission","player","template","send","item","check","reload");
+                else return Arrays.asList("new","receivebox","sendbox","date","system","permission","player");
+            case 2:
+                switch (args[0]){
+                    case "date":
+                    case "system":
+                    case "permission":
+                        if(sender.isOp()) return Arrays.asList("see","collect","delete","update","upload","download");
+                        else return Arrays.asList("see","collect","delete");
+                    case "player":
+                        if(sender.isOp()) return Arrays.asList("see","collect","delete","update","upload","download","clean");
+                        else return Arrays.asList("see","collect","delete");
+                    case "item":
+                        if(sender.isOp()) return Arrays.asList("id","import","export","list");
+                }
+                return null;
+            case 3:
+                switch (args[0]){
+                    case "date":
+                    case "system":
+                    case "permission":
+                    case "player":
+                        if((args[1].equals("upload") || args[1].equals("download")) && sender.isOp()) return Arrays.asList("all");
+                        else break;
+                    case "template":
+                    case "send":
+                        if(sender.isOp()) return Arrays.asList("date","system","permission","player");
+                }
+                return null;
+            default:
+                return null;
+        }
+    }
+    
+    private void onCommandNormal(CommandSender sender, String arg){
+        switch (arg) {
+            case "sendbox":
+            case "sb":
+                if((sender instanceof Player)){
+                    MailList.list(sender, "Sender");
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以查看发件箱");
+                }
+                break;
+            case "receivebox":
+            case "rb":
+                MailList.list(sender, "Recipient");
+                break;
+            case "new":
+                MailNew.New(sender);
+                break;
+            case "reload":
+                if(sender.hasPermission("mailbox.admin.reload")){
+                    reloadPlugin();
+                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"插件已重载");
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                }
+                break;
+            case "check":
+                if(sender.hasPermission("mailbox.admin.check")){
+                    new BukkitRunnable(){
+                        @Override
+                        public void run(){
+                            UpdateCheck.check(sender);
+                        }
+                    }.runTaskAsynchronously(this);
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                }
+                break;
+            default:
+                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
+        }
+    }
+    
+    private void onCommandItem(CommandSender sender, String[] args){
+        switch (args[1]) {
+            case "list":
+                if(sender.hasPermission("mailbox.admin.item.list")){
+                    List<String> list = MailBoxAPI.getItemExport();
+                    if(list.isEmpty()){
+                        sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"没有已导出的物品");
+                    }else{
+                        int i = 0;
+                        for(String name:MailBoxAPI.getItemExport()){
+                            sender.sendMessage("§b"+(++i)+". §e"+name);
+                        }
+                    }
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有查看已导出物品列表的权限");
+                }   break;
+            case "export":
+                if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.export")){
+                    ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
+                    if(args.length==3){
+                        if(is!=null && MailBoxAPI.saveItem(is, args[2])){
+                            sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出至"+args[2]+".yml成功");
+                        }else{
+                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
+                        }
+                    }else{
+                        if(is!=null && MailBoxAPI.saveItem(is)){
+                            sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
+                        }else{
+                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
+                        }
+                    }
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有导出物品的权限");
+                }   break;
+            case "import":
+                if(sender.hasPermission("mailbox.admin.item.import")){
+                    ItemStack is;
+                    if(args.length==3){
+                        is = MailBoxAPI.readItem(args[2]);
+                    }else{
+                        is = MailBoxAPI.readItem();
+                    }
+                    if(is==null){
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"读取物品失败");
+                    }else{
+                        if(sender instanceof Player){
+                            ((Player)sender).getInventory().setItemInMainHand(is);
+                        }else{
+                            sender.sendMessage("物品："+NMS.getItemName(is)+'\n'+"§a"+NMS.Item2Json(is).replace(',', '\n'));
+                        }
+                        sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已取出物品");
+                    }
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有取出物品的权限");
+                }   break;
+            case "id":
+                if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.id")){
+                    ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
+                    if(is!=null){
+                        sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品的Material_ID为: "+GlobalConfig.normal+is.getType().name());
+                    }else{
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品Material_ID失败");
+                    }
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有获取物品ID的权限");
+                }   break;
+            default:
+                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
+        }
+    }
+    
+    private void onCommandTemplate(CommandSender sender, String[] args){
+        if(sender.hasPermission("mailbox.admin.template")){
+            TextMail tm = MailBoxAPI.getTemplateMail(args[1]);
+            if(tm==null){
+                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标文件不存在");
+                return;
+            }
+            if(args.length==2 && args[0].equals("template")){
+                MailNew.New(sender, tm);
+            }else if(args.length>=3){
+                if(!(args[2].equals("system") || args[2].equals("permission") || args[2].equals("player") || args[2].equals("date"))){
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件类型不存在");
+                    return;
+                }
+                if(!sender.hasPermission("mailbox.admin.send."+args[2])){
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有发送此类型邮件的权限");
+                    return;
+                }
+                tm.setType(args[2]);
+                if(args.length==3 && args[0].equals("template")){
+                    MailNew.New(sender, tm);
+                }else{
+                    switch (args[2]) {
+                        case "permission":
+                            tm.setPermission(args[3]);
+                            break;
+                        case "player":
+                            ArrayList<String> rl = new ArrayList();
+                            for(int i=3;i<args.length;i++){
+                                rl.add(args[i]);
+                            }
+                            tm.setRecipient(rl);
+                            break;
+                        case "date":
+                            if(args.length==5){
+                                if(args[3].equals("0")){
+                                    tm.setDate("0");
+                                }else{
+                                    List<Integer> t = DateTime.toDate(args[3], sender, null);
+                                    switch (t.size()) {
+                                        case 3:
+                                        case 6:
+                                            String date = DateTime.toDate(t, sender, null);
+                                            if(date==null){
+                                                return;
+                                            }else{
+                                                tm.setDate(date);
+                                            }
+                                            break;
+                                        default:
+                                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"请输入足够的时间参数，年-月-日 或 年-月-日-时-分-秒");
+                                        return;
+                                    }
+                                }
+                                if(args[4].equals("0")){
+                                    tm.setDeadline("0");
+                                }else{
+                                    List<Integer> t = DateTime.toDate(args[3], sender, null);
+                                    switch (t.size()) {
+                                        case 3:
+                                        case 6:
+                                            String date = DateTime.toDate(t, sender, null);
+                                            if(date==null){
+                                                return;
+                                            }else{
+                                                tm.setDeadline(date);
+                                            }
+                                            break;
+                                        default:
+                                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"请输入足够的时间参数，年-月-日 或 年-月-日-时-分-秒");
+                                        return;
+                                    }
+                                }
+                            }else{
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"请输入足够的参数: 开始时间 和 截止时间");
+                                return;
+                            }
+                            break;
+                        case "system":
+                            break;
+                        default:
+                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"此邮件类型不支持参数发送");
+                            return;
+                    }
+                    if(args[0].equals("template")){
+                        MailNew.New(sender, tm);
+                    }else if(sender.hasPermission("mailbox.admin.template.send")){
+                        if(tm.getSender()==null){
+                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"此邮件未设置发件人，无法直接发送");
+                        }else{
+                            tm.Send(sender, null);
+                        }
+                    }else{
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                    }
+                }
+            }else{
+                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
+            }
+        }else{
+            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+        }
+    }
+    
+    private void onCommandMail(CommandSender sender, String[] args){
+        String type = args[0];
+        if(args.length==2){
+            if(args[1].equals("update")){
+                if(sender.hasPermission("mailbox.admin.update."+type)){
+                    if(sender instanceof Player) updateMailList((Player) sender, type);
+                    else updateMailList(null, type);
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                }
+            }else if(args[1].equals("clean") && (type.equals("player") || type.equals("date"))){
+                if(sender.hasPermission("mailbox.admin.clean."+type)){
+                    StringBuilder t = new StringBuilder("");
+                    if((type.equals("player"))) PLAYER_LIST.forEach((Integer k, TextMail v) -> { if(MailBoxAPI.isExpired(v)) if(v.Delete(null)) t.append("1"); });
+                    if((type.equals("date"))) DATE_LIST.forEach((Integer k, TextMail v) -> { if(MailBoxAPI.isExpired(v)) if(v.Delete(null)) t.append("1"); });
+                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已清理"+GlobalConfig.getTypeName(type)+"邮件"+t.length()+"封");
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                }
+            }else{
+            }
+        }else{
+            switch (args[1]) {
+                case "see":
+                    {
+                        try{
+                            MailView.view(type, Integer.parseInt(args[2]), sender);
+                        }catch(NumberFormatException e){
+                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                        }
+                        break;
+                    }
+                case "collect":
+                    {
+                        try{
+                            MailView.collect(type, Integer.parseInt(args[2]), sender);
+                        }catch(NumberFormatException e){
+                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                        } 
+                        break;
+                    }
+                case "delete":
+                    {
+                        try{
+                            MailView.delete(type, Integer.parseInt(args[2]), sender);
+                        }catch(NumberFormatException e){
+                            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                        }
+                        break;
+                    }
+                case "upload":
+                case "download":
+                    if(args.length==3) {
+                        String load = args[1];
+                        if(args[2].equals("all")){
+                            if(sender.hasPermission("mailbox.admin."+load+"."+type+".all")){
+                                if(args[1].equals("upload")) MailBoxAPI.uploadFile(sender, type);
+                                else MailBoxAPI.downloadFile(sender, type);
+                            }else{
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                            }
+                        }else{
+                            if(sender.hasPermission("mailbox.admin."+load+"."+type)){
+                                int mail;
+                                try{
+                                    mail = Integer.parseInt(args[2]);
+                                    TextMail tm = MailBox.getHashMap(type).get(mail);
+                                    if(tm!=null && (tm instanceof FileMail)){
+                                        String filename = ((FileMail)tm).getFileName();
+                                        if(args[1].equals("upload")){
+                                            if(MailBoxAPI.uploadFile(type, filename)){
+                                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件: "+filename+"上传成功");
+                                            }else{
+                                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"附件: "+filename+"上传失败");
+                                            }
+                                        }else{
+                                            if(MailBoxAPI.downloadFile(type, filename)){
+                                                sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件: "+filename+"下载成功");
+                                            }else{
+                                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"附件: "+filename+"下载失败");
+                                            }
+                                        }
+                                    }else{
+                                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标邮件不存在或无附件");
+                                    }
+                                }
+                                catch(NumberFormatException e){
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                                }
+                            }else{
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
+                            }
+                        }
+                    }else{
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
+                    }   break;
+                default:
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
+                    break;
+            }
+        }
+    }
+    
     //更新邮件列表
     public static void updateMailList(Player p, String type){
-        String typename = GlobalConfig.getTypeName(type);
         int count;
         switch (type) {
             case "system": 
-                MailListSystem = SQLManager.get().getMailList(type);
-                count = MailListSystem.size();
+                SYSTEM_LIST.clear();
+                SYSTEM_LIST.putAll(SQLManager.get().getMailList(type));
+                count = SYSTEM_LIST.size();
                 break;
             case "player": 
-                MailListPlayer = SQLManager.get().getMailList(type);
-                count = MailListPlayer.size();
+                PLAYER_LIST.clear();
+                PLAYER_LIST.putAll(SQLManager.get().getMailList(type));
+                count = PLAYER_LIST.size();
                 break;
             case "permission": 
-                MailListPermission = SQLManager.get().getMailList(type);
-                count = MailListPermission.size();
+                PERMISSION_LIST.clear();
+                PERMISSION_LIST.putAll(SQLManager.get().getMailList(type));
+                count = PERMISSION_LIST.size();
+                break;
+            case "date": 
+                DATE_LIST.clear();
+                DATE_LIST.putAll(SQLManager.get().getMailList(type));
+                count = DATE_LIST.size();
                 break;
             default:
                 return;
         }
-        Bukkit.getConsoleSender().sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+typename+"邮件列表["+count+"封]已更新");
+        Bukkit.getConsoleSender().sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.getTypeName(type)+"邮件列表["+count+"封]已更新");
         if(p!=null){
-            p.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+typename+"邮件列表["+count+"封]已更新");
+            p.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.getTypeName(type)+"邮件列表["+count+"封]已更新");
+        }
+    }
+    
+    // 根据类型获取Map集合
+    public static HashMap<Integer, TextMail> getHashMap(String type){
+        switch (type){
+            case "system":
+                return SYSTEM_LIST;
+            case "permission":
+                return PERMISSION_LIST;
+            case "player":
+                return PLAYER_LIST;
+            case "date":
+                return DATE_LIST;
+            default:
+                return null;
         }
     }
     
@@ -624,14 +781,17 @@ public class MailBox extends JavaPlugin {
     public static HashMap<String, ArrayList<Integer>> getRelevantMailList(Player p, String type){
         switch (type) {
             case "system" :
-                if(!MailListSystemRelevant.containsKey(p.getName())) updateRelevantMailList(p,type);
-                return MailListSystemRelevant.get(p.getName());
+                if(!SYSTEM_RELEVANT.containsKey(p.getName())) updateRelevantMailList(p,type);
+                return SYSTEM_RELEVANT.get(p.getName());
             case "player" :
-                if(!MailListPlayerRelevant.containsKey(p.getName())) updateRelevantMailList(p,type);
-                return MailListPlayerRelevant.get(p.getName());
+                if(!PLAYER_RELEVANT.containsKey(p.getName())) updateRelevantMailList(p,type);
+                return PLAYER_RELEVANT.get(p.getName());
             case "permission" :
-                if(!MailListPermissionRelevant.containsKey(p.getName())) updateRelevantMailList(p,type);
-                return MailListPermissionRelevant.get(p.getName());
+                if(!PERMISSION_RELEVANT.containsKey(p.getName())) updateRelevantMailList(p,type);
+                return PERMISSION_RELEVANT.get(p.getName());
+            case "date" :
+                if(!DATE_RELEVANT.containsKey(p.getName())) updateRelevantMailList(p,type);
+                return DATE_RELEVANT.get(p.getName());
             default:
                 return null;
         }
@@ -641,30 +801,36 @@ public class MailBox extends JavaPlugin {
     public static void updateRelevantMailList(Player p, String type){
         switch (type) {
             case "system" :
-                MailListSystemRelevant.remove(p.getName());
-                MailListSystemRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                SYSTEM_RELEVANT.remove(p.getName());
+                SYSTEM_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
                 break;
             case "player" :
-                MailListPlayerRelevant.remove(p.getName());
-                MailListPlayerRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                PLAYER_RELEVANT.remove(p.getName());
+                PLAYER_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
                 break;
             case "permission" :
-                MailListPermissionRelevant.remove(p.getName());
-                MailListPermissionRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                PERMISSION_RELEVANT.remove(p.getName());
+                PERMISSION_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                break;
+            case "date" :
+                DATE_RELEVANT.remove(p.getName());
+                DATE_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
                 break;
             default:
                 removeRelevantMailList(p);
-                MailListSystemRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
-                MailListPlayerRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
-                MailListPermissionRelevant.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                SYSTEM_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                PLAYER_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                PERMISSION_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                DATE_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
         }
     }
     
     // 将玩家移出相关邮件列表
     public static void removeRelevantMailList(Player p){
-        MailListSystemRelevant.remove(p.getName());
-        MailListPlayerRelevant.remove(p.getName());
-        MailListPermissionRelevant.remove(p.getName());
+        SYSTEM_RELEVANT.remove(p.getName());
+        PLAYER_RELEVANT.remove(p.getName());
+        PERMISSION_RELEVANT.remove(p.getName());
+        DATE_RELEVANT.remove(p.getName());
     }
     
     // 获取此类

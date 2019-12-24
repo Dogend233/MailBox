@@ -22,21 +22,32 @@ public class NMS {
     private static Class<?> craftItemStackClazz;
     private static Method asNMSCopyMethod;
     private static Class<?> nmsItemStackClazz;
+    private static Method getNameMethod;
     private static Class<?> nbtTagCompoundClazz;
     private static Method saveNmsItemStackMethod;
+    private static Class<?> iChatBaseComponentClazz;
+    private static Method getTextMethod;
     
-    // 获取类和方法
-    public static void getClassAndMethod(){
-        craftItemStackClazz = getOBCClass("inventory.CraftItemStack");
-        asNMSCopyMethod = getMethod(craftItemStackClazz, "asNMSCopy", ItemStack.class);
-        nmsItemStackClazz = getNMSClass("ItemStack");
-        nbtTagCompoundClazz = getNMSClass("NBTTagCompound");
-        saveNmsItemStackMethod = getMethod(nmsItemStackClazz, "save", nbtTagCompoundClazz);
+    // 获取物品名称
+    public static String getItemName(ItemStack is){
+        Object nmsItemStackObj;
+        Object nmsItemName;
+        try {
+            nmsItemStackObj = asNMSCopyMethod.invoke(null, is);
+            nmsItemName = getNameMethod.invoke(nmsItemStackObj);
+            if(nmsItemName instanceof String){
+                return (String)nmsItemName;
+            }else{
+                return getTextMethod.invoke(nmsItemName).toString();
+            }
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException  ex) {
+            Logger.getLogger(NMS.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        }
     }
     
     // 物品转json
     public static String Item2Json(ItemStack is){
-        if(craftItemStackClazz==null) getClassAndMethod();
         Object nmsItemStackObj;
         Object nmsNbtTagCompoundObj;
         Object itemAsJsonObject;
@@ -47,16 +58,28 @@ public class NMS {
             return itemAsJsonObject.toString();
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException ex) {
             Logger.getLogger(NMS.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
         }
-        return "";
     }
     
-    public static String getNMSVersion(){
-        if (VERSION == null) {
-            String name = Bukkit.getServer().getClass().getPackage().getName();
-            VERSION = name.substring(name.lastIndexOf('.') + 1) + ".";
-        }
+    // 获取NMS版本
+    public static String getVersion(){
+        String name = Bukkit.getServer().getClass().getPackage().getName();
+        VERSION = name.substring(name.lastIndexOf('.') + 1) + ".";
+        getClassAndMethod();
         return VERSION;
+    }
+    
+    // 获取类和方法
+    public static void getClassAndMethod(){
+        craftItemStackClazz = getOBCClass("inventory.CraftItemStack");
+        asNMSCopyMethod = getMethod(craftItemStackClazz, "asNMSCopy", ItemStack.class);
+        nmsItemStackClazz = getNMSClass("ItemStack");
+        getNameMethod = getMethod(nmsItemStackClazz, "getName");
+        nbtTagCompoundClazz = getNMSClass("NBTTagCompound");
+        saveNmsItemStackMethod = getMethod(nmsItemStackClazz, "save", nbtTagCompoundClazz);
+        iChatBaseComponentClazz  = getNMSClass("IChatBaseComponent");
+        getTextMethod = getMethod(iChatBaseComponentClazz, "getText");
     }
     
     public static Class<?> getNMSClass(String nmsClassName) {
@@ -64,7 +87,7 @@ public class NMS {
             return loadedNMSClasses.get(nmsClassName);
         }
 
-        String clazzName = "net.minecraft.server." + getNMSVersion() + nmsClassName;
+        String clazzName = "net.minecraft.server." + VERSION + nmsClassName;
         Class<?> clazz;
 
         try {
@@ -82,7 +105,7 @@ public class NMS {
             return loadedOBCClasses.get(obcClassName);
         }
 
-        String clazzName = "org.bukkit.craftbukkit." + getNMSVersion() + obcClassName;
+        String clazzName = "org.bukkit.craftbukkit." + VERSION + obcClassName;
         Class<?> clazz;
 
         try {

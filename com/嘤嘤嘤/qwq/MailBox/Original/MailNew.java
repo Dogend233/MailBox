@@ -5,9 +5,12 @@ import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
+import static com.嘤嘤嘤.qwq.MailBox.Original.MailNew.create;
+import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import com.嘤嘤嘤.qwq.MailBox.VexView.MailContentGui;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import org.bukkit.command.CommandSender;
@@ -15,7 +18,6 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
-import org.bukkit.conversations.ConversationAbandonedListener;
 import org.bukkit.conversations.ConversationContext;
 import org.bukkit.conversations.ConversationFactory;
 import org.bukkit.conversations.Prompt;
@@ -24,18 +26,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class MailNew {
-    public MailNew(CommandSender sender, MailBox mb){
-        if(sender.hasPermission("mailbox.admin.send.player") || sender.hasPermission("mailbox.admin.send.system") || sender.hasPermission("mailbox.admin.send.permission")){
-            create(sender,mb);
-        }else if(sender.hasPermission("mailbox.send.player.only")){
+    public static void New(CommandSender sender){
+        if(sender.hasPermission("mailbox.admin.send.player") || sender.hasPermission("mailbox.admin.send.system") || sender.hasPermission("mailbox.admin.send.permission") || sender.hasPermission("mailbox.admin.send.date")){
+            create(new TypeSelect(sender), sender);
+        }else if(MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.player.only")){
             if(sender instanceof Player){
                 if(sendable(sender,"player",null)){
                     sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"正在创建"+GlobalConfig.getTypeName("player")+GlobalConfig.normal+"邮件");
-                    create(sender,mb,new TextMail("player",0,sender.getName(),null,null,null,null,null));
+                    create(new Topic(new TextMail("player",0,sender.getName(),null,null,null,null,null,null), sender, false), sender);
                 }
             }else if(sender instanceof ConsoleCommandSender){
                 sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"正在创建"+GlobalConfig.getTypeName("player")+GlobalConfig.normal+"邮件");
-                create(sender,mb,new TextMail("player",0,null,null,null,null,null,null));
+                create(new Topic(new TextMail("player",0,null,null,null,null,null,null,null), sender, false), sender);
             }else{
                 sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"噢!你到底是用什么跟我对话的?");
             }
@@ -43,32 +45,41 @@ public class MailNew {
             sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 你没有权限发送邮件");
         }
     }
-    public MailNew(CommandSender sender, TextMail tm){
-        
+    public static void New(CommandSender sender, TextMail tm){
+        if(tm.getType().equals("template")){
+            create(new TypeSelect(sender, tm), sender);
+        }else{
+            sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"正在创建"+GlobalConfig.getTypeName("player")+GlobalConfig.normal+"邮件");
+            if(tm.getSender()==null){
+                create(new Sender(tm, sender, true), sender);
+            }else{
+                if(tm.getType().equals("permission") && tm.getPermission()==null) create(new Permission(tm, sender, true),sender);
+                else if(tm.getType().equals("player") && (tm.getRecipient()==null || tm.getRecipient().isEmpty())) create(new Recipient(tm, sender, true),sender);
+                else if(tm.getType().equals("date") && (tm.getDate().equals("0") && tm.getDeadline().equals("0"))) create(new StartDate(tm, sender, true),sender);
+                else create(new Preview(tm, sender), sender);
+            }
+        }
     }
-    public void create(CommandSender sender, MailBox mb){
-        Conversation conversation = new ConversationFactory(mb)
-            .withFirstPrompt(new TypeSelect(sender))
-            .addConversationAbandonedListener((ConversationAbandonedEvent abandonedEvent) -> {
-                if (abandonedEvent.gracefulExit()) {
-                    abandonedEvent.getContext().getForWhom().sendRawMessage(OriginalConfig.msgStop);
-                }
-        })
-            .buildConversation((Conversable) sender);
-        conversation.begin();
+    public static void Preview(CommandSender sender, TextMail tm){
+        sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"正在创建"+GlobalConfig.getTypeName("player")+GlobalConfig.normal+"邮件");
+        if(tm.getSender()==null){
+            if(sender instanceof Player){
+                tm.setSender(((Player)sender).getName());
+            }else{
+                create(new Sender(tm, sender, true), sender);
+                return;
+            }
+        }
+        create(new Preview(tm, sender), sender);
     }
-    public void create(CommandSender sender, MailBox mb, TextMail tm){
-        Conversation conversation = new ConversationFactory(mb)
-            .withFirstPrompt(new Topic(tm, sender, false))
-            .addConversationAbandonedListener(new ConversationAbandonedListener() {
-                @Override
-                public void conversationAbandoned(ConversationAbandonedEvent abandonedEvent) {
-                    if (abandonedEvent.gracefulExit()) {
-                        abandonedEvent.getContext().getForWhom().sendRawMessage(OriginalConfig.msgStop);
-                    }
-                }
-            })
-            .buildConversation((Conversable) sender);
+    public static void create(ValidatingPrompt p, CommandSender s){
+        Conversation conversation = new ConversationFactory(MailBox.getInstance())
+        .withFirstPrompt(p)
+        .addConversationAbandonedListener((ConversationAbandonedEvent abandonedEvent) -> {
+            if (abandonedEvent.gracefulExit()) {
+                abandonedEvent.getContext().getForWhom().sendRawMessage(OriginalConfig.msgStop);
+            }
+        }).buildConversation((Conversable)s);
         conversation.begin();
     }
     public static String color(String target){
@@ -77,7 +88,7 @@ public class MailNew {
     public static boolean sendable(CommandSender sender, String type, ConversationContext cc){
         if(sender instanceof Player){
             if(type.equals("player")){
-                if(sender.hasPermission("mailbox.admin.send."+type) || sender.hasPermission("mailbox.send.player.only")){
+                if(sender.hasPermission("mailbox.admin.send."+type) || MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.player.only")){
                     Player p = (Player)sender;
                     int out = MailBoxAPI.playerAsSenderAllow(p);
                     int outed = MailBoxAPI.playerAsSender(p);
@@ -103,8 +114,8 @@ public class MailNew {
     }
     public static boolean filable(CommandSender sender){
         if(sender instanceof Player){
-            return (sender.hasPermission("mailbox.send.money.coin") || 
-                    sender.hasPermission("mailbox.send.money.point") || 
+            return (MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.coin") || 
+                    MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.point") || 
                     sender.hasPermission("mailbox.admin.send.command") || 
                     itemable(sender)>0);
         }else if(sender instanceof ConsoleCommandSender){
@@ -128,23 +139,22 @@ class TypeSelect extends ValidatingPrompt{
     CommandSender sender;
     List<String> select = new ArrayList();
     String type = null;
+    TextMail tm = null;
     TypeSelect(CommandSender sender){
         this.sender = sender;
+    }
+    TypeSelect(CommandSender sender, TextMail tm){
+        this.sender = sender;
+        this.tm = tm;
     }
     @Override
     public String getPromptText(ConversationContext cc) {
         int i = 1;
-        if(sender.hasPermission("mailbox.admin.send.player")){
-            cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入"+(i++)+"发送"+GlobalConfig.getTypeName("player")+"§b邮件");
-            select.add("player");
-        }
-        if(sender.hasPermission("mailbox.admin.send.system")){
-            cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入"+(i++)+"发送"+GlobalConfig.getTypeName("system")+"§b邮件");
-            select.add("system");
-        }
-        if(sender.hasPermission("mailbox.admin.send.permission")){
-            cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入"+(i++)+"发送"+GlobalConfig.getTypeName("permission")+"§b邮件");
-            select.add("permission");
+        for(String type:MailBoxAPI.getAllType()){
+            if(sender.hasPermission("mailbox.admin.send."+type)){
+                cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入"+(i++)+"发送"+GlobalConfig.getTypeName(type)+"§b邮件");
+                select.add(type);
+            }
         }
         return OriginalConfig.msgCancel;
     }
@@ -155,35 +165,31 @@ class TypeSelect extends ValidatingPrompt{
         }
         try{
             switch(Integer.parseInt(str)){
+                case 4:
+                    if(select.size()==4){
+                        type = select.get(3);
+                        return true;
+                    }else break;
                 case 3:
-                    if(select.size()==3){
+                    if(select.size()>=3){
                         type = select.get(2);
                         return true;
-                    }else{
-                        cc.getForWhom().sendRawMessage("§a[邮件预览]：目标选项不存在");
-                        return false;
-                    }
+                    }else break;
                 case 2:
                     if(select.size()>=2){
                         type = select.get(1);
                         return true;
-                    }else{
-                        cc.getForWhom().sendRawMessage("§a[邮件预览]：目标选项不存在");
-                        return false;
-                    }
-                    
+                    }else break;
                 case 1:
                     if(select.size()>=1){
                         type = select.get(0);
                         return true;
-                    }else{
-                        cc.getForWhom().sendRawMessage("§a[邮件预览]：目标选项不存在");
-                        return false;
-                    }
+                    } break;
                 default:
-                    cc.getForWhom().sendRawMessage("§a[邮件预览]：目标选项不存在");
-                    return false;
+                    break;
             }
+            cc.getForWhom().sendRawMessage("§a[邮件预览]：目标选项不存在");
+            return false;
         }catch(NumberFormatException e){
             cc.getForWhom().sendRawMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"输入格式错误，请输入数字");
             return false;
@@ -193,10 +199,18 @@ class TypeSelect extends ValidatingPrompt{
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
         if(str.equals(OriginalConfig.stopStr) || type==null) return Prompt.END_OF_CONVERSATION;
         cc.getForWhom().sendRawMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"正在创建"+GlobalConfig.getTypeName(type)+GlobalConfig.normal+"邮件");
+        if(tm!=null){
+            tm.setType(type);
+            if(tm.getSender()==null) return new Sender(tm, sender, true);
+            if(tm.getType().equals("permission") && tm.getPermission()==null) return new Permission(tm, sender, true);
+            if(tm.getType().equals("player") && (tm.getRecipient()==null || tm.getRecipient().isEmpty())) return new Recipient(tm, sender, true);
+            if(tm.getType().equals("date") && (tm.getDate().equals("0") && tm.getDeadline().equals("0"))) return new StartDate(tm, sender, true);
+            return new Preview(tm, sender);
+        }
         if(sender instanceof Player){
-            return new Topic(new TextMail(type,0,sender.getName(),null,null,null,null,null), sender, false);
+            return new Topic(new TextMail(type,0,sender.getName(),null,null,null,null,null,null), sender, false);
         }else{
-            return new Topic(new TextMail(type,0,null,null,null,null,null,null), sender, false);
+            return new Topic(new TextMail(type,0,null,null,null,null,null,null,null), sender, false);
         }
     }
 }
@@ -281,6 +295,8 @@ class Content extends ValidatingPrompt{
                     return new Permission(tm, sender, false);
                 case "player":
                     return new Recipient(tm, sender, false);
+                case "date":
+                    return new StartDate(tm, sender, false);
                 default:
                     if(MailNew.filable(sender)){
                         return new File(tm, sender);
@@ -320,12 +336,19 @@ class Sender extends ValidatingPrompt{
         str = MailNew.color(str);
         cc.getForWhom().sendRawMessage("§a[邮件预览]: 设置发件人: "+str);
         tm.setSender(str);
-        if(change) return new Preview(tm, sender);
+        if(change){
+            if(tm.getType().equals("permission") && tm.getPermission()==null) return new Permission(tm, sender, true);
+            if(tm.getType().equals("player") && (tm.getRecipient()==null || tm.getRecipient().isEmpty())) return new Recipient(tm, sender, true);
+            if(tm.getType().equals("date") && (tm.getDate().equals("0") && tm.getDeadline().equals("0"))) return new StartDate(tm, sender, true);
+            return new Preview(tm, sender);
+        }
         switch (tm.getType()){
             case "permission":
                 return new Permission(tm, sender, false);
             case "player":
                 return new Recipient(tm, sender, false);
+            case "date":
+                    return new StartDate(tm, sender, false);
             default:
                 if(MailNew.filable(sender)){
                     return new File(tm, sender);
@@ -427,6 +450,98 @@ class Recipient extends ValidatingPrompt{
     }
 }
 
+class StartDate extends ValidatingPrompt{
+    TextMail tm;
+    CommandSender sender;
+    String date;
+    boolean change;
+    StartDate(TextMail tm, CommandSender sender, boolean change){
+        this.tm = tm;
+        this.sender = sender;
+        this.change = change;
+    }
+    @Override
+    public String getPromptText(ConversationContext cc) {
+        return OriginalConfig.msgStartDate+'\n'+OriginalConfig.msgStartDateCancel+'\n'+OriginalConfig.msgCancel;
+    }
+    @Override
+    protected boolean isInputValid(ConversationContext cc, String str) {
+        if(str.equals(OriginalConfig.stopStr) || str.equals("0")) return true;
+        List<Integer> t = DateTime.toDate(str, sender, cc);
+        switch (t.size()) {
+            case 3:
+            case 6:
+                date = DateTime.toDate(t, sender, cc);
+                return date != null;
+            default:
+                cc.getForWhom().sendRawMessage(GlobalConfig.warning+"输入错误，请输入3或6个数字");
+                return false;
+        }
+    }
+
+    @Override
+    protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
+        if(str.equals(OriginalConfig.stopStr)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals("0")){
+            cc.getForWhom().sendRawMessage("§a[邮件预览]: 不设置开始时间");
+            tm.setDate(str);
+        }else{
+            cc.getForWhom().sendRawMessage("§a[邮件预览]: 设置开始时间: "+date);
+            tm.setDate(date);
+        }
+        if(change) return new Preview(tm, sender);
+        return new Deadline(tm, sender, false);
+    }
+}
+
+class Deadline extends ValidatingPrompt{
+    TextMail tm;
+    CommandSender sender;
+    String date;
+    boolean change;
+    Deadline(TextMail tm, CommandSender sender, boolean change){
+        this.tm = tm;
+        this.sender = sender;
+        this.change = change;
+    }
+    @Override
+    public String getPromptText(ConversationContext cc) {
+        return OriginalConfig.msgDeadline+'\n'+OriginalConfig.msgDeadlineCancel+'\n'+OriginalConfig.msgCancel;
+    }
+    @Override
+    protected boolean isInputValid(ConversationContext cc, String str) {
+        if(str.equals(OriginalConfig.stopStr) || str.equals("0")) return true;
+        List<Integer> t = DateTime.toDate(str, sender, cc);
+        switch (t.size()) {
+            case 3:
+            case 6:
+                date = DateTime.toDate(t, sender, cc);
+                return date != null;
+            default:
+                cc.getForWhom().sendRawMessage(GlobalConfig.warning+"输入错误，请输入3或6个数字");
+                return false;
+        }
+    }
+
+    @Override
+    protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
+        if(str.equals(OriginalConfig.stopStr)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals("0")){
+            cc.getForWhom().sendRawMessage("§a[邮件预览]: 不设置截止时间");
+            tm.setDeadline(str);
+        }else{
+            cc.getForWhom().sendRawMessage("§a[邮件预览]: 设置截止时间: "+date);
+            tm.setDeadline(date);
+        }
+        if(change) return new Preview(tm, sender);
+        if(MailNew.filable(sender)){
+            return new File(tm, sender);
+        }else{
+            return new Preview(tm, sender);
+        }
+    }
+}
+
 class File extends ValidatingPrompt{
     TextMail tm;
     CommandSender sender;
@@ -456,9 +571,9 @@ class File extends ValidatingPrompt{
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
         if(str.equals(OriginalConfig.stopStr)) return Prompt.END_OF_CONVERSATION;
         if(file){
-            if(GlobalConfig.enVault && sender.hasPermission("mailbox.send.money.coin")){
+            if(GlobalConfig.enVault && MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.coin")){
                 return new Coin(tm.toFileMail(), sender, false);
-            }else if(GlobalConfig.enPlayerPoints && sender.hasPermission("mailbox.send.money.point")){
+            }else if(GlobalConfig.enPlayerPoints && MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.point")){
                 return new Point(tm.toFileMail(), sender, false);
             }else if(MailNew.itemable(sender)>0){
                 return new Item(tm.toFileMail(), sender, false);
@@ -521,7 +636,7 @@ class Coin extends ValidatingPrompt{
         cc.getForWhom().sendRawMessage("§a[邮件预览]: 设置发送"+GlobalConfig.vaultDisplay+": "+coin);
         fm.setCoin(coin);
         if(change) return new Preview(fm, sender);
-        if(sender.hasPermission("mailbox.send.money.point")){
+        if(GlobalConfig.enPlayerPoints && MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.point")){
             return new Point(fm, sender, false);
         }else if(MailNew.itemable(sender)>0){
             return new Item(fm, sender, false);
@@ -795,21 +910,15 @@ class Preview extends ValidatingPrompt{
         OPTION.put(10, "§b[邮件预览]: 输入 0 修改物品");
         OPTION.put(11, "§b[邮件预览]: 输入 0 添加附件");
         OPTION.put(12, "§b[邮件预览]: 输入 0 移除所有附件");
-    }
-    TextMail tm;
-    CommandSender sender;
-    HashMap<Integer,Integer> optional;
-    int change = 0;
-    Preview(TextMail tm, CommandSender sender){
-        this.tm = tm;
-        this.sender = sender;
+        OPTION.put(13, "§b[邮件预览]: 输入 0 修改发件日期");
+        OPTION.put(14, "§b[邮件预览]: 输入 0 修改截止日期");
     }
     public static HashMap<Integer,Integer> optional(TextMail tm, CommandSender sender){
         HashMap<Integer,Integer> o = new HashMap();
         int i = 1;
         o.put((i++), 1);
         o.put((i++), 2);
-        if(sender.hasPermission("改发件人")){
+        if(sender.hasPermission("mailbox.admin.send.sender")){
             o.put((i++), 3);
         }
         switch (tm.getType()){
@@ -819,10 +928,14 @@ class Preview extends ValidatingPrompt{
             case "permission":
                 o.put((i++), 5);
                 break;
+            case "date":
+                o.put((i++), 13);
+                o.put((i++), 14);
+                break;
         }
         if(tm instanceof FileMail){
-            if(GlobalConfig.enVault && sender.hasPermission("mailbox.send.money.coin")) o.put((i++), 6);
-            if(GlobalConfig.enPlayerPoints && sender.hasPermission("mailbox.send.money.point")) o.put((i++), 7);
+            if(GlobalConfig.enVault && MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.coin")) o.put((i++), 6);
+            if(GlobalConfig.enPlayerPoints && MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.point")) o.put((i++), 7);
             if(sender.hasPermission("mailbox.admin.send.command")){
                 o.put((i++), 8);
                 o.put((i++), 9);
@@ -834,10 +947,19 @@ class Preview extends ValidatingPrompt{
         }
         return o;
     }
+    TextMail tm;
+    CommandSender sender;
+    HashMap<Integer,Integer> optional;
+    int change = 0;
+    Preview(TextMail tm, CommandSender sender){
+        if((tm instanceof FileMail) && !((FileMail)tm).hasFileContent()) tm = ((FileMail)tm).toTextMail();
+        this.tm = tm;
+        this.sender = sender;
+    }
     @Override
     public String getPromptText(ConversationContext cc) {
         optional = optional(tm, sender);
-        if((sender instanceof Player) && GlobalConfig.enVexView && GlobalConfig.lowVexView) MailContentGui.openMailContentGui((Player)sender, tm);
+        if((sender instanceof Player) && GlobalConfig.enVexView && GlobalConfig.lowVexView_2_5) MailContentGui.openMailContentGui((Player)sender, tm);
         MailView.preview(tm, sender, cc);
         optional.forEach((k,v) -> {
             cc.getForWhom().sendRawMessage(OPTION.get(v).replace("0", Integer.toString(k)));
@@ -902,9 +1024,9 @@ class Preview extends ValidatingPrompt{
                 case 10:
                     return new Item((FileMail)tm, sender, true);
                 case 11:
-                    if(GlobalConfig.enVault && sender.hasPermission("mailbox.send.money.coin")){
+                    if(GlobalConfig.enVault && MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.coin")){
                         return new Coin(tm.toFileMail(), sender, false);
-                    }else if(GlobalConfig.enPlayerPoints && sender.hasPermission("mailbox.send.money.point")){
+                    }else if(GlobalConfig.enPlayerPoints && MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.point")){
                         return new Point(tm.toFileMail(), sender, false);
                     }else if(MailNew.itemable(sender)>0){
                         return new Item(tm.toFileMail(), sender, false);
@@ -915,6 +1037,10 @@ class Preview extends ValidatingPrompt{
                     }
                 case 12:
                     return new Preview(((FileMail)tm).toTextMail(), sender);
+                case 13:
+                    return new StartDate(tm, sender, true);
+                case 14:
+                    return new Deadline(tm, sender, true);
                 default:
                     cc.getForWhom().sendRawMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标选项不存在");
                     return new Preview(tm, sender);

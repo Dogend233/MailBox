@@ -7,13 +7,13 @@ gui:
   #y坐标
   y: -1
   #显示宽度
-  w: 240
-  #显示高度
-  h: 158
-  #原图宽度
   ww: 240
-  #原图高度
+  #显示高度
   hh: 158
+  #原图宽度
+  w: 240
+  #原图高度
+  h: 158
 #按钮
 button:
     #id
@@ -24,19 +24,23 @@ button:
       player: MailSelectButton_Player
       #permission
       permission: MailSelectButton_Permission
+      #date
+      date: MailSelectButton_Date
     #图片
     img_1: '[local]MailBox/button_small.png'
     img_2: '[local]MailBox/button_small_.png'
     #x坐标
     x:
     - 20
-    - 80
-    - 140
+    - 95
+    - 170
+    - 20
     #y坐标
     y:
     - 20
     - 20
     - 20
+    - 70
     #显示宽度
     w: 50
     #显示高度
@@ -46,3 +50,4 @@ button:
       - player
       - system
       - permission
+      - date

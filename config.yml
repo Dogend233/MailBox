@@ -16,6 +16,12 @@ database:
   mySQLpassword: '111aaa'
   #是否使用数据库存储附件
   fileSQL: false
+#是否启用前置插件
+softDepend:
+  Vault: true
+  PlayerPoints: true
+  PlaceholderAPI: true
+  VexView: true
 #插件配置
 mailbox:
   #启动服务器时进行更新检查
@@ -28,6 +34,17 @@ mailbox:
   successMessage: §a
   #失败 插件信息颜色
   warningMessage: §c
+  #当一封新的邮件发送时，如果在线玩家可以领取，发送提示
+  #msg 普通消息
+  #title 标题消息
+  #flow vv的滚动条消息，需要开启vv
+  #hud vv的HUD提示, 需要开启vv
+  newMailTips: 
+  - msg
+  - title
+  - flow
+  - hud
+  newMailTipsMsg: '§b你有新邮件！'
   #邮件类型显示名称
   name:
     #system 类型邮件
@@ -36,6 +53,8 @@ mailbox:
     player: '[玩家邮件]'
     #permission 类型邮件
     permission: '[权限邮件]'
+    #date 类型邮件
+    date: '[期限邮件]'
   #player邮件过期时间
   player_maxtime: 30
   #player类型邮件上限可选择数量
@@ -50,8 +69,6 @@ mailbox:
     - 2
   #附件
   file:
-    #指令分隔符
-    divide: '.'
     #指令
     command:
       #领取邮件的玩家变量

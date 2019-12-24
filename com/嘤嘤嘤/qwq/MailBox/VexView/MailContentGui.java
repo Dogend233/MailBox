@@ -1,10 +1,11 @@
 package com.嘤嘤嘤.qwq.MailBox.VexView;
 
+import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
-import java.io.IOException;
+import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,7 +13,6 @@ import java.util.List;
 import lk.vexview.api.VexViewAPI;
 import lk.vexview.gui.VexGui;
 import lk.vexview.gui.components.VexButton;
-import lk.vexview.gui.components.VexHoverText;
 import lk.vexview.gui.components.VexImage;
 import lk.vexview.gui.components.VexScrollingList;
 import lk.vexview.gui.components.VexSlot;
@@ -41,6 +41,10 @@ public class MailContentGui extends VexGui{
     private static double text_date_size;
     private static String text_date_prefix;
     private static List<String> text_date_display;
+    private static int text_deadline_x;
+    private static int text_deadline_y;
+    private static double text_deadline_size;
+    private static String text_deadline_prefix;
     private static int text_sender_x;
     private static int text_sender_y;
     private static double text_sender_size;
@@ -93,8 +97,8 @@ public class MailContentGui extends VexGui{
         vbr = new VexButton(
                 buttonString.get("return")[0],buttonString.get("return")[1],buttonString.get("return")[2],buttonString.get("return")[3],
                 buttonInt.get("return")[0],buttonInt.get("return")[1],buttonInt.get("return")[2],buttonInt.get("return")[3]);
-        if(!buttonHover.get("return").isEmpty()) vbr.setHover(new VexHoverText(buttonHover.get("return")));
-        if(GlobalConfig.lowVexView){
+        if(!buttonHover.get("return").isEmpty()) VexViewConfig.setHover(vbr, buttonHover.get("return"));
+        if(GlobalConfig.lowVexView_2_5){
             vbr.setFunction(player -> player.closeInventory());
         }else if(asSender){
             vbr.setFunction(player -> MailBoxGui.openMailBoxGui(player, "Recipient"));
@@ -114,7 +118,7 @@ public class MailContentGui extends VexGui{
                     // 删除邮件
                     tm.Delete(player);
                 });
-        if(!buttonHover.get("delete").isEmpty()) vbd.setHover(new VexHoverText(buttonHover.get("delete")));
+        if(!buttonHover.get("delete").isEmpty()) VexViewConfig.setHover(vbd, buttonHover.get("delete"));
         // 发送按钮
         vbs = new VexButton(
                 buttonString.get("send")[0],buttonString.get("send")[1],buttonString.get("send")[2],buttonString.get("send")[3],
@@ -132,9 +136,11 @@ public class MailContentGui extends VexGui{
         vbc = new VexButton(
                 buttonString.get("collect")[0],buttonString.get("collect")[1],buttonString.get("collect")[2],buttonString.get("collect")[3],
                 buttonInt.get("collect")[0],buttonInt.get("collect")[1],buttonInt.get("collect")[2],buttonInt.get("collect")[3],player -> {
-                    if(player.hasPermission("mailbox.collect."+tm.getType())){
+                    if(MailBoxAPI.hasPlayerPermission(player, "mailbox.collect."+tm.getType())){
                         if(tm.getType().equals("permission") && !p.hasPermission(tm.getPermission())){
                             player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限领取这封邮件");
+                        }else if(!MailBoxAPI.isStart(tm)){
+                            player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"此邮件现在还不能领取");
                         }else{
                             // 关闭GUI
                             player.closeInventory();
@@ -145,12 +151,12 @@ public class MailContentGui extends VexGui{
                         player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限领取此类型邮件");
                     }
                 });
-        if(!buttonHover.get("collect").isEmpty()) vbc.setHover(new VexHoverText(buttonHover.get("collect")));
+        if(!buttonHover.get("collect").isEmpty()) VexViewConfig.setHover(vbc, buttonHover.get("collect"));
         // 已领取按钮
         vbcd = new VexButton(
                 buttonString.get("collected")[0],buttonString.get("collected")[1],buttonString.get("collected")[2],buttonString.get("collected")[3],
                 buttonInt.get("collected")[0],buttonInt.get("collected")[1],buttonInt.get("collected")[2],buttonInt.get("collected")[3]);
-        if(!buttonHover.get("collected").isEmpty()) vbcd.setHover(new VexHoverText(buttonHover.get("collected")));
+        if(!buttonHover.get("collected").isEmpty()) VexViewConfig.setHover(vbcd, buttonHover.get("collected"));
         // 获取玩家是否可以领取这封邮件
         ArrayList<Integer> l = MailBox.getRelevantMailList(p, tm.getType()).get("asRecipient");
         collecte = l.contains(tm.getId());
@@ -214,6 +220,10 @@ public class MailContentGui extends VexGui{
         double text_date_size,
         String text_date_prefix,
         List<String> text_date_display,
+        int text_deadline_x,
+        int text_deadline_y,
+        double text_deadline_size,
+        String text_deadline_prefix,
         int text_sender_x,
         int text_sender_y,
         double text_sender_size,
@@ -307,6 +317,11 @@ public class MailContentGui extends VexGui{
         MailContentGui.text_date_size = text_date_size;
         MailContentGui.text_date_prefix = text_date_prefix;
         MailContentGui.text_date_display = text_date_display;
+        // 邮件截止时间
+        MailContentGui.text_deadline_x = text_deadline_x;
+        MailContentGui.text_deadline_y = text_deadline_y;
+        MailContentGui.text_deadline_size = text_deadline_size;
+        MailContentGui.text_deadline_prefix = text_deadline_prefix;
         // 发件人
         MailContentGui.text_sender_x = text_sender_x;
         MailContentGui.text_sender_y = text_sender_y;
@@ -387,7 +402,7 @@ public class MailContentGui extends VexGui{
         }
         VexText vtp = new VexText(text_topic_x,text_topic_y,tl,text_topic_size);
         // 邮件类型+ID+信息
-        if(p.hasPermission("mailbox.content.id")){
+        if(!GlobalConfig.lowVexView_2_4 && p.hasPermission("mailbox.content.id")){
             switch (type){
                 case "player":
                     List<String> playerReci = new ArrayList();
@@ -395,18 +410,24 @@ public class MailContentGui extends VexGui{
                     for(String s:tm.getRecipient()){
                         playerReci.add(s);
                     }
-                    vtp.setHover(new VexHoverText(playerReci));
+                    VexViewConfig.setHover(vtp, playerReci);
                     break;
                 case "permission":
-                    vtp.setHover(new VexHoverText(Arrays.asList(tm.getTypeName()+" - "+tm.getId(),tm.getPermission())));
+                    VexViewConfig.setHover(vtp, Arrays.asList(tm.getTypeName()+" - "+tm.getId(),tm.getPermission()));
                     break;
                 default: 
-                    vtp.setHover(new VexHoverText(Arrays.asList(tm.getTypeName()+" - "+tm.getId())));
+                    VexViewConfig.setHover(vtp, Arrays.asList(tm.getTypeName()+" - "+tm.getId()));
             }
         }
         this.addComponent(vtp);
         // 发送时间
-        if(text_date_display.contains(type) && tm.getDate()!=null) this.addComponent(new VexText(text_date_x,text_date_y,Arrays.asList(text_date_prefix+tm.getDate()),text_date_size));
+        if(text_date_display.contains(type)){
+            String date = tm.getDate();
+            if(date.equals("0")) date = DateTime.get("ymdhms");
+            this.addComponent(new VexText(text_date_x,text_date_y,Arrays.asList(text_date_prefix+date),text_date_size));
+        }
+        // 截止时间
+        if(type.equals("date") && !tm.getDeadline().equals("0")) this.addComponent(new VexText(text_deadline_x,text_deadline_y,Arrays.asList(text_deadline_prefix+tm.getDeadline()),text_deadline_size));
         // 发送人
         this.addComponent(new VexText(text_sender_x,text_sender_y,Arrays.asList(text_sender_prefix+tm.getSender()),text_sender_size));
         // 邮件内容
@@ -421,7 +442,7 @@ public class MailContentGui extends VexGui{
                 if(!buttonHover.get("send").isEmpty()) buttonHover.get("send").forEach(v -> hover.add(v));
                 if(tm.getExpandCoin()!=0) hover.add("§6消耗: §r"+tm.getExpandCoin()+" "+GlobalConfig.vaultDisplay);
                 if(tm.getExpandPoint()!=0) hover.add("§6消耗: §r"+tm.getExpandPoint()+" "+GlobalConfig.playerPointsDisplay);
-                if(!hover.isEmpty()) vbs.setHover(new VexHoverText(hover));
+                if(!hover.isEmpty()) VexViewConfig.setHover(vbs, hover);
                 this.addComponent(vbs);
             }else{
                 // 如果邮件不是附件邮件且为未读状态，则设置为已读
@@ -432,7 +453,7 @@ public class MailContentGui extends VexGui{
             this.addComponent(vbr);
         }else{
             this.addComponent(vbr);
-            if(p.hasPermission("mailbox.admin.delete."+type) || ((type.equals("player")) && tm.getSender().equals(p.getName()) && p.hasPermission("mailbox.delete.player"))) {
+            if(p.hasPermission("mailbox.admin.delete."+type) || ((type.equals("player")) && tm.getSender().equals(p.getName()) && MailBoxAPI.hasPlayerPermission(p, "mailbox.delete.player"))) {
                 this.addComponent(vbd);
             }
         }
@@ -441,12 +462,11 @@ public class MailContentGui extends VexGui{
     // 对附件邮件的操作
     private void fileMail(TextMail tm, Player p, int mail){
         FileMail fm = (FileMail) tm;
-        fm.getFile();
-        if((fm.isHasItem() && !fm.getItemList().isEmpty()) || (fm.isHasCommand() && !fm.getCommandList().isEmpty()) || fm.getCoin()!=0 || fm.getPoint()!=0){
+        if(mail==0 || (fm.readFile() && fm.hasFile())){
             // 附件文字
             VexText vtF = text_file_yes;
             // 附件类型+名称
-            if(p.hasPermission("mailbox.content.filename")) vtF.setHover(new VexHoverText(Arrays.asList(fm.getType()+" - "+fm.getFileName())));
+            if(!GlobalConfig.lowVexView_2_4 && p.hasPermission("mailbox.content.filename")) VexViewConfig.setHover(vtF, Arrays.asList(fm.getType()+" - "+fm.getFileName()));
             this.addComponent(vtF);
             // 附件物品
             if(fm.isHasItem()){
@@ -466,7 +486,7 @@ public class MailContentGui extends VexGui{
                 this.addComponent(text_cmd);
                 VexImage vi = new VexImage(image_cmd_url,image_cmd_x,image_cmd_y,image_cmd_w,image_cmd_h);
                 List<String> cD = fm.getCommandDescription();
-                if(!cD.isEmpty()) vi.setHover(new VexHoverText(cD));
+                if(!cD.isEmpty()) VexViewConfig.setHover(vi, cD);
                 this.addComponent(vi);
             }
             // 附件Vault金币
@@ -489,10 +509,10 @@ public class MailContentGui extends VexGui{
             // 发送邮件/领取附件按钮
             if(mail==0){
                 List<String> hover = new ArrayList();
-                if(!buttonHover.get("send").isEmpty()) buttonHover.get("send").forEach(v -> hover.add(v));
+                if(!GlobalConfig.lowVexView_2_4 && !buttonHover.get("send").isEmpty()) buttonHover.get("send").forEach(v -> hover.add(v));
                 if(fm.getExpandCoin()!=0) hover.add("§6消耗: §r"+fm.getExpandCoin()+" "+GlobalConfig.vaultDisplay);
                 if(fm.getExpandPoint()!=0) hover.add("§6消耗: §r"+fm.getExpandPoint()+" "+GlobalConfig.playerPointsDisplay);
-                if(!hover.isEmpty()) vbs.setHover(new VexHoverText(hover));
+                if(!hover.isEmpty()) VexViewConfig.setHover(vbs, hover);
                 this.addComponent(vbs);
             }else{
                 if(collecte) {
@@ -527,7 +547,7 @@ public class MailContentGui extends VexGui{
     
     // 打开邮件GUI
     public static void openMailContentGui(Player p, TextMail tm, VexGui a, boolean asSender){
-        if(p.hasPermission("mailbox.gui.mailcontent")){
+        if(MailBoxAPI.hasPlayerPermission(p, "mailbox.gui.mailcontent")){
             VexViewAPI.openGui(p, new MailContentGui(p, tm, a, asSender));
         }else{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限打开此GUI");

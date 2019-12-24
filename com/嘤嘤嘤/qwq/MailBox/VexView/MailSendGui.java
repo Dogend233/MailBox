@@ -4,7 +4,7 @@ import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
-import java.io.IOException;
+import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,7 +13,6 @@ import lk.vexview.api.VexViewAPI;
 import lk.vexview.gui.VexGui;
 import lk.vexview.gui.VexInventoryGui;
 import lk.vexview.gui.components.VexButton;
-import lk.vexview.gui.components.VexHoverText;
 import lk.vexview.gui.components.VexImage;
 import lk.vexview.gui.components.VexSlot;
 import lk.vexview.gui.components.VexText;
@@ -39,6 +38,8 @@ public class MailSendGui extends VexInventoryGui{
     private static VexText text_topic;
     private static VexText text_recipient;
     private static VexText text_permission;
+    private static VexText text_startdate;
+    private static VexText text_deadline;
     private static VexText text_text;
     private static VexText text_command;
     private static VexText text_description;
@@ -55,6 +56,8 @@ public class MailSendGui extends VexInventoryGui{
     private double bal_coin = 0;
     private int bal_point = 0;
     private String type;
+    private String startdate = null;
+    private String deadline = null;
     private boolean perm_cmd = false;
     private boolean perm_coin = false;
     private boolean perm_point = false;
@@ -67,12 +70,12 @@ public class MailSendGui extends VexInventoryGui{
         enPlayerPoints = GlobalConfig.enPlayerPoints;
         this.type = type;
         perm_cmd = p.hasPermission("mailbox.admin.send.command");
-        perm_coin = p.hasPermission("mailbox.send.money.coin");
-        perm_point = p.hasPermission("mailbox.send.money.point");
+        perm_coin = MailBoxAPI.hasPlayerPermission(p, "mailbox.send.money.coin");
+        perm_point = MailBoxAPI.hasPlayerPermission(p, "mailbox.send.money.point");
         perm_item = MailBoxAPI.playerSendItemAllow(p);
         this.addComponent(button_return);
         VexButton vbp = new VexButton(button_preview[0],button_preview[1],button_preview[2],button_preview[3],Integer.parseInt(button_preview[4]),Integer.parseInt(button_preview[5]),Integer.parseInt(button_preview[6]),Integer.parseInt(button_preview[7]),player -> previewMail(player));
-        if(!button_preview_hover.isEmpty()) vbp.setHover(new VexHoverText(button_preview_hover));
+        if(!button_preview_hover.isEmpty()) VexViewConfig.setHover(vbp, button_preview_hover);
         this.addComponent(vbp);
         this.addComponent(text_topic);
         this.addComponent(getTextField(field.get("topic")));
@@ -98,20 +101,26 @@ public class MailSendGui extends VexInventoryGui{
                 this.addComponent(text_permission);
                 this.addComponent(getTextField(field.get("permission")));
                 break;
+            case "date":
+                this.addComponent(text_startdate);
+                this.addComponent(getTextField(field.get("startdate")));
+                this.addComponent(text_deadline);
+                this.addComponent(getTextField(field.get("deadline")));
+                break;
         }
         if(enVault && perm_coin){
             bal_coin = MailBoxAPI.getEconomyBalance(p);
             //String bal = MailBoxAPI.getEconomyFormat(bal_coin);
             this.addComponent(image_coin);
             VexTextField vtf = getTextField(field.get("coin"));
-            vtf.setHover(new VexHoverText(Arrays.asList("余额："+bal_coin)));
+            VexViewConfig.setHover(vtf, Arrays.asList("余额："+bal_coin));
             this.addComponent(vtf);
         }
         if(enPlayerPoints && perm_point){
             bal_point = MailBoxAPI.getPoints(p);
             this.addComponent(image_point);
             VexTextField vtf = getTextField(field.get("point"));
-            vtf.setHover(new VexHoverText(Arrays.asList("余额："+bal_point)));
+            VexViewConfig.setHover(vtf, Arrays.asList("余额："+bal_point));
             this.addComponent(vtf);
         }
     }
@@ -156,6 +165,14 @@ public class MailSendGui extends VexInventoryGui{
         int text_permission_y,
         double text_permission_size,
         String text_permission_text,
+        int text_startdate_x,
+        int text_startdate_y,
+        double text_startdate_size,
+        String text_startdate_text,
+        int text_deadline_x,
+        int text_deadline_y,
+        double text_deadline_size,
+        String text_deadline_text,
         int text_text_x,
         int text_text_y,
         double text_text_size,
@@ -187,6 +204,16 @@ public class MailSendGui extends VexInventoryGui{
         int field_permission_w,
         int field_permission_h,
         int field_permission_max,
+        int field_startdate_x,
+        int field_startdate_y,
+        int field_startdate_w,
+        int field_startdate_h,
+        int field_startdate_max,
+        int field_deadline_x,
+        int field_deadline_y,
+        int field_deadline_w,
+        int field_deadline_h,
+        int field_deadline_max,
         int field_text_x,
         int field_text_y,
         int field_text_w,
@@ -240,7 +267,7 @@ public class MailSendGui extends VexInventoryGui{
         MailSendGui.gui_iy = gui_iy;
         // 返回按钮
         button_return = new VexButton(button_return_id,button_return_text,button_return_img_1,button_return_img_2,button_return_x,button_return_y,button_return_w,button_return_h, player -> MailBoxGui.openMailBoxGui(player, "Recipient"));
-        if(!button_return_hover.isEmpty()) button_return.setHover(new VexHoverText(button_return_hover));
+        if(!button_return_hover.isEmpty()) VexViewConfig.setHover(button_return, button_return_hover);
         // 预览按钮
         button_preview = new String[]{button_preview_id,button_preview_text,button_preview_img_1,button_preview_img_2,Integer.toString(button_preview_x),Integer.toString(button_preview_y),Integer.toString(button_preview_w),Integer.toString(button_preview_h)};
         MailSendGui.button_preview_hover = button_preview_hover;
@@ -248,6 +275,8 @@ public class MailSendGui extends VexInventoryGui{
         text_topic = new VexText(text_topic_x,text_topic_y,Arrays.asList(text_topic_text),text_topic_size);
         text_recipient = new VexText(text_recipient_x,text_recipient_y,Arrays.asList(text_recipient_text),text_recipient_size);
         text_permission = new VexText(text_permission_x,text_permission_y,Arrays.asList(text_permission_text),text_permission_size);
+        text_startdate = new VexText(text_startdate_x,text_startdate_y,Arrays.asList(text_startdate_text),text_startdate_size);
+        text_deadline = new VexText(text_deadline_x,text_deadline_y,Arrays.asList(text_deadline_text),text_deadline_size);
         text_text = new VexText(text_text_x,text_text_y,Arrays.asList(text_text_text),text_text_size);
         text_command = new VexText(text_command_x,text_command_y,Arrays.asList(text_command_text),text_command_size);
         text_description = new VexText(text_description_x,text_description_y,Arrays.asList(text_description_text),text_description_size);
@@ -256,12 +285,14 @@ public class MailSendGui extends VexInventoryGui{
         field.clear();
         field.put("topic", new int[]{field_topic_x,field_topic_y,field_topic_w,field_topic_h,field_topic_max,1});
         field.put("recipient", new int[]{field_recipient_x,field_recipient_y,field_recipient_w,field_recipient_h,field_recipient_max,2});
-        field.put("permission", new int[]{field_permission_x,field_permission_y,field_permission_w,field_permission_h,field_permission_max,2});
+        field.put("permission", new int[]{field_permission_x,field_permission_y,field_permission_w,field_permission_h,field_permission_max,3});
         field.put("text", new int[]{field_text_x,field_text_y,field_text_w,field_text_h,field_text_max,4});
         field.put("command", new int[]{field_command_x,field_command_y,field_command_w,field_command_h,field_command_max,5});
         field.put("description", new int[]{field_description_x,field_description_y,field_description_w,field_description_h,field_description_max,6});
         field.put("coin", new int[]{field_coin_x,field_coin_y,field_coin_w,field_coin_h,field_coin_max,7,0});
         field.put("point", new int[]{field_point_x,field_point_y,field_point_w,field_point_h,field_point_max,8,0});
+        field.put("startdate", new int[]{field_startdate_x,field_startdate_y,field_startdate_w,field_startdate_h,field_startdate_max,9,0});
+        field.put("deadline", new int[]{field_deadline_x,field_deadline_y,field_deadline_w,field_deadline_h,field_deadline_max,10,0});
         // [Vault]提示图
         image_coin = new VexImage(image_coin_url,image_coin_x,image_coin_y,image_coin_w,image_coin_h);
         // [PlayerPoints]提示图
@@ -344,8 +375,13 @@ public class MailSendGui extends VexInventoryGui{
                 perm = getTextField(field.get("permission")[5]).getTypedText();
                 valid = valid(p, topic, text, null, perm);
                 break;
+            case "date":
+                startdate = getTextField(field.get("startdate")[5]).getTypedText();
+                deadline = getTextField(field.get("deadline")[5]).getTypedText();
+                valid = valid(p, topic, text, null, null);
+                break;
             case "system":
-                valid = valid(p, topic, text, null,null);
+                valid = valid(p, topic, text, null, null);
                 break;
         }
         if(valid){
@@ -359,14 +395,14 @@ public class MailSendGui extends VexInventoryGui{
                 al = getItem(p);
             }
             if(al.isEmpty() && cl.isEmpty() && co==0 && po==0){
-                TextMail tm = new TextMail(type, 0, p.getName(), rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null);
+                TextMail tm = new TextMail(type, 0, p.getName(), rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), startdate, deadline);
                 try{
                     MailContentGui.openMailContentGui(p, tm, this, false);
                 }catch(Exception e){
                     p.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
                 }
             }else{
-                FileMail fm = new FileMail(type, 0, p.getName(), rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), null, "0", al, cl, cd, co, po);
+                FileMail fm = new FileMail(type, 0, p.getName(), rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), startdate, deadline, "0", al, cl, cd, co, po);
                 try{
                     MailContentGui.openMailContentGui(p, fm, this, false);
                 }catch(Exception e){
@@ -395,6 +431,51 @@ public class MailSendGui extends VexInventoryGui{
                             return false;
                         }else{
                             return true;
+                        }
+                    case "date":
+                        if(startdate==null || startdate.equals("")){
+                            p.sendMessage(GlobalConfig.warning+"[邮件预览]：发送时间不能为空");
+                            return false;
+                        }
+                        if(!startdate.equals("0")){
+                            List<Integer> l = DateTime.toDate(startdate, p, null);
+                            switch (l.size()) {
+                                case 3:
+                                case 6:
+                                    String date = DateTime.toDate(l, p, null);
+                                    if(date==null){
+                                        return false;
+                                    }else{
+                                        startdate = date;
+                                        break;
+                                    }
+                                default:
+                                    p.sendMessage(GlobalConfig.warning+"[邮件预览]：请输入足够的时间参数，年 月 日 或 年 月 日 时 分 秒");
+                                    return false;
+                            }
+                        }
+                        if(deadline==null || deadline.equals("")){
+                            p.sendMessage(GlobalConfig.warning+"[邮件预览]：截止时间不能为空");
+                            return false;
+                        }
+                        if(deadline.equals("0")){
+                            return true;
+                        }else{
+                            List<Integer> l = DateTime.toDate(deadline, p, null);
+                            switch (l.size()) {
+                                case 3:
+                                case 6:
+                                    String date = DateTime.toDate(l, p, null);
+                                    if(date==null){
+                                        return false;
+                                    }else{
+                                        deadline = date;
+                                        return true;
+                                    }
+                                default:
+                                    p.sendMessage(GlobalConfig.warning+"[邮件预览]：请输入足够的时间参数，年 月 日 或 年 月 日 时 分 秒");
+                                    return false;
+                            }
                         }
                     case "player":
                         if(r==null || r.length<1){
@@ -450,8 +531,11 @@ public class MailSendGui extends VexInventoryGui{
                 }
                 case "command":
                 {
-                    String[] result = text.split(GlobalConfig.fileDiv);
-                    return result;
+                    if(text.indexOf("/")==0){
+                        return text.substring(1).split("/");
+                    }else{
+                        return text.split("/");
+                    }
                 }
                 case "description":
                 {

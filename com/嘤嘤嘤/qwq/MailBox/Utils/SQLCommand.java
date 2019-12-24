@@ -7,14 +7,9 @@ public enum SQLCommand {
         "SELECT * FROM `", "_", "`"
     ),
     
-    //获取玩家已领取的"system"邮件ID列表
-    SELECT_COLLECTED_SYSTEM_MAIL(
-        "SELECT mail FROM `", "_system_collect` WHERE `user` = ? "
-    ),
-    
-    //获取玩家已领取的"permission"邮件ID列表
-    SELECT_COLLECTED_PERMISSION_MAIL(
-        "SELECT mail FROM `", "_permission_collect` WHERE `user` = ? "
+    //获取玩家已领取的邮件ID列表
+    SELECT_COLLECTED_MAIL(
+        "SELECT mail FROM `", "_", "_collect` WHERE `user` = ? "
     ),
     
     //发送一封"system"邮件
@@ -37,42 +32,22 @@ public enum SQLCommand {
         "(`sender`, `topic`, `text`, `sendtime`, `filename`, `permission`)" +
         "VALUES (?, ?, ?, ?, ?, ?)"
     ),
-
-    //删除一封"system"邮件
-    DELETE_SYSTEM_MAIL(
-        "DELETE FROM `", "_system` WHERE `mail` = ?"
+    
+    //发送一封"date"邮件
+    SEND_DATE_MAIL(
+        "INSERT INTO `", "_date` " +
+        "(`sender`, `topic`, `text`, `sendtime`, `filename`, `deadline`)" +
+        "VALUES (?, ?, ?, ?, ?, ?)"
     ),
     
-    //删除一封"system"邮件的已领取列表
-    DELETE_COLLECTED_SYSTEM_MAIL(
-        "DELETE FROM `", "_system_collect` WHERE `mail` = ?"
+    //删除一封邮件
+    DELETE_MAIL(
+        "DELETE FROM `", "_", "` WHERE `mail` = ?"
     ),
     
-    //删除一封"player"邮件
-    DELETE_PLAYER_MAIL(
-        "DELETE FROM `", "_player` WHERE `mail` = ?"
-    ),
-    
-    //删除一封"permission"邮件
-    DELETE_PERMISSION_MAIL(
-        "DELETE FROM `", "_permission` WHERE `mail` = ?"
-    ),
-    
-    //删除一封"permission"邮件的已领取列表
-    DELETE_COLLECTED_PERMISSION_MAIL(
-        "DELETE FROM `", "_permission_collect` WHERE `mail` = ?"
-    ),
-    
-    //获取一封"system"邮件的收件人
-    SELECT_SYSTEM_MAIL(
-        "SELECT * FROM `", "_system_collect` WHERE `mail` = ? AND `user` = ?"
-    ),
-    
-    //设置一封"system"邮件已被某玩家领取
-    COLLECT_SYSTEM_MAIL(
-        "INSERT INTO `", "_system_collect` " +
-        "(`mail`, `user`)" +
-        "VALUES (?, ?)"
+    //删除一封邮件的已领取列表
+    DELETE_COLLECTED_MAIL(
+        "DELETE FROM `", "_", "_collect` WHERE `mail` = ?"
     ),
     
     //获取一封"player"邮件的收件人
@@ -87,14 +62,14 @@ public enum SQLCommand {
         "WHERE `mail` = ?"
     ),
     
-    //获取一封"permission"邮件的收件人
-    SELECT_PERMISSION_MAIL(
-        "SELECT * FROM `", "_permission_collect` WHERE `mail` = ? AND `user` = ?"
+    //获取一封"system"邮件的已领取人
+    SELECT_MAIL(
+        "SELECT * FROM `", "_", "_collect` WHERE `mail` = ? AND `user` = ?"
     ),
     
-    //设置一封"permission"邮件已被某玩家领取
-    COLLECT_PERMISSION_MAIL(
-        "INSERT INTO `", "_permission_collect` " +
+    //设置一封邮件已被某玩家领取
+    COLLECT_MAIL(
+        "INSERT INTO `", "_", "_collect` " +
         "(`mail`, `user`)" +
         "VALUES (?, ?)"
     ),
@@ -211,6 +186,38 @@ public enum SQLCommand {
     //创建"permission"邮箱permission_collect数据表
     CREATE_PERMISSION_COLLECT(
         "CREATE TABLE IF NOT EXISTS `", "_permission_collect` (" +
+        "`mail` int(11)," +
+        "`user` varchar(32))"
+    ),
+    
+    //创建MySQL的"date"邮箱date数据表
+    CREATE_DATE_MYSQL(
+        "CREATE TABLE IF NOT EXISTS `", "_date` (" +
+        "`mail` int(11) AUTO_INCREMENT," +
+        "`sender` varchar(32)," +
+        "`deadline` datetime," +
+        "`topic` varchar(32)," +
+        "`text` varchar(255)," +
+        "`sendtime` datetime," +
+        "`filename` varchar(32)," +
+        "PRIMARY KEY (`mail`))"
+    ),
+    
+    //创建SQLite的"date"邮箱date数据表
+    CREATE_DATE_SQLITE(
+        "CREATE TABLE IF NOT EXISTS `", "_date` (" +
+        "`mail` INTEGER PRIMARY KEY," +
+        "`sender` varchar(32)," +
+        "`deadline` datetime," +
+        "`topic` varchar(32)," +
+        "`text` varchar(255)," +
+        "`sendtime` datetime," +
+        "`filename` varchar(32))"
+    ),
+
+    //创建"date"邮箱date_collect数据表
+    CREATE_DATE_COLLECT(
+        "CREATE TABLE IF NOT EXISTS `", "_date_collect` (" +
         "`mail` int(11)," +
         "`user` varchar(32))"
     ),

@@ -12,16 +12,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.ConversationContext;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 public class TextMail{
     
     // 邮件类型
-    private final String type;
+    private String type;
     // 邮件类型显示名称
-    private final String typeName;
+    private String typeName;
     // 邮件id
-    private final int id;
+    private int id;
     // 邮件发送者
     private String sender;
     // 邮件接收者
@@ -34,11 +33,13 @@ public class TextMail{
     private String content;
     // 邮件发送日期
     private String date;
+    // 邮件截止日期
+    private String deadline;
     // 邮件是否被修改过（未实现）
     private boolean modify;
     
     // 普通文本邮件（无附件）
-    public TextMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date){
+    public TextMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline){
         this.type = type;
         this.id = id;
         this.sender = sender;
@@ -46,13 +47,27 @@ public class TextMail{
         this.permission = permission;
         this.topic = topic;
         this.content = content;
-        this.date = date;
+        if(date==null){
+            this.date = "0";
+        }else{
+            this.date = date;
+        }
+        if(deadline==null){
+            this.deadline = "0";
+        }else{
+            this.deadline = deadline;
+        }
         this.typeName = GlobalConfig.getTypeName(type);
     }
 
     
     // 让玩家领取这封邮件
     public boolean Collect(Player p){
+        if((type.equals("player") || (type.equals("date") && !deadline.equals("0"))) && MailBoxAPI.isExpired(this)){
+            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已过期，自动删除");
+            this.Delete(p);
+            return false;
+        }
         return Read(p);
     }
     
@@ -118,9 +133,9 @@ public class TextMail{
                 int needPoint = getExpandPoint();
                 if(!enoughMoney(p,needCoin,needPoint,cc)) return false;
                 // 获取时间
-                date = DateTime.get("ymdhms");
+                if(!type.equals("date") || date.equals("0")) date = DateTime.get("ymdhms");
                 // 新建邮件
-                if(MailBoxAPI.setSend(type, id, sender, getRecipientString(), permission, topic, content, date, "0")){
+                if(MailBoxAPI.setSend(type, id, sender, getRecipientString(), permission, topic, content, date, deadline, "0")){
                     // 扣钱
                     if(needCoin!=0 && !p.hasPermission("mailbox.admin.send.noconsume.coin") && removeCoin(p, needCoin)){
                         if(cc==null){
@@ -148,8 +163,8 @@ public class TextMail{
                     return false;
                 }
             }else{
-                date = DateTime.get("ymdhms");
-                if(MailBoxAPI.setSend(type, id, sender, getRecipientString(), permission, topic, content, date, "0")){
+                if(!type.equals("date") || date.equals("0")) date = DateTime.get("ymdhms");
+                if(MailBoxAPI.setSend(type, id, sender, getRecipientString(), permission, topic, content, date, deadline, "0")){
                     MailSendEvent mse = new MailSendEvent(this, send);
                     Bukkit.getServer().getPluginManager().callEvent(mse);
                     return true;
@@ -186,16 +201,21 @@ public class TextMail{
         }
     }
     
-    public String getType(){
-        return this.type;
+    public int getId(){
+        return this.id;
     }
-        
+    
     public String getTypeName(){
         return this.typeName;
     }
     
-    public int getId(){
-        return this.id;
+    public void setType(String type){
+        this.type = type;
+        this.typeName = GlobalConfig.getTypeName(type);
+    }
+    
+    public String getType(){
+        return this.type;
     }
     
     public void setSender(String sender){
@@ -255,6 +275,14 @@ public class TextMail{
         return this.date;
     }
     
+    public void setDeadline(String deadline){
+        this.deadline = deadline;
+    }
+    
+    public String getDeadline(){
+        return this.deadline;
+    }
+    
     public boolean removeCoin(Player p, double coin){
         return MailBoxAPI.reduceEconomy(p, coin);
     }
@@ -279,27 +307,44 @@ public class TextMail{
         }
     }
     
-    public boolean hasFile(){
-        return false;
-    }
-    
     public FileMail toFileMail(){
-        return new FileMail(type,id,sender,recipient,permission,topic,content,date,"0",new ArrayList<ItemStack>(),new ArrayList<String>(),new ArrayList<String>(),0,0);
+        return new FileMail(type,id,sender,recipient,permission,topic,content,date,deadline,"0",new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),0,0);
     }
     
     @Override
     public String toString(){
-        String str = typeName+"§r-"+id+"§r-"+topic+"§r-"+content+"§r-"+sender+"§r-"+date;
-        if(type.equals("player") && !recipient.isEmpty()) str += "§r-收件人："+getRecipientString();
-        return str;
+        StringBuilder str = new StringBuilder(typeName+"§r-"+id+"§r-"+topic+"§r-"+content+"§r-"+sender+"§r-"+date);
+        if(type.equals("date") && !deadline.equals("0")){
+            str.append("-");
+            str.append(deadline);
+        }
+        if(type.equals("player") && !recipient.isEmpty()){
+            str.append("§r-收件人：");
+            str.append(getRecipientString());
+        }
+        return str.toString();
     }
     
     @Override
     public TextMail clone(){
-        return new TextMail(type,id,sender,recipient,permission,topic,content,date);
+        return new TextMail(type,id,sender,recipient,permission,topic,content,date,deadline);
     }
     
-    public boolean equals(TextMail tm){
-        return false;
+    public TextMail cloneNewTypeIgnoreId(String type){
+        return new TextMail(type,0,sender,recipient,permission,topic,content,date,deadline);
+    }
+    
+    public boolean equalsTypeId(TextMail tm){
+        if(this==tm) return true;
+        return (this.id==tm.id && this.type.equals(tm.type));
+    }
+    
+    public boolean equalsIgnoreTypeIdSenderDate(TextMail tm){
+        if(this==tm) return true;
+        return (this.topic.equals(tm.topic) && 
+                this.content.equals(tm.content) && 
+                this.permission.equals(tm.permission) && 
+                this.getRecipientString().equals(tm.getRecipientString()) &&
+                (!this.type.equals("date") || (this.date.equals(tm.date) && this.deadline.equals(tm.deadline))));
     }
 }

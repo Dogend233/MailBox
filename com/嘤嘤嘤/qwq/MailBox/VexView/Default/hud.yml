@@ -1,4 +1,4 @@
-#HUD图标
+#常驻HUD图标
 hud:
   #是否启用HUD（true 启用 | false 关闭）
   enable: true
@@ -11,10 +11,30 @@ hud:
   #y坐标
   y: 5
   #显示宽度
-  w: 78
-  #显示高度
-  h: 86
-  #原图宽度
   ww: 39
-  #原图高度
+  #显示高度
   hh: 43
+  #原图宽度
+  w: 78
+  #原图高度
+  h: 86
+#新邮件提醒HUD
+new: 
+  #HUD的ID
+  id: NewMailHud
+  #背景图
+  img: '[local]MailBox/hud_new.png'
+  #x坐标
+  x: -1
+  #y坐标
+  y: 48
+  #显示宽度
+  ww: 32
+  #显示高度
+  hh: 32
+  #原图宽度
+  w: 256
+  #原图高度
+  h: 256
+  #显示时间(秒)
+  time: 5

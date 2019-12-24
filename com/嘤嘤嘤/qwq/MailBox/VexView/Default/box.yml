@@ -11,13 +11,13 @@ gui:
   #y坐标
   y: -1
   #显示宽度
-  w: 290
-  #显示高度
-  h: 250
-  #原图宽度
   ww: 290
-  #原图高度
+  #显示高度
   hh: 250
+  #原图宽度
+  w: 290
+  #原图高度
+  h: 250
 #按钮
 button:
   #新邮件
@@ -79,7 +79,7 @@ list:
   #第一封邮件所占额外高度
   oh: 5
   #邮箱为空时显示的文字
-  nullBox: §c暂时没有邮件呐~
+  nullBox: '§c暂时没有邮件呐~       '
 #邮件
 mail:
   #y坐标计算公式：(oy * (邮件数量 - 1)) + fy
@@ -126,9 +126,10 @@ mail:
     prefix: §b
     #显示发送时间的邮件类型
     display:
+    - date
     - system
-    - player
     - permission
+    - player
   #发件人
   sender:
     #x坐标
@@ -141,9 +142,10 @@ mail:
     prefix: '§a来自: §6'
     #显示发件人的邮件类型
     display:
+    - date
     - system
-    - player
     - permission
+    - player
   #邮件类型
   type:
     #x坐标
@@ -156,15 +158,14 @@ mail:
     prefix: '§d'
     #显示邮件类型的邮件类型
     display:
+    - date
     - system
-    - player
     - permission
+    - player
   #附件邮件小图标
   icon:
-    #未领取图标
-    image_1: '[local]MailBox/image_file.png'
-    #已领取图标
-    image_2: '[local]MailBox/image_file_.png'
+    #附件图标
+    image: '[local]MailBox/image_file.png'
     #x坐标
     x: 214
     #第一封邮件图标的y坐标
@@ -175,6 +176,7 @@ mail:
     h: 15
     #显示图标的邮件类型
     display:
+    - date
     - system
-    - player
     - permission
+    - player

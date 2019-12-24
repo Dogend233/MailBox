@@ -36,13 +36,13 @@ public class FileMail extends TextMail implements Item, Command{
     // 附件点券
     private int point;
     
-    public FileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String filename){
-        super(type, id, sender, recipient, permission, topic, content, date);
+    public FileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, String filename){
+        super(type, id, sender, recipient, permission, topic, content, date, deadline);
         this.fileName = filename;
     }
     
-    public FileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
-        super(type, id, sender, recipient, permission, topic, content, date);
+    public FileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
+        super(type, id, sender, recipient, permission, topic, content, date, deadline);
         this.fileName = filename;
         this.itemList = isl;
         this.commandList = cl;
@@ -53,18 +53,15 @@ public class FileMail extends TextMail implements Item, Command{
         this.point = point;
     }
     
-    // 获取附件信息
-    public void getFile(){
-        if(GlobalConfig.fileSQL){
-            MailBoxAPI.getMailFilesSQL(this);
-        }else{
-            MailBoxAPI.getMailFilesLocal(this);
-        }
-    }
-    
     // 设置玩家领取邮件
     @Override
     public boolean Collect(Player p){
+        // 判断邮件是否过期
+        if((getType().equals("player") || (getType().equals("date") && !getDeadline().equals("0"))) && MailBoxAPI.isExpired(this)){
+            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已过期，自动删除");
+            this.Delete(p);
+            return false;
+        }
         // 判断收件人
         if(getType().equals("player") && !getRecipient().contains(p.getName())){
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你不是这个邮件的收件人！");
@@ -154,10 +151,10 @@ public class FileMail extends TextMail implements Item, Command{
                 int needPoint = getExpandPoint();
                 if(!enoughMoney(p,needCoin,needPoint,cc)) return false;
                 // 获取时间
-                setDate(DateTime.get("ymdhms"));
+                if(!getType().equals("date") || getDate().equals("0")) setDate(DateTime.get("ymdhms"));
                 try {
                     // 生成一个文件名
-                    fileName = MailBoxAPI.getMD5(getType());
+                    fileName = MailBoxAPI.generateFilename(getType());
                 } catch (IOException ex) {
                     if(cc==null){
                         p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
@@ -165,12 +162,15 @@ public class FileMail extends TextMail implements Item, Command{
                         cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
                     }
                     return false;
+                } catch (Exception ex) {
+                    if(cc==null){
+                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败，可能是数据库出现问题");
+                    }else{
+                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败，可能是数据库出现问题");
+                    }
+                    return false;
                 }
-                boolean saveFile;
-                // 保存附件
-                if(GlobalConfig.fileSQL) saveFile = MailBoxAPI.saveMailFilesSQL(this);
-                else saveFile = MailBoxAPI.saveMailFilesLocal(this);
-                if(saveFile){
+                if(saveFile()){
                     if(isMax(p)){
                         DeleteFile();
                         return false;
@@ -181,7 +181,7 @@ public class FileMail extends TextMail implements Item, Command{
                     }
                     // 删除玩家背包里想要发送的物品
                     if(removeItem(itemList, p, cc)){
-                        if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getPermission(), getTopic(), getContent(), getDate(), fileName)){
+                        if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getPermission(), getTopic(), getContent(), getDate(), getDeadline(), fileName)){
                             // 扣钱
                             if(needCoin!=0 && !p.hasPermission("mailbox.admin.send.noconsume.coin") && removeCoin(p, needCoin)){
                                 if(cc==null){
@@ -228,10 +228,10 @@ public class FileMail extends TextMail implements Item, Command{
                     return false;
                 }
             }else{
-                setDate(DateTime.get("ymdhms"));
+                if(!getType().equals("date") || getDate().equals("0")) setDate(DateTime.get("ymdhms"));
                 try {
                     // 生成一个文件名
-                    fileName = MailBoxAPI.getMD5(getType());
+                    fileName = MailBoxAPI.generateFilename(getType());
                 } catch (IOException ex) {
                     if(cc==null){
                         send.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
@@ -239,12 +239,16 @@ public class FileMail extends TextMail implements Item, Command{
                         cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
                     }
                     return false;
+                } catch (Exception ex) {
+                    if(cc==null){
+                        send.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败，可能是数据库出现问题");
+                    }else{
+                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败，可能是数据库出现问题");
+                    }
+                    return false;
                 }
-                boolean saveFile;
-                if(GlobalConfig.fileSQL) saveFile = MailBoxAPI.saveMailFilesSQL(this);
-                else saveFile = MailBoxAPI.saveMailFilesLocal(this);
-                if(saveFile){
-                    if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getPermission(), getTopic(), getContent(), getDate(), fileName)){
+                if(saveFile()){
+                    if(MailBoxAPI.setSend(getType(), getId(), getSender(), getRecipientString(), getPermission(), getTopic(), getContent(), getDate(), getDeadline(), fileName)){
                         MailSendEvent mse = new MailSendEvent(this, send);
                         Bukkit.getServer().getPluginManager().callEvent(mse);
                         return true;
@@ -521,32 +525,140 @@ public class FileMail extends TextMail implements Item, Command{
         return this.point;
     }
     
-    @Override
+    // 判断是否含有附件
     public boolean hasFile(){
-        return ((GlobalConfig.enVault && coin!=0) || (GlobalConfig.enPlayerPoints && point!=0) || hasCommand || hasItem);
+        if(fileName.equals("0")){
+            return hasFileContent();
+        }else{
+            return (readFile() && hasFileContent());
+        }
+    }
+    
+    // 判断是否含有任何附件内容
+    public boolean hasFileContent(){
+        return (hasItem || hasCommand || ((GlobalConfig.enVault && coin!=0) || (GlobalConfig.enPlayerPoints && point!=0)));
+    }
+    
+    // 获取附件信息
+    public boolean readFile(){
+        if(GlobalConfig.fileSQL){
+            return MailBoxAPI.getMailFilesSQL(this);
+        }else{
+            return MailBoxAPI.getMailFilesLocal(this);
+        }
+    }
+    
+    // 保存附件
+    public boolean saveFile(){
+        if(GlobalConfig.fileSQL){
+            return  MailBoxAPI.saveMailFilesSQL(this);
+        }else{
+            return MailBoxAPI.saveMailFilesLocal(this);
+        }
     }
     
     public TextMail toTextMail(){
-        return new TextMail(getType(),getId(),getSender(),getRecipient(),getPermission(),getTopic(),getContent(),getDate());
+        return new TextMail(getType(),getId(),getSender(),getRecipient(),getPermission(),getTopic(),getContent(),getDate(),getDeadline());
     }
     
     @Override
     public String toString(){
-        String str = super.toString();
-        if(hasItem && !itemList.isEmpty()) str += "§r-含物品"+itemList.size()+"个";
-        if(hasCommand && !commandList.isEmpty()) str += "§r-含指令"+commandList.size()+"条";
-        if(coin!=0) str += "§r-含"+coin+GlobalConfig.vaultDisplay;
-        if(point!=0) str += "§r-含"+point+GlobalConfig.playerPointsDisplay;
-        return str;
+        StringBuilder str = new StringBuilder(super.toString());
+        if(hasItem && !itemList.isEmpty()){
+            str.append("§r-含物品");
+            str.append(itemList.size());
+            str.append("个");
+        }
+        if(hasCommand && !commandList.isEmpty()){
+            str.append("§r-含指令");
+            str.append(commandList.size());
+            str.append("条");
+        }
+        if(coin!=0){
+            str.append("§r-含");
+            str.append(coin);
+            str.append(GlobalConfig.vaultDisplay);
+        }
+        if(point!=0){
+            str.append("§r-含");
+            str.append(point);
+            str.append(GlobalConfig.playerPointsDisplay);
+        }
+        return str.toString();
     }
     
     @Override
     public FileMail clone(){
-        if(fileName.equals("0")){
-            return new FileMail(getType(),getId(),getSender(),getRecipient(),getPermission(),getTopic(),getContent(),getDate(),fileName);
+        return new FileMail(getType(),getId(),getSender(),getRecipient(),getPermission(),getTopic(),getContent(),getDate(),getDeadline(),fileName,itemList,commandList,commandDescription,coin,point);
+    }
+    
+    public FileMail cloneNewTypeIgnoreIdFilename(String type){
+        return new FileMail(type,0,getSender(),getRecipient(),getPermission(),getTopic(),getContent(),getDate(),getDeadline(),"0",itemList,commandList,commandDescription,coin,point);
+    }
+    
+    public boolean equalsFile(FileMail fm){
+        if(this==fm) return true;
+        if(this.getType().equals(fm.getType()) || this.fileName.equals(fm.getFileName())) return true;
+        if(this.readFile() && fm.readFile()){
+            return (this.coin==fm.coin) && 
+                this.point==fm.point && 
+                this.hasItem==fm.hasItem && 
+                this.itemList.equals(fm.itemList) &&
+                this.hasCommand==fm.hasCommand && 
+                this.commandList.equals(fm.commandList) &&
+                this.commandDescription.equals(fm.commandDescription);
         }else{
-            return new FileMail(getType(),getId(),getSender(),getRecipient(),getPermission(),getTopic(),getContent(),getDate(),fileName,itemList,commandList,commandDescription,coin,point);
+            return false;
         }
+        
+    }
+    
+    public boolean equalsFileIgnoreFilename(FileMail fm){
+        if(this==fm) return true;
+        if(this.readFile() && fm.readFile()){
+            return (this.coin==fm.coin) && 
+                this.point==fm.point && 
+                this.hasItem==fm.hasItem && 
+                this.itemList.equals(fm.itemList) &&
+                this.hasCommand==fm.hasCommand && 
+                this.commandList.equals(fm.commandList) &&
+                this.commandDescription.equals(fm.commandDescription);
+        }else{
+            return false;
+        }
+    }
+    
+    public boolean equalsFileIgnoreCommandDescription(FileMail fm){
+        if(this==fm) return true;
+        if(this.readFile() && fm.readFile()){
+            return (this.coin==fm.coin) && 
+                this.point==fm.point && 
+                this.hasItem==fm.hasItem && 
+                this.itemList.equals(fm.itemList) &&
+                this.hasCommand==fm.hasCommand && 
+                this.commandList.equals(fm.commandList);
+        }else{
+            return false;
+        }
+    }
+    
+    public boolean equalsIgnoreFile(FileMail fm){
+        if(this==fm) return true;
+        return (this.getTopic().equals(fm.getTopic()) && 
+                this.getContent().equals(fm.getContent()) && 
+                this.getPermission().equals(fm.getPermission()) && 
+                this.getRecipientString().equals(fm.getRecipientString()) &&
+                (!this.getType().equals("date") || (this.getDate().equals(fm.getDate()) && this.getDeadline().equals(fm.getDeadline()))));
+    }
+    
+    public boolean equalsIgnoreTypeIdSenderDate(FileMail fm){
+        if(this==fm) return true;
+        return (this.getTopic().equals(fm.getTopic()) && 
+                this.getContent().equals(fm.getContent()) && 
+                this.getPermission().equals(fm.getPermission()) && 
+                this.getRecipientString().equals(fm.getRecipientString()) &&
+                (!this.getType().equals("date") || (this.getDate().equals(fm.getDate()) && this.getDeadline().equals(fm.getDeadline()))) &&
+                this.equalsFile(fm));
     }
     
 }

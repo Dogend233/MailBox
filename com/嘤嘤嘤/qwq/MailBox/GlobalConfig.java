@@ -5,7 +5,8 @@ import java.util.List;
 
 public class GlobalConfig {
     public static boolean enVexView;
-    public static boolean lowVexView;
+    public static boolean lowVexView_2_5;
+    public static boolean lowVexView_2_4;
     public static boolean enVault;
     public static boolean enPlayerPoints;
     
@@ -13,11 +14,13 @@ public class GlobalConfig {
     private static String mailDisplay_SYSTEM;
     private static String mailDisplay_PLAYER;
     private static String mailDisplay_PERMISSION;
+    private static String mailDisplay_DATE;
     public static String pluginPrefix;
     public static String normal;
     public static String success;
     public static String warning;
-    public static String fileDiv;
+    public static List<String> tips;
+    public static String tipsMsg;
     public static String fileCmdPlayer;
     public static int maxItem;
     public static String fileBanLore;
@@ -33,14 +36,16 @@ public class GlobalConfig {
     public static int playerPointsExpand;
     public static int playerPointsItem;
     
-    public static boolean setVexView(boolean vv){
+    public static void setVexView(boolean vv){
         enVexView = vv;
-        return enVexView;
     }
     
-    public static boolean setLowVexView(boolean vv){
-        lowVexView = vv;
-        return lowVexView;
+    public static void setLowVexView_2_5(boolean vv){
+        lowVexView_2_5 = vv;
+    }
+    
+    public static void setLowVexView_2_4(boolean vv){
+        lowVexView_2_4 = vv;
     }
     
     public static boolean setVault(boolean v){
@@ -59,10 +64,12 @@ public class GlobalConfig {
         String normal,
         String success,
         String warning,
+        List<String> tips,
+        String tipsMsg,
         String mailDisplay_SYSTEM,
         String mailDisplay_PLAYER,
         String mailDisplay_PERMISSION,
-        String fileDiv,
+        String mailDisplay_DATE,
         String fileCmdPlayer,
         int maxItem,
         String fileBanLore,
@@ -85,14 +92,13 @@ public class GlobalConfig {
         GlobalConfig.normal = normal;// 普通 插件信息颜色
         GlobalConfig.success = success;// 成功 插件信息颜色
         GlobalConfig.warning = warning;// 失败 插件信息颜色
+        GlobalConfig.tips = tips;// 新消息提示
+        GlobalConfig.tipsMsg = tipsMsg;// 提示消息
         GlobalConfig.mailDisplay_SYSTEM = mailDisplay_SYSTEM;// system 邮件显示名称
         GlobalConfig.mailDisplay_PLAYER = mailDisplay_PLAYER;// player 邮件显示名称
         GlobalConfig.mailDisplay_PERMISSION = mailDisplay_PERMISSION;// permission 邮件显示名称
+        GlobalConfig.mailDisplay_DATE = mailDisplay_DATE;// date 邮件显示名称
         // 附件
-        if(fileDiv.equals(".") || fileDiv.equals("|")){
-            fileDiv = "\\"+fileDiv;
-        }
-        GlobalConfig.fileDiv = fileDiv;// 分割符
         GlobalConfig.fileCmdPlayer = fileCmdPlayer;// 领取邮件的玩家变量
         GlobalConfig.fileBanLore = fileBanLore;// Lore中包含此文字的物品禁止作为附件发送
         GlobalConfig.maxItem = maxItem;// 最大发送物品数量
@@ -131,6 +137,8 @@ public class GlobalConfig {
                 return mailDisplay_PLAYER;
             case "permission": 
                 return mailDisplay_PERMISSION;
+            case "date": 
+                return mailDisplay_DATE;
             default:
                 return null;
         }

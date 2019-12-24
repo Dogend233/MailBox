@@ -13,6 +13,10 @@ public class OriginalConfig {
     public static String msgSender = "§b[邮件预览]: 请输入发件人";
     public static String msgRecipient = "§b[邮件预览]: 请输入收件人";
     public static String msgPermission = "§b[邮件预览]: 请输入领取邮件所需的权限";
+    public static String msgStartDate = "§b[邮件预览]: 请输入邮件开始允许被领取的: §e年 月 日 时 分 秒 §b（时分秒可不写）";
+    public static String msgStartDateCancel = "§b[邮件预览]: 输入 0 不设置开始日期";
+    public static String msgDeadline = "§b[邮件预览]: 请输入邮件截止领取的: §e年 月 日 时 分 秒 §b（时分秒可不写）";
+    public static String msgDeadlineCancel = "§b[邮件预览]: 输入 0 不设置截止日期";
     public static String msgFile = "§b[邮件预览]: 是否发送附件？（Y：是，N：否）";
     public static String msgCoin = "§b[邮件预览]: 请输入想发送的"+GlobalConfig.vaultDisplay+"§b数量";
     public static String msgPoint = "§b[邮件预览]: 请输入想发送的"+GlobalConfig.playerPointsDisplay+"§b数量";
@@ -23,5 +27,5 @@ public class OriginalConfig {
     public static String msgCommandCancel = "§b[邮件预览]: 输入 0 不发送指令";
     public static String msgCommandDescription = "§b[邮件预览]: 请输入执行指令的提示，多行以空格分割";
     public static String msgCommandDescriptionCancel = "§b[邮件预览]: 输入 0 不显示提示";
-    public static String msgPreview = "§b[邮件预览]: 输入 0 确认发送";   
+    public static String msgPreview = "§b[邮件预览]: 输入 0 确认发送";
 }

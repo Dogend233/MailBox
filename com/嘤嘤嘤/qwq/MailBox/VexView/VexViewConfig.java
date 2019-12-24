@@ -3,12 +3,19 @@ package com.嘤嘤嘤.qwq.MailBox.VexView;
 import com.嘤嘤嘤.qwq.MailBox.Events.DoubleKeyPress;
 import com.嘤嘤嘤.qwq.MailBox.Events.JoinAndQuit;
 import com.嘤嘤嘤.qwq.MailBox.Events.SingleKeyPress;
+import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
+import lk.vexview.gui.components.VexButton;
+import lk.vexview.gui.components.VexHoverText;
+import lk.vexview.gui.components.VexImage;
+import lk.vexview.gui.components.VexText;
+import lk.vexview.gui.components.VexTextField;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -30,20 +37,29 @@ public class VexViewConfig {
         if(hud.getBoolean("hud.enable")){
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 加入/退出 事件");
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, true), mb);
-            MailBoxHud.setHudConfig(
-                hud.getString("hud.id"),
-                hud.getString("hud.img"),
-                hud.getInt("hud.x"),
-                hud.getInt("hud.y"),
-                hud.getInt("hud.w"),
-                hud.getInt("hud.h"),
-                hud.getInt("hud.ww"),
-                hud.getInt("hud.hh")
-            );
         }else{
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 加入/退出 事件");
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, false), mb);
         }
+        MailBoxHud.setHudConfig(
+            hud.getString("hud.id"),
+            hud.getString("hud.img"),
+            hud.getInt("hud.x"),
+            hud.getInt("hud.y"),
+            hud.getInt("hud.w"),
+            hud.getInt("hud.h"),
+            hud.getInt("hud.ww"),
+            hud.getInt("hud.hh"),
+            hud.getString("new.id"),
+            hud.getString("new.img"),
+            hud.getInt("new.x"),
+            hud.getInt("new.y"),
+            hud.getInt("new.w"),
+            hud.getInt("new.h"),
+            hud.getInt("new.ww"),
+            hud.getInt("new.hh"),
+            hud.getInt("new.time")
+        );
         // 配置BoxGui
         MailBox.getInstance().setOpenCmd(box.getBoolean("gui.openCmd"));
         String key = box.getString("gui.openKey");
@@ -124,8 +140,7 @@ public class VexViewConfig {
             box.getDouble("mail.type.size"),
             box.getString("mail.type.prefix"),
             box.getStringList("mail.type.display"),
-            box.getString("mail.icon.image_1"),
-            box.getString("mail.icon.image_2"),
+            box.getString("mail.icon.image"),
             box.getInt("mail.icon.x"),
             box.getInt("mail.icon.fy"),
             box.getInt("mail.icon.w"),
@@ -190,6 +205,10 @@ public class VexViewConfig {
             content.getDouble("text.date.size"),
             content.getString("text.date.prefix"),
             content.getStringList("text.date.display"),
+            content.getInt("text.deadline.x"),
+            content.getInt("text.deadline.y"),
+            content.getDouble("text.deadline.size"),
+            content.getString("text.deadline.prefix"),
             content.getInt("text.sender.x"),
             content.getInt("text.sender.y"),
             content.getDouble("text.sender.size"),
@@ -255,6 +274,7 @@ public class VexViewConfig {
             select.getString("button.id.system"),
             select.getString("button.id.player"),
             select.getString("button.id.permission"),
+            select.getString("button.id.date"),
             select.getString("button.img_1"),
             select.getString("button.img_2"),
             select.getIntegerList("button.x"),
@@ -304,6 +324,14 @@ public class VexViewConfig {
             send.getInt("text.permission.y"),
             send.getDouble("text.permission.size"),
             send.getString("text.permission.text"),
+            send.getInt("text.startdate.x"),
+            send.getInt("text.startdate.y"),
+            send.getDouble("text.startdate.size"),
+            send.getString("text.startdate.text"),
+            send.getInt("text.deadline.x"),
+            send.getInt("text.deadline.y"),
+            send.getDouble("text.deadline.size"),
+            send.getString("text.deadline.text"),
             send.getInt("text.text.x"),
             send.getInt("text.text.y"),
             send.getDouble("text.text.size"),
@@ -335,6 +363,16 @@ public class VexViewConfig {
             send.getInt("field.permission.w"),
             send.getInt("field.permission.h"),
             send.getInt("field.permission.max"),
+            send.getInt("field.startdate.x"),
+            send.getInt("field.startdate.y"),
+            send.getInt("field.startdate.w"),
+            send.getInt("field.startdate.h"),
+            send.getInt("field.startdate.max"),
+            send.getInt("field.deadline.x"),
+            send.getInt("field.deadline.y"),
+            send.getInt("field.deadline.w"),
+            send.getInt("field.deadline.h"),
+            send.getInt("field.deadline.max"),
             send.getInt("field.text.x"),
             send.getInt("field.text.y"),
             send.getInt("field.text.w"),
@@ -423,6 +461,19 @@ public class VexViewConfig {
         Bukkit.getConsoleSender().sendMessage("§6-----正在加载"+filename+"配置文件");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
         return config;
+    }
+    
+    public static void setHover(VexImage v, List<String> t){
+        if(!GlobalConfig.lowVexView_2_4) v.setHover(new VexHoverText(t));
+    }
+    public static void setHover(VexButton v, List<String> t){
+        if(!GlobalConfig.lowVexView_2_4) v.setHover(new VexHoverText(t));
+    }
+    public static void setHover(VexText v, List<String> t){
+        if(!GlobalConfig.lowVexView_2_4) v.setHover(new VexHoverText(t));
+    }
+    public static void setHover(VexTextField v, List<String> t){
+        if(!GlobalConfig.lowVexView_2_4) v.setHover(new VexHoverText(t));
     }
 
 }
