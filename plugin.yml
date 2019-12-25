@@ -1,6 +1,6 @@
 name: MailBox
 main: com.嘤嘤嘤.qwq.MailBox.MailBox
-version: 1.5.0
+version: 1.5.1
 description: 嘤嘤嘤邮箱插件
 author: Dogend
 website: qwq.嘤嘤嘤.com
@@ -33,5 +33,7 @@ commands:
             /mailbox template [模板名] [邮件类型] *读取一个邮件模板以[邮件类型]类型进入预览/参数设置
             /mailbox template [模板名] permission [所需权限] *读取一个邮件模板以permission类型进入预览，并写入所需权限
             /mailbox template [模板名] player [收件人1] <收件人2> <收件人3> ... *读取一个邮件模板以player类型进入预览，并写入收件人
+            /mailbox send [模板名] system *读取一个邮件模板，为system类型，不进入预览直接发送
             /mailbox send [模板名] permission [所需权限] *读取一个邮件模板，写入permission类型，并写入所需权限，不进入预览直接发送
             /mailbox send [模板名] player [收件人1] <收件人2> <收件人3> ... *读取一个邮件模板，写入player类型，并写入收件人，不进入预览直接发送
+            /mailbox send [模板名] date [开始时间] [截止时间] *读取一个邮件模板，为date类型并写入开始时间和截止时间，不进入预览直接发送

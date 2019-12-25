@@ -343,11 +343,13 @@ public class MailBox extends JavaPlugin {
                     MailList.list(sender, "Recipient");
                 }
             }else if(args.length==1){
+                if(args[0].equals("help")) return false;
                 onCommandNormal(sender, args[0]);
             }else if(args.length>=2){
                 switch (args[0]) {
                     case "item":
-                        onCommandItem(sender,args);
+                        if(sender.hasPermission("mailbox.admin.item")) onCommandItem(sender,args);
+                        else sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有执行此指令的权限");
                         break;
                     case "template":
                     case "send":
@@ -373,38 +375,128 @@ public class MailBox extends JavaPlugin {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         switch (args.length) {
             case 1:
-                if(sender.isOp()) return Arrays.asList("new","receivebox","sendbox","date","system","permission","player","template","send","item","check","reload");
-                else return Arrays.asList("new","receivebox","sendbox","date","system","permission","player");
+                if(args[0].length()==0){
+                    ArrayList<String> l = new ArrayList();
+                    if(sender.hasPermission("mailbox.admin.check")) l.add("check");
+                    l.add("date");
+                    if(sender.hasPermission("mailbox.admin.item")) l.add("item");
+                    l.add("new");
+                    l.add("permission");
+                    l.add("player");
+                    l.add("receivebox");
+                    if(sender.hasPermission("mailbox.admin.reload")) l.add("reload");
+                    if(sender.hasPermission("mailbox.admin.template.send")) l.add("send");
+                    l.add("sendbox");
+                    l.add("system");
+                    if(sender.hasPermission("mailbox.admin.template")) l.add("template");
+                    return l;
+                }
+                if(args[0].length()>1){
+                    if(args[0].startsWith("pe")) return Arrays.asList("permission");
+                    if(args[0].startsWith("pl")) return Arrays.asList("player");
+                    if(args[0].startsWith("rec")) return Arrays.asList("receivebox");
+                    if(args[0].startsWith("rel") && sender.hasPermission("mailbox.admin.reload")) return Arrays.asList("reload");
+                    if(args[0].startsWith("se")){
+                        if(sender.hasPermission("mailbox.admin.template.send")) return Arrays.asList("send","sendbox");
+                        return Arrays.asList("sendbox");
+                    }
+                    if(args[0].startsWith("sy")) return Arrays.asList("system");
+                }
+                switch (args[0].substring(0,1)){
+                    case "c":
+                        if(sender.hasPermission("mailbox.admin.check")) return Arrays.asList("check");
+                        else break;
+                    case "d":
+                        return Arrays.asList("date");
+                    case "i":
+                        if(sender.hasPermission("mailbox.admin.item")) return Arrays.asList("item");
+                        else break;
+                    case "n":
+                        return Arrays.asList("new");
+                    case "p":
+                        return Arrays.asList("permission","player");
+                    case "r":
+                        if(sender.hasPermission("mailbox.admin.reload")) return Arrays.asList("receivebox","reload");
+                        return Arrays.asList("receivebox");
+                    case "s":
+                        if(sender.hasPermission("mailbox.admin.template.send")) return Arrays.asList("sendbox","system","send");
+                        return Arrays.asList("sendbox","system");
+                    case "t":
+                        if(sender.hasPermission("mailbox.admin.template")) return Arrays.asList("template");
+                }   break;
             case 2:
                 switch (args[0]){
                     case "date":
                     case "system":
                     case "permission":
-                        if(sender.isOp()) return Arrays.asList("see","collect","delete","update","upload","download");
-                        else return Arrays.asList("see","collect","delete");
                     case "player":
-                        if(sender.isOp()) return Arrays.asList("see","collect","delete","update","upload","download","clean");
-                        else return Arrays.asList("see","collect","delete");
+                        if(args[1].length()==0){
+                            ArrayList<String> l = new ArrayList();
+                            if(args[0].equals("player") && sender.hasPermission("mailbox.admin.clean.player")) l.add("clean");
+                            l.add("collect");
+                            l.add("delete");
+                            if(sender.hasPermission("mailbox.admin.download."+args[0]) || sender.hasPermission("mailbox.admin.download."+args[0]+".all")) l.add("download");
+                            l.add("see");
+                            if(sender.hasPermission("mailbox.admin.delete."+args[0])) l.add("update");
+                            if(sender.hasPermission("mailbox.admin.upload."+args[0]) || sender.hasPermission("mailbox.admin.upload."+args[0]+".all")) l.add("upload");
+                            return l;
+                        }
+                        if(args[1].length()>1){
+                            if(args[1].startsWith("cl") && args[0].equals("player") && sender.hasPermission("mailbox.admin.clean.player")) return Arrays.asList("clean");
+                            if(args[1].startsWith("co")) return Arrays.asList("collect");
+                            if(args[1].startsWith("de")) return Arrays.asList("delete");
+                            if(args[1].startsWith("do") && (sender.hasPermission("mailbox.admin.download."+args[0]) || sender.hasPermission("mailbox.admin.download."+args[0]+".all"))) return Arrays.asList("download");
+                            if(args[1].startsWith("upd") && sender.hasPermission("mailbox.admin.delete."+args[0])) return Arrays.asList("update");
+                            if(args[1].startsWith("upl") && (sender.hasPermission("mailbox.admin.upload."+args[0]) || sender.hasPermission("mailbox.admin.upload."+args[0]+".all"))) return Arrays.asList("upload");
+                        }
+                        switch (args[1].substring(0,1)){
+                            case "c":
+                                if(args[0].equals("player") && sender.hasPermission("mailbox.admin.clean.player")) return Arrays.asList("clean","collect");
+                                else return Arrays.asList("collect");
+                            case "d":
+                                if(sender.hasPermission("mailbox.admin.download."+args[0]) || sender.hasPermission("mailbox.admin.download."+args[0]+".all")) return Arrays.asList("date","download");
+                                else return Arrays.asList("date");
+                            case "s":
+                                return Arrays.asList("see");
+                            case "u":
+                                ArrayList<String> l = new ArrayList();
+                                if(sender.hasPermission("mailbox.admin.delete."+args[0])) l.add("update");
+                                if(sender.hasPermission("mailbox.admin.upload."+args[0]) || sender.hasPermission("mailbox.admin.upload."+args[0]+".all")) l.add("upload");
+                                if(!l.isEmpty()) return l;
+                        }   break;
                     case "item":
-                        if(sender.isOp()) return Arrays.asList("id","import","export","list");
+                        if(sender.hasPermission("mailbox.admin.item")) return Arrays.asList("id","import","export","list");
                 }
-                return null;
+                break;
             case 3:
                 switch (args[0]){
                     case "date":
                     case "system":
                     case "permission":
                     case "player":
-                        if((args[1].equals("upload") || args[1].equals("download")) && sender.isOp()) return Arrays.asList("all");
+                        if((args[1].equals("download") && (sender.hasPermission("mailbox.admin.download."+args[0]) || sender.hasPermission("mailbox.admin.download."+args[0]+".all")))
+                            || (args[1].equals("upload") && (sender.hasPermission("mailbox.admin.upload."+args[0]) || sender.hasPermission("mailbox.admin.upload."+args[0]+".all")))) return Arrays.asList("all");
                         else break;
                     case "template":
                     case "send":
-                        if(sender.isOp()) return Arrays.asList("date","system","permission","player");
+                        if(sender.hasPermission("mailbox.admin.template") || sender.hasPermission("mailbox.admin.template.send")){
+                            if(args[2].length()==0) return Arrays.asList("date","permission","player","system");
+                            if(args[2].length()>1){
+                                if(args[2].startsWith("pe")) return Arrays.asList("permission");
+                                if(args[2].startsWith("pl")) return Arrays.asList("player");
+                            }
+                            switch (args[2].substring(0,1)){
+                                case "d":
+                                    return Arrays.asList("date");
+                                case "p":
+                                    return Arrays.asList("permission","player");
+                                case "s":
+                                    return Arrays.asList("system");
+                            }   break;
+                        }
                 }
-                return null;
-            default:
-                return null;
         }
+        return null;
     }
     
     private void onCommandNormal(CommandSender sender, String arg){
@@ -450,9 +542,9 @@ public class MailBox extends JavaPlugin {
     }
     
     private void onCommandItem(CommandSender sender, String[] args){
+        ItemStack is;
         switch (args[1]) {
             case "list":
-                if(sender.hasPermission("mailbox.admin.item.list")){
                     List<String> list = MailBoxAPI.getItemExport();
                     if(list.isEmpty()){
                         sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"没有已导出的物品");
@@ -461,13 +553,10 @@ public class MailBox extends JavaPlugin {
                         for(String name:MailBoxAPI.getItemExport()){
                             sender.sendMessage("§b"+(++i)+". §e"+name);
                         }
-                    }
-                }else{
-                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有查看已导出物品列表的权限");
-                }   break;
+                    }   break;
             case "export":
-                if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.export")){
-                    ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
+                if(sender instanceof Player){
+                    is = ((Player)sender).getInventory().getItemInMainHand();
                     if(args.length==3){
                         if(is!=null && MailBoxAPI.saveItem(is, args[2])){
                             sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出至"+args[2]+".yml成功");
@@ -482,11 +571,9 @@ public class MailBox extends JavaPlugin {
                         }
                     }
                 }else{
-                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有导出物品的权限");
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以执行此指令");
                 }   break;
             case "import":
-                if(sender.hasPermission("mailbox.admin.item.import")){
-                    ItemStack is;
                     if(args.length==3){
                         is = MailBoxAPI.readItem(args[2]);
                     }else{
@@ -501,20 +588,17 @@ public class MailBox extends JavaPlugin {
                             sender.sendMessage("物品："+NMS.getItemName(is)+'\n'+"§a"+NMS.Item2Json(is).replace(',', '\n'));
                         }
                         sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已取出物品");
-                    }
-                }else{
-                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有取出物品的权限");
-                }   break;
+                    }   break;
             case "id":
-                if(sender instanceof Player && sender.hasPermission("mailbox.admin.item.id")){
-                    ItemStack is = ((Player)sender).getInventory().getItemInMainHand();
+                if(sender instanceof Player){
+                    is = ((Player)sender).getInventory().getItemInMainHand();
                     if(is!=null){
                         sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品的Material_ID为: "+GlobalConfig.normal+is.getType().name());
                     }else{
                         sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品Material_ID失败");
                     }
                 }else{
-                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有获取物品ID的权限");
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以执行此指令");
                 }   break;
             default:
                 sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
