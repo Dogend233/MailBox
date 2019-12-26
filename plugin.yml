@@ -1,6 +1,6 @@
 name: MailBox
 main: com.嘤嘤嘤.qwq.MailBox.MailBox
-version: 1.5.1
+version: 1.5.2
 description: 嘤嘤嘤邮箱插件
 author: Dogend
 website: qwq.嘤嘤嘤.com
@@ -15,6 +15,9 @@ commands:
             /mailbox new *新建一封邮件
             /mailbox receivebox(rb) *查看收件列表
             /mailbox sendbox(sb) *查看发件列表
+            /mailbox [邮件类型] see [邮件ID] *查看一封邮件
+            /mailbox [邮件类型] collect [邮件ID] *领取一封邮件
+            /mailbox [邮件类型] delete [邮件ID] *删除一封邮件
             /mailbox reload *重载插件
             /mailbox check *手动检查更新
             /mailbox item id *查看手上物品的Material_ID
@@ -28,11 +31,12 @@ commands:
             /mailbox [邮件类型] upload all *将目标邮件类型的全部本地附件上传到数据库
             /mailbox [邮件类型] download [邮件ID] *将目标邮件的数据库附件下载到本地
             /mailbox [邮件类型] download all *将目标邮件类型的全部数据库附件下载到本地
-            /mailbox player clean *手动清理"player"类型过期邮件
+            /mailbox player clean *手动清理player类型过期邮件
             /mailbox template [模板名] *读取一个邮件模板进入类型选择
             /mailbox template [模板名] [邮件类型] *读取一个邮件模板以[邮件类型]类型进入预览/参数设置
             /mailbox template [模板名] permission [所需权限] *读取一个邮件模板以permission类型进入预览，并写入所需权限
             /mailbox template [模板名] player [收件人1] <收件人2> <收件人3> ... *读取一个邮件模板以player类型进入预览，并写入收件人
+            /mailbox template [模板名] date [开始时间] [截止时间] *读取一个邮件模板以date类型进入预览，并写入开始时间和截止时间
             /mailbox send [模板名] system *读取一个邮件模板，为system类型，不进入预览直接发送
             /mailbox send [模板名] permission [所需权限] *读取一个邮件模板，写入permission类型，并写入所需权限，不进入预览直接发送
             /mailbox send [模板名] player [收件人1] <收件人2> <收件人3> ... *读取一个邮件模板，写入player类型，并写入收件人，不进入预览直接发送

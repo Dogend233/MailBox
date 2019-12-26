@@ -343,8 +343,57 @@ public class MailBox extends JavaPlugin {
                     MailList.list(sender, "Recipient");
                 }
             }else if(args.length==1){
-                if(args[0].equals("help")) return false;
-                onCommandNormal(sender, args[0]);
+                if(args[0].equals("help")){
+                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"指令帮助");
+                    sender.sendMessage("§b/mb §e打开邮箱");
+                    sender.sendMessage("§b/mb rb §e查看收件箱");
+                    sender.sendMessage("§b/mb sb §e查看发件箱");
+                    sender.sendMessage("§b/mb new §e写邮件");
+                    sender.sendMessage("§b/mb [邮件类型] see [邮件ID] §e查看一封邮件");
+                    sender.sendMessage("§b/mb [邮件类型] collect [邮件ID] §e领取一封邮件");
+                    sender.sendMessage("§b/mb [邮件类型] delete [邮件ID] §e删除一封邮件");
+                    if(sender.hasPermission("mailbox.admin.item")){
+                        sender.sendMessage("§b/mb item id §e查看手上物品的Material_ID");
+                        sender.sendMessage("§b/mb item list §e查看已导出的物品文件名列表");
+                        sender.sendMessage("§b/mb item export §e导出手上的物品至itemstack.yml");
+                        sender.sendMessage("§b/mb item export [文件名] §e将手上物品导出至ItemExport文件夹下的[文件名].yml");
+                        sender.sendMessage("§b/mb item import §e将itemstack.yml中的物品取出到手上");
+                        sender.sendMessage("§b/mb item import [文件名] §e将ItemExport文件夹下的[文件名].yml中的物品取出到手上");
+                    }
+                    String[] allType = MailBoxAPI.getAllType();
+                    for(String t:allType){
+                        if(sender.hasPermission("mailbox.admin.update."+t)){
+                            sender.sendMessage("§b/mb [邮件类型] update §e更新目标类型邮件列表");
+                            break;
+                        }
+                    }
+                    if(sender.hasPermission("mailbox.admin.upload")) sender.sendMessage("§b/mb [邮件类型] upload [邮件ID] §e将目标邮件的本地附件上传到数据库");
+                    if(sender.hasPermission("mailbox.admin.upload.all")) sender.sendMessage("§b/mb [邮件类型] upload all §e将目标邮件类型的全部本地附件上传到数据库");
+                    if(sender.hasPermission("mailbox.admin.download")) sender.sendMessage("§b/mb [邮件类型] download [邮件ID] §e将目标邮件的数据库附件下载到本地");
+                    if(sender.hasPermission("mailbox.admin.download.all")) sender.sendMessage("§b/mb [邮件类型] download all §e将目标邮件类型的全部数据库附件下载到本地");
+                    if(sender.hasPermission("mailbox.admin.clean.player")) sender.sendMessage("§b/mb player clean §e手动清理player类型过期邮件");
+                    if(sender.hasPermission("mailbox.admin.template")){
+                        sender.sendMessage("§b/mb template [模板名] §e读取一个邮件模板进入类型选择");
+                        sender.sendMessage("§b/mb template [模板名] [邮件类型] §e读取一个邮件模板以[邮件类型]类型进入预览/参数设置");
+                        sender.sendMessage("§b/mb template [模板名] permission [所需权限] §e读取一个邮件模板以permission类型进入预览，并写入所需权限");
+                        sender.sendMessage("§b/mb template [模板名] date [开始时间] [截止时间] §e读取一个邮件模板以date类型进入预览，并写入开始时间和截止时间");
+                        sender.sendMessage("§b/mb template [模板名] player [收件人1] <收件人2> <收件人3> ... §e读取一个邮件模板以player类型进入预览，并写入收件人");
+                    }
+                    if(sender.hasPermission("mailbox.admin.template.send")){
+                        sender.sendMessage("§b/mb send [模板名] system §e读取一个邮件模板，为system类型，不进入预览直接发送");
+                        sender.sendMessage("§b/mb send [模板名] permission [所需权限] §e读取一个邮件模板，写入permission类型，并写入所需权限，不进入预览直接发送");
+                        sender.sendMessage("§b/mb send [模板名] date [开始时间] [截止时间] §e读取一个邮件模板，写入player类型，并写入收件人，不进入预览直接发送");
+                        sender.sendMessage("§b/mb send [模板名] player [收件人1] <收件人2> <收件人3> ... §e读取一个邮件模板，为date类型并写入开始时间和截止时间，不进入预览直接发送");
+                    }
+                    if(sender.hasPermission("mailbox.admin.check")){
+                        sender.sendMessage("§b/mb check §e检查更新");
+                    }
+                    if(sender.hasPermission("mailbox.admin.reload")){
+                        sender.sendMessage("§b/mb reload §e重载插件");
+                    }
+                }else{
+                    onCommandNormal(sender, args[0]);
+                }
             }else if(args.length>=2){
                 switch (args[0]) {
                     case "item":
@@ -435,33 +484,33 @@ public class MailBox extends JavaPlugin {
                             if(args[0].equals("player") && sender.hasPermission("mailbox.admin.clean.player")) l.add("clean");
                             l.add("collect");
                             l.add("delete");
-                            if(sender.hasPermission("mailbox.admin.download."+args[0]) || sender.hasPermission("mailbox.admin.download."+args[0]+".all")) l.add("download");
+                            if(sender.hasPermission("mailbox.admin.download") || sender.hasPermission("mailbox.admin.download.all")) l.add("download");
                             l.add("see");
                             if(sender.hasPermission("mailbox.admin.delete."+args[0])) l.add("update");
-                            if(sender.hasPermission("mailbox.admin.upload."+args[0]) || sender.hasPermission("mailbox.admin.upload."+args[0]+".all")) l.add("upload");
+                            if(sender.hasPermission("mailbox.admin.upload") || sender.hasPermission("mailbox.admin.upload.all")) l.add("upload");
                             return l;
                         }
                         if(args[1].length()>1){
                             if(args[1].startsWith("cl") && args[0].equals("player") && sender.hasPermission("mailbox.admin.clean.player")) return Arrays.asList("clean");
                             if(args[1].startsWith("co")) return Arrays.asList("collect");
                             if(args[1].startsWith("de")) return Arrays.asList("delete");
-                            if(args[1].startsWith("do") && (sender.hasPermission("mailbox.admin.download."+args[0]) || sender.hasPermission("mailbox.admin.download."+args[0]+".all"))) return Arrays.asList("download");
+                            if(args[1].startsWith("do") && (sender.hasPermission("mailbox.admin.download") || sender.hasPermission("mailbox.admin.download.all"))) return Arrays.asList("download");
                             if(args[1].startsWith("upd") && sender.hasPermission("mailbox.admin.delete."+args[0])) return Arrays.asList("update");
-                            if(args[1].startsWith("upl") && (sender.hasPermission("mailbox.admin.upload."+args[0]) || sender.hasPermission("mailbox.admin.upload."+args[0]+".all"))) return Arrays.asList("upload");
+                            if(args[1].startsWith("upl") && (sender.hasPermission("mailbox.admin.upload") || sender.hasPermission("mailbox.admin.upload.all"))) return Arrays.asList("upload");
                         }
                         switch (args[1].substring(0,1)){
                             case "c":
                                 if(args[0].equals("player") && sender.hasPermission("mailbox.admin.clean.player")) return Arrays.asList("clean","collect");
                                 else return Arrays.asList("collect");
                             case "d":
-                                if(sender.hasPermission("mailbox.admin.download."+args[0]) || sender.hasPermission("mailbox.admin.download."+args[0]+".all")) return Arrays.asList("date","download");
+                                if(sender.hasPermission("mailbox.admin.download") || sender.hasPermission("mailbox.admin.download.all")) return Arrays.asList("date","download");
                                 else return Arrays.asList("date");
                             case "s":
                                 return Arrays.asList("see");
                             case "u":
                                 ArrayList<String> l = new ArrayList();
                                 if(sender.hasPermission("mailbox.admin.delete."+args[0])) l.add("update");
-                                if(sender.hasPermission("mailbox.admin.upload."+args[0]) || sender.hasPermission("mailbox.admin.upload."+args[0]+".all")) l.add("upload");
+                                if(sender.hasPermission("mailbox.admin.upload") || sender.hasPermission("mailbox.admin.upload.all")) l.add("upload");
                                 if(!l.isEmpty()) return l;
                         }   break;
                     case "item":
@@ -474,8 +523,8 @@ public class MailBox extends JavaPlugin {
                     case "system":
                     case "permission":
                     case "player":
-                        if((args[1].equals("download") && (sender.hasPermission("mailbox.admin.download."+args[0]) || sender.hasPermission("mailbox.admin.download."+args[0]+".all")))
-                            || (args[1].equals("upload") && (sender.hasPermission("mailbox.admin.upload."+args[0]) || sender.hasPermission("mailbox.admin.upload."+args[0]+".all")))) return Arrays.asList("all");
+                        if((args[1].equals("download") && (sender.hasPermission("mailbox.admin.download") || sender.hasPermission("mailbox.admin.download.all")))
+                            || (args[1].equals("upload") && (sender.hasPermission("mailbox.admin.upload") || sender.hasPermission("mailbox.admin.upload.all")))) return Arrays.asList("all");
                         else break;
                     case "template":
                     case "send":
@@ -764,14 +813,14 @@ public class MailBox extends JavaPlugin {
                     if(args.length==3) {
                         String load = args[1];
                         if(args[2].equals("all")){
-                            if(sender.hasPermission("mailbox.admin."+load+"."+type+".all")){
+                            if(sender.hasPermission("mailbox.admin."+load+".all")){
                                 if(args[1].equals("upload")) MailBoxAPI.uploadFile(sender, type);
                                 else MailBoxAPI.downloadFile(sender, type);
                             }else{
                                 sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限执行此指令");
                             }
                         }else{
-                            if(sender.hasPermission("mailbox.admin."+load+"."+type)){
+                            if(sender.hasPermission("mailbox.admin."+load)){
                                 int mail;
                                 try{
                                     mail = Integer.parseInt(args[2]);
