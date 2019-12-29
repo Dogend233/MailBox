@@ -66,7 +66,7 @@ public class MailList {
         for(String t:MailBoxAPI.getAllType()){
             if(idMap.containsKey(t)){
                 for(int mid:idMap.get(t)){
-                    TextMail tm = MailBox.getHashMap(t).get(mid);
+                    TextMail tm = MailBox.getMailHashMap(t).get(mid);
                     StringBuilder str = new StringBuilder("§d"+tm.getTypeName()+" §r"+tm.getTopic());
                     if(tm instanceof FileMail) str.append("§r - §c有附件");
                     TextComponent msg = new TextComponent(str.toString());
@@ -109,7 +109,7 @@ public class MailList {
         int count = 0;
         for(String type:MailBoxAPI.getAllType()){
             MailBox.updateMailList(null, type);
-            count += MailBox.getHashMap(type).size();
+            count += MailBox.getMailHashMap(type).size();
         }
         if(count==0){
             sender.sendMessage("§c当前没有邮件");
@@ -118,7 +118,7 @@ public class MailList {
             sender.sendMessage("§6共有"+count+"封邮件");
         }
         for(String type:MailBoxAPI.getAllType()){
-            MailBox.getHashMap(type).forEach((k,v) -> {
+            MailBox.getMailHashMap(type).forEach((k,v) -> {
                 StringBuilder str = new StringBuilder("§d"+v.getTypeName()+" §r- "+k+" - "+v.getTopic());
                 if(v instanceof FileMail) str.append("§r - §c有附件");
                 sender.sendMessage(str.toString());

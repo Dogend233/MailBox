@@ -18,8 +18,12 @@ public class Placeholder extends PlaceholderExpansion {
         // 服务器邮件数量
         for(String type:MailBoxAPI.getAllType()){
             if(identifier.equals("server_mail_"+type)){
-                return Integer.toString(MailBox.getHashMap(type).size());
+                return Integer.toString(MailBox.getMailHashMap(type).size());
             }
+        }
+        // 服务器邮件总数量
+        if(identifier.equals("server_mail_all")){
+            return Integer.toString(MailBox.getMailAllCount(null));
         }
         // 服务器允许发送物品的最大数量
         if(identifier.equals("server_send_item")){
@@ -55,6 +59,10 @@ public class Placeholder extends PlaceholderExpansion {
             if(identifier.equals("player_mail_"+type)){
                 return Integer.toString(MailBox.getRelevantMailList(p, type).get("asRecipient").size());
             }
+        }
+        // 玩家可领取邮件总数量
+        if(identifier.equals("player_mail_all")){
+            return Integer.toString(MailBox.getMailAllCount(p));
         }
         // 玩家可发送物品的最大数量
         if(identifier.equals("player_send_item")){

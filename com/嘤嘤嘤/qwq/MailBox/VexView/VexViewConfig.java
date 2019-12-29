@@ -31,25 +31,28 @@ public class VexViewConfig {
         config.ConfigLoad();
     }
     
-    public void ConfigSet(YamlConfiguration hud, YamlConfiguration box, YamlConfiguration content, YamlConfiguration select, YamlConfiguration send){
+    public void ConfigSet(YamlConfiguration hud, YamlConfiguration box, YamlConfiguration content, YamlConfiguration select, YamlConfiguration send, YamlConfiguration item_modify){
         MailBox mb = MailBox.getInstance();
-        // 配置Hud
+        // 配置常驻Hud
         if(hud.getBoolean("hud.enable")){
+            MailBoxHud.setHudConfig(
+                hud.getString("hud.id"),
+                hud.getString("hud.img"),
+                hud.getInt("hud.x"),
+                hud.getInt("hud.y"),
+                hud.getInt("hud.w"),
+                hud.getInt("hud.h"),
+                hud.getInt("hud.ww"),
+                hud.getInt("hud.hh")
+            );
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 加入/退出 事件");
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, true), mb);
         }else{
             Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 加入/退出 事件");
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, false), mb);
         }
-        MailBoxHud.setHudConfig(
-            hud.getString("hud.id"),
-            hud.getString("hud.img"),
-            hud.getInt("hud.x"),
-            hud.getInt("hud.y"),
-            hud.getInt("hud.w"),
-            hud.getInt("hud.h"),
-            hud.getInt("hud.ww"),
-            hud.getInt("hud.hh"),
+        // 配置邮件提醒Hud
+        MailTipsHud.setHudConfig(
             hud.getString("new.id"),
             hud.getString("new.img"),
             hud.getInt("new.x"),
@@ -94,6 +97,15 @@ public class VexViewConfig {
             box.getInt("button.new.y"),
             box.getInt("button.new.w"),
             box.getInt("button.new.h"),
+            box.getString("button.box.id"),
+            box.getString("button.box.text_r"),
+            box.getString("button.box.text_s"),
+            box.getString("button.box.img_1"),
+            box.getString("button.box.img_2"),
+            box.getInt("button.box.x"),
+            box.getInt("button.box.y"),
+            box.getInt("button.box.w"),
+            box.getInt("button.box.h"),
             box.getBoolean("title.enable"),
             box.getString("title.type"),
             box.getInt("title.x"),
@@ -414,6 +426,115 @@ public class VexViewConfig {
             send.getIntegerList("slot.x"),
             send.getIntegerList("slot.y")
         );
+        // 配置物品修改GUI
+        MailItemModifyGui.setItemModifyConfig(
+            item_modify.getString("gui.img"),
+            item_modify.getInt("gui.x"),
+            item_modify.getInt("gui.y"),
+            item_modify.getInt("gui.w"),
+            item_modify.getInt("gui.h"),
+            item_modify.getInt("gui.ww"),
+            item_modify.getInt("gui.hh"),
+            item_modify.getString("button.confirm.id"),
+            item_modify.getString("button.confirm.text"),
+            item_modify.getString("button.confirm.img_1"),
+            item_modify.getString("button.confirm.img_2"),
+            item_modify.getInt("button.confirm.x"),
+            item_modify.getInt("button.confirm.y"),
+            item_modify.getInt("button.confirm.w"),
+            item_modify.getInt("button.confirm.h"),
+            item_modify.getString("button.name.id"),
+            item_modify.getString("button.name.text"),
+            item_modify.getString("button.name.img_1"),
+            item_modify.getString("button.name.img_2"),
+            item_modify.getInt("button.name.x"),
+            item_modify.getInt("button.name.y"),
+            item_modify.getInt("button.name.w"),
+            item_modify.getInt("button.name.h"),
+            item_modify.getString("button.export.id"),
+            item_modify.getString("button.export.text"),
+            item_modify.getString("button.export.img_1"),
+            item_modify.getString("button.export.img_2"),
+            item_modify.getInt("button.export.x"),
+            item_modify.getInt("button.export.y"),
+            item_modify.getInt("button.export.w"),
+            item_modify.getInt("button.export.h"),
+            item_modify.getString("button.import.id"),
+            item_modify.getString("button.import.text"),
+            item_modify.getString("button.import.img_1"),
+            item_modify.getString("button.import.img_2"),
+            item_modify.getInt("button.import.x"),
+            item_modify.getInt("button.import.y"),
+            item_modify.getInt("button.import.w"),
+            item_modify.getInt("button.import.h"),
+            item_modify.getString("button.list.id"),
+            item_modify.getString("button.list.text"),
+            item_modify.getString("button.list.img_1"),
+            item_modify.getString("button.list.img_2"),
+            item_modify.getInt("button.list.x"),
+            item_modify.getInt("button.list.y"),
+            item_modify.getInt("button.list.w"),
+            item_modify.getInt("button.list.h"),
+            item_modify.getString("button.close.id"),
+            item_modify.getString("button.close.text"),
+            item_modify.getString("button.close.img_1"),
+            item_modify.getString("button.close.img_2"),
+            item_modify.getInt("button.close.x"),
+            item_modify.getInt("button.close.y"),
+            item_modify.getInt("button.close.w"),
+            item_modify.getInt("button.close.h"),
+            item_modify.getString("slot.img"),
+            item_modify.getInt("slot.w"),
+            item_modify.getInt("slot.h"),
+            item_modify.getInt("slot.x"),
+            item_modify.getInt("slot.y"),
+            item_modify.getString("field.text.name"),
+            item_modify.getString("field.text.lore"),
+            item_modify.getString("field.text.export"),
+            item_modify.getString("field.text.import"),
+            item_modify.getInt("field.x"),
+            item_modify.getInt("field.y"),
+            item_modify.getInt("field.w"),
+            item_modify.getInt("field.h"),
+            item_modify.getInt("list.x"),
+            item_modify.getInt("list.y"),
+            item_modify.getInt("list.w"),
+            item_modify.getInt("list.h"),
+            item_modify.getInt("list.mh"),
+            item_modify.getInt("list.sh"),
+            item_modify.getInt("list.oh"),
+            item_modify.getInt("lore.oy"),
+            item_modify.getInt("lore.text.x"),
+            item_modify.getInt("lore.text.fy"),
+            item_modify.getDouble("lore.text.size"),
+            item_modify.getString("lore.button.add.id"),
+            item_modify.getString("lore.button.add.text"),
+            item_modify.getStringList("lore.button.add.hover"),
+            item_modify.getString("lore.button.add.img_1"),
+            item_modify.getString("lore.button.add.img_2"),
+            item_modify.getInt("lore.button.add.x"),
+            item_modify.getInt("lore.button.add.fy"),
+            item_modify.getInt("lore.button.add.w"),
+            item_modify.getInt("lore.button.add.h"),
+            item_modify.getString("lore.button.change.id"),
+            item_modify.getString("lore.button.change.text"),
+            item_modify.getStringList("lore.button.change.hover"),
+            item_modify.getString("lore.button.change.img_1"),
+            item_modify.getString("lore.button.change.img_2"),
+            item_modify.getInt("lore.button.change.x"),
+            item_modify.getInt("lore.button.change.fy"),
+            item_modify.getInt("lore.button.change.w"),
+            item_modify.getInt("lore.button.change.h"),
+            item_modify.getString("lore.button.delete.id"),
+            item_modify.getString("lore.button.delete.text"),
+            item_modify.getStringList("lore.button.delete.hover"),
+            item_modify.getString("lore.button.delete.img_1"),
+            item_modify.getString("lore.button.delete.img_2"),
+            item_modify.getInt("lore.button.delete.x"),
+            item_modify.getInt("lore.button.delete.fy"),
+            item_modify.getInt("lore.button.delete.w"),
+            item_modify.getInt("lore.button.delete.h")
+        );
     }
     
     // 判断VexView文件夹是否存在
@@ -433,7 +554,8 @@ public class VexViewConfig {
         YamlConfiguration content = ConfigGet("content");
         YamlConfiguration select = ConfigGet("select");
         YamlConfiguration send = ConfigGet("send");
-        ConfigSet(hud, box, content, select, send);
+        YamlConfiguration item_modify = ConfigGet("item_modify");
+        ConfigSet(hud, box, content, select, send, item_modify);
     }
     
     // 获取/创建 配置

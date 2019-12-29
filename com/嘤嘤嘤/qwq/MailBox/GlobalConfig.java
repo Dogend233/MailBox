@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GlobalConfig {
+    public static boolean lowServer1_12 = false;
+    public static boolean lowServer1_11 = false;
+    public static boolean lowServer1_9 = false;
     public static boolean enVexView;
     public static boolean lowVexView_2_5;
     public static boolean lowVexView_2_4;

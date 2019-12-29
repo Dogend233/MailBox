@@ -117,6 +117,15 @@ public class MailBoxGui extends VexGui{
         int button_new_y,
         int button_new_w,
         int button_new_h,
+        String button_box_id,
+        String button_box_text_r,
+        String button_box_text_s,
+        String button_box_img_1,
+        String button_box_img_2,
+        int button_box_x,
+        int button_box_y,
+        int button_box_w,
+        int button_box_h,
         boolean title_enable,
         String title_type,
         int title_x,
@@ -192,14 +201,14 @@ public class MailBoxGui extends VexGui{
             }
         });
         // 收件箱按钮
-        button_inbox = new VexButton(button_new_id+"R","收件箱",button_new_img_1,button_new_img_2,button_new_x,button_new_y+button_new_h+1,button_new_w,button_new_h,player -> {
+        button_inbox = new VexButton(button_box_id+"_R",button_box_text_r,button_box_img_1,button_box_img_2,button_box_x,button_box_y,button_box_w,button_box_h,player -> {
             openMailBoxGui(player, "Recipient");
         });
         // 发件箱按钮
-        button_outbox = new VexButton(button_new_id+"S","发件箱",button_new_img_1,button_new_img_2,button_new_x,button_new_y+button_new_h+1,button_new_w,button_new_h,player -> {
+        button_outbox = new VexButton(button_box_id+"_S",button_box_text_s,button_box_img_1,button_box_img_2,button_box_x,button_box_y,button_box_w,button_box_h,player -> {
             openMailBoxGui(player, "Sender");
         });
-        if(!button_new_hover.isEmpty()) VexViewConfig.setHover(button_new, button_new_hover);
+        if(!GlobalConfig.lowVexView_2_4 && !button_new_hover.isEmpty()) VexViewConfig.setHover(button_new, button_new_hover);
         // 标题
         MailBoxGui.title_enable = title_enable;
         if(title_enable){
@@ -283,7 +292,7 @@ public class MailBoxGui extends VexGui{
         for(String type:MailBoxAPI.getAllType()){
             if(idMap.containsKey(type)){
                 for(int mid:idMap.get(type)){
-                    vsl = writeMail(MailBox.getHashMap(type).get(mid),vsl,i++);
+                    vsl = writeMail(MailBox.getMailHashMap(type).get(mid),vsl,i++);
                 }
             }
         }

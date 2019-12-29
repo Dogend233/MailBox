@@ -13,14 +13,13 @@ import org.bukkit.command.CommandSender;
 
 public class UpdateCheck {
     
-    private static boolean count;
-    
     // 从远程连接获取最新版本号
-    private static ArrayList<String> getVersion(String httpurl){
+    private static ArrayList<String> getVersion(String httpurl, boolean first){
         try{
             URL url = new URL(httpurl);
             URLConnection urlConnection = url.openConnection();
             urlConnection.setConnectTimeout(3000);
+            urlConnection.setReadTimeout(2000);
             HttpURLConnection connection = null;
             if(urlConnection instanceof HttpURLConnection)
             {
@@ -40,22 +39,19 @@ public class UpdateCheck {
             }
             return urlString;
         }catch(IOException e){
-            if(count){
-                count = false;
+            if(first){
                 // 尝试从备用链接获取最新版本号
-                return getVersion("https://dogend233.github.io/version.txt");
+                return getVersion("https://dogend233.github.io/version.txt", false);
             }else{
                 Bukkit.getConsoleSender().sendMessage("§c-----[MailBox更新检测]:获取最新版本信息失败");
             }
-            
         }
         return null;
     }
     
     // 比较本插件版本号
     public static void check(CommandSender sender){
-        count = true;
-        ArrayList<String> info = getVersion("http://qwq.xn--o5raa.com/plugins/mailbox/version.php");
+        ArrayList<String> info = getVersion("http://qwq.xn--o5raa.com/plugins/mailbox/version.php", true);
         if(info!=null && !info.isEmpty()){
             String[] nsl = info.get(0).split("\\.");
             String[] osl = MailBoxAPI.getVersion().split("\\.");

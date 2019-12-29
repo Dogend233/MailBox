@@ -1,6 +1,6 @@
 name: MailBox
 main: com.嘤嘤嘤.qwq.MailBox.MailBox
-version: 1.5.2
+version: 1.6.0
 description: 嘤嘤嘤邮箱插件
 author: Dogend
 website: qwq.嘤嘤嘤.com
@@ -20,7 +20,11 @@ commands:
             /mailbox [邮件类型] delete [邮件ID] *删除一封邮件
             /mailbox reload *重载插件
             /mailbox check *手动检查更新
+            /mailbox item *打开物品编辑GUI（仅VV）
             /mailbox item id *查看手上物品的Material_ID
+            /mailbox item name [名称] *为手上物品重命名
+            /mailbox item lore add [描述] *为手上物品添加一行Lore
+            /mailbox item lore remove [行数] *为手上物品移除指定行Lore
             /mailbox item list *查看已导出的物品文件名列表
             /mailbox item export *导出手上的物品至itemstack.yml
             /mailbox item export [文件名] *将手上物品导出至ItemExport文件夹下的[文件名].yml

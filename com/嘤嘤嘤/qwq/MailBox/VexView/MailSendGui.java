@@ -75,7 +75,7 @@ public class MailSendGui extends VexInventoryGui{
         perm_item = MailBoxAPI.playerSendItemAllow(p);
         this.addComponent(button_return);
         VexButton vbp = new VexButton(button_preview[0],button_preview[1],button_preview[2],button_preview[3],Integer.parseInt(button_preview[4]),Integer.parseInt(button_preview[5]),Integer.parseInt(button_preview[6]),Integer.parseInt(button_preview[7]),player -> previewMail(player));
-        if(!button_preview_hover.isEmpty()) VexViewConfig.setHover(vbp, button_preview_hover);
+        if(!GlobalConfig.lowVexView_2_4 && !button_preview_hover.isEmpty()) VexViewConfig.setHover(vbp, button_preview_hover);
         this.addComponent(vbp);
         this.addComponent(text_topic);
         this.addComponent(getTextField(field.get("topic")));
@@ -113,14 +113,14 @@ public class MailSendGui extends VexInventoryGui{
             //String bal = MailBoxAPI.getEconomyFormat(bal_coin);
             this.addComponent(image_coin);
             VexTextField vtf = getTextField(field.get("coin"));
-            VexViewConfig.setHover(vtf, Arrays.asList("余额："+bal_coin));
+            if(!GlobalConfig.lowVexView_2_4) VexViewConfig.setHover(vtf, Arrays.asList("余额："+bal_coin));
             this.addComponent(vtf);
         }
         if(enPlayerPoints && perm_point){
             bal_point = MailBoxAPI.getPoints(p);
             this.addComponent(image_point);
             VexTextField vtf = getTextField(field.get("point"));
-            VexViewConfig.setHover(vtf, Arrays.asList("余额："+bal_point));
+            if(!GlobalConfig.lowVexView_2_4) VexViewConfig.setHover(vtf, Arrays.asList("余额："+bal_point));
             this.addComponent(vtf);
         }
     }
@@ -267,7 +267,7 @@ public class MailSendGui extends VexInventoryGui{
         MailSendGui.gui_iy = gui_iy;
         // 返回按钮
         button_return = new VexButton(button_return_id,button_return_text,button_return_img_1,button_return_img_2,button_return_x,button_return_y,button_return_w,button_return_h, player -> MailBoxGui.openMailBoxGui(player, "Recipient"));
-        if(!button_return_hover.isEmpty()) VexViewConfig.setHover(button_return, button_return_hover);
+        if(!GlobalConfig.lowVexView_2_4 && !button_return_hover.isEmpty()) VexViewConfig.setHover(button_return, button_return_hover);
         // 预览按钮
         button_preview = new String[]{button_preview_id,button_preview_text,button_preview_img_1,button_preview_img_2,Integer.toString(button_preview_x),Integer.toString(button_preview_y),Integer.toString(button_preview_w),Integer.toString(button_preview_h)};
         MailSendGui.button_preview_hover = button_preview_hover;

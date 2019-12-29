@@ -1,6 +1,6 @@
 #常驻HUD图标
 hud:
-  #是否启用HUD（true 启用 | false 关闭）
+  #是否启用常驻HUD（true 启用 | false 关闭）
   enable: true
   #HUD的ID
   id: MailBoxHud

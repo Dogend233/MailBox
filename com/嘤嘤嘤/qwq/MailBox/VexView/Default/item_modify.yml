@@ -1,0 +1,244 @@
+#物品修改GUI
+gui:
+  #GUI背景图片
+  img: '[local]MailBox/gui_content.png'
+  #x坐标
+  x: -1
+  #y坐标
+  y: -1
+  #显示宽度
+  ww: 270
+  #显示高度
+  hh: 200
+  #原图宽度
+  w: 240
+  #原图高度
+  h: 200
+#按钮
+button:
+  #确认
+  confirm:
+    #按钮ID
+    id: ItemModify_Confirm
+    #按钮文字
+    text: '§r确认'
+    #按钮背景图
+    img_1: '[local]MailBox/button_newmail.png'
+    img_2: '[local]MailBox/button_newmail_.png'
+    #x坐标
+    x: 237
+    #y坐标
+    y: 8
+    #显示宽度
+    w: 26
+    #显示高度
+    h: 18
+  #改名
+  name:
+    #按钮ID
+    id: ItemModify_Name
+    #按钮文字
+    text: '§r改名'
+    #按钮背景图
+    img_1: '[local]MailBox/button_newmail.png'
+    img_2: '[local]MailBox/button_newmail_.png'
+    #x坐标
+    x: 237
+    #y坐标
+    y: 30
+    #显示宽度
+    w: 26
+    #显示高度
+    h: 18
+  #导出
+  export:
+    #按钮ID
+    id: ItemModify_Export
+    #按钮文字
+    text: '§r导出'
+    #按钮背景图
+    img_1: '[local]MailBox/button_newmail.png'
+    img_2: '[local]MailBox/button_newmail_.png'
+    #x坐标
+    x: 237
+    #y坐标
+    y: 52
+    #显示宽度
+    w: 26
+    #显示高度
+    h: 18
+  #导入
+  import:
+    #按钮ID
+    id: ItemModify_Import
+    #按钮文字
+    text: '§r导入'
+    #按钮背景图
+    img_1: '[local]MailBox/button_newmail.png'
+    img_2: '[local]MailBox/button_newmail_.png'
+    #x坐标
+    x: 237
+    #y坐标
+    y: 74
+    #显示宽度
+    w: 26
+    #显示高度
+    h: 18
+  #导出物品列表
+  list:
+    #按钮ID
+    id: ItemModify_List
+    #按钮文字
+    text: '§r列表'
+    #按钮背景图
+    img_1: '[local]MailBox/button_newmail.png'
+    img_2: '[local]MailBox/button_newmail_.png'
+    #x坐标
+    x: 237
+    #y坐标
+    y: 96
+    #显示宽度
+    w: 26
+    #显示高度
+    h: 18
+  #关闭
+  close:
+    #按钮ID
+    id: ItemModify_Close
+    #按钮文字
+    text: '§r关闭'
+    #按钮背景图
+    img_1: '[local]MailBox/button_newmail.png'
+    img_2: '[local]MailBox/button_newmail_.png'
+    #x坐标
+    x: 237
+    #y坐标
+    y: 118
+    #显示宽度
+    w: 26
+    #显示高度
+    h: 18
+#物品槽（实际大小18x，鼠标悬停时高亮部分为16x）
+slot:
+  #物品槽背景图
+  img: '[local]MailBox/image_solt.png'
+  #物品槽背景图显示宽度（推荐偶数且大于等于18）
+  w: 18
+  #物品槽背景图显示高度（同上）
+  h: 18
+  #x坐标
+  x: 10
+  #y坐标
+  y: 10
+#文本框
+field:
+  #提示文字
+  text: 
+    #重命名
+    name: '§6请在此输入要更改的名字'
+    #添加Lore
+    lore: '§6请在此输入要添加的Lore'
+    #导出物品
+    export: '§6请在此输入要导出的文件名'
+    #导入物品
+    import: '§6请在此输入要导入的文件名'
+  #x坐标
+  x: 32
+  #y坐标
+  y: 12
+  #显示宽度
+  w: 200
+  #显示高度
+  h: 12
+#滚动列表
+list:
+  #x坐标
+  x: 10
+  #y坐标
+  y: 32
+  #显示宽度
+  w: 222
+  #显示高度
+  h: 157
+  #最小高度（建议比显示高度小5）
+  mh: 152
+  #最大高度计算公式：((Lore行数+1) * sh) + ih
+  #每一条Lore所占高度
+  sh: 12
+  #第一条Lore所占额外高度
+  oh: 0
+#Lore
+lore:
+  #y坐标计算公式：(oy * (Lore行数 - 1)) + fy
+  #y坐标偏移量(每一条Lore增加的y坐标)
+  oy: 12
+  #文字
+  text:
+    #x坐标
+    x: 0
+    #第一条Lore的y坐标
+    fy: 0
+    #文字大小（可以小数）
+    size: 1
+  #按钮
+  button:
+    #添加
+    add:
+      #按钮ID前缀（ID为：前缀_行数)
+      id: ItemAdd
+      #按钮显示文字
+      text: '§a+'
+      #按钮提示文字
+      hover:
+      - §a在上方添加一行Lore
+      #按钮背景图
+      img_1: '[local]MailBox/button_newmail.png'
+      img_2: '[local]MailBox/button_newmail_.png'
+      #x坐标
+      x: 160
+      #第一条Lore按钮的y坐标
+      fy: 0
+      #显示宽度
+      w: 12
+      #显示高度
+      h: 8
+    #修改
+    change:
+      #按钮ID前缀（ID为：前缀_行数)
+      id: ItemChange
+      #按钮显示文字
+      text: '§bo'
+      #按钮提示文字
+      hover:
+      - §a修改此行Lore
+      #按钮背景图
+      img_1: '[local]MailBox/button_newmail.png'
+      img_2: '[local]MailBox/button_newmail_.png'
+      #x坐标
+      x: 180
+      #第一条Lore按钮的y坐标
+      fy: 0
+      #显示宽度
+      w: 12
+      #显示高度
+      h: 8
+    #删除
+    delete:
+      #按钮ID前缀（ID为：前缀_行数)
+      id: ItemDelete
+      #按钮显示文字
+      text: '§cx'
+      #按钮提示文字
+      hover:
+      - §a删除此行Lore
+      #按钮背景图
+      img_1: '[local]MailBox/button_newmail.png'
+      img_2: '[local]MailBox/button_newmail_.png'
+      #x坐标
+      x: 200
+      #第一条Lore按钮的y坐标
+      fy: 0
+      #显示宽度
+      w: 12
+      #显示高度
+      h: 8

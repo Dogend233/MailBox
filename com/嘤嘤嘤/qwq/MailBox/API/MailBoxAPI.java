@@ -106,7 +106,7 @@ public class MailBoxAPI {
         ArrayList<Integer> recipientList = new ArrayList();
         switch (type) {
             case "player":
-                MailBox.getHashMap(type).forEach((k, v) -> {
+                MailBox.getMailHashMap(type).forEach((k, v) -> {
                     if(MailBoxAPI.isExpired(v)){
                         v.Delete(p);
                     }else{
@@ -117,21 +117,21 @@ public class MailBoxAPI {
                 break;
             case "system":
                 ArrayList<Integer> collectedSystem = SQLManager.get().getCollectedMailList(p, type);
-                MailBox.getHashMap(type).forEach((k, v) -> {
+                MailBox.getMailHashMap(type).forEach((k, v) -> {
                     if(v.getSender().equals(name)) senderList.add(k);
                     if(!collectedSystem.contains(k)) recipientList.add(k);
                 });
                 break;
             case "permission":
                 ArrayList<Integer> collectedPermission = SQLManager.get().getCollectedMailList(p, type);
-                MailBox.getHashMap(type).forEach((k, v) -> {
+                MailBox.getMailHashMap(type).forEach((k, v) -> {
                     if(v.getSender().equals(name)) senderList.add(k);
                     if(p.hasPermission(v.getPermission()) && !collectedPermission.contains(k)) recipientList.add(k);
                 });
                 break;
             case "date":
                 ArrayList<Integer> collectedDate = SQLManager.get().getCollectedMailList(p, type);
-                MailBox.getHashMap(type).forEach((k, v) -> {
+                MailBox.getMailHashMap(type).forEach((k, v) -> {
                     if(MailBoxAPI.isStart(v) || p.hasPermission("mailbox.admin.see.date")){
                         if(MailBoxAPI.isExpired(v)){
                             v.Delete(p);

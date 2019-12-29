@@ -41,6 +41,25 @@ button:
     w: 30
     #显示高度
     h: 22
+  #切换收/发件箱
+  box:
+    #按钮ID
+    id: MailBoxButton_Box
+    #收件箱按钮文字
+    text_r: §r收件箱
+    #发件箱按钮文字
+    text_s: §r发件箱
+    #按钮背景图
+    img_1: '[local]MailBox/button_newmail.png'
+    img_2: '[local]MailBox/button_newmail_.png'
+    #x坐标
+    x: 257
+    #y坐标
+    y: 27
+    #显示宽度
+    w: 30
+    #显示高度
+    h: 22
 #标题
 title:
   #是否启用标题（true 启用 | false 关闭）

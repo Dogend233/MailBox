@@ -54,6 +54,7 @@ public class MailView {
     public static void view(TextMail tm, Player p){
         TextComponent firstTC;
         ComponentBuilder CB = null;
+        boolean low1_12 = true;
         p.sendMessage("====================");
         viewTopic(tm, p);
         // 邮件内容
@@ -79,10 +80,16 @@ public class MailView {
                 if(collectable(tm.getType(),tm.getId(),p)){
                     firstTC = new TextComponent("  §a[领取邮件]");
                     firstTC.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+tm.getType()+" collect "+tm.getId()));
-                    if(CB==null){
-                        CB = new ComponentBuilder(firstTC);
+                    if(GlobalConfig.lowServer1_12){
+                        p.sendMessage("--------------------");
+                        low1_12 = false;
+                        p.spigot().sendMessage(firstTC);
                     }else{
-                        CB.append(firstTC);
+                        if(CB==null){
+                            CB = new ComponentBuilder(firstTC);
+                        }else{
+                            CB.append(firstTC);
+                        }
                     }
                 }
             }else{
@@ -95,10 +102,15 @@ public class MailView {
         if(deletable(tm, p)) {
             firstTC = new TextComponent("  §c[删除邮件]");
             firstTC.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+tm.getType()+" delete "+tm.getId()));
-            if(CB==null){
-                CB = new ComponentBuilder(firstTC);
+            if(GlobalConfig.lowServer1_12){
+                if(low1_12) p.sendMessage("--------------------");
+                p.spigot().sendMessage(firstTC);
             }else{
-                CB.append(firstTC);
+                if(CB==null){
+                    CB = new ComponentBuilder(firstTC);
+                }else{
+                    CB.append(firstTC);
+                }
             }
         }
         if(CB!=null){
@@ -290,6 +302,7 @@ public class MailView {
     
     public static void viewItem(ArrayList<ItemStack> isl, Player p){
         ComponentBuilder CB = new ComponentBuilder("  §e附件物品:  §a");
+        if(GlobalConfig.lowServer1_12) p.spigot().sendMessage(CB.create());
         int count = 0;
         for(ItemStack is:isl){
             HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM,  new BaseComponent[]{new TextComponent(NMS.Item2Json(is))});
@@ -301,10 +314,14 @@ public class MailView {
                 component = new TextComponent(name);
             }
             component.setHoverEvent(event);
-            CB.append(component);
-            CB.append(" ");
+            if(GlobalConfig.lowServer1_12){
+                p.spigot().sendMessage(component);
+            }else{
+                CB.append(component);
+                CB.append(" ");
+            }
         }
-        p.spigot().sendMessage(CB.create());
+        if(!GlobalConfig.lowServer1_12) p.spigot().sendMessage(CB.create());
     }
     public static void viewItem(ArrayList<ItemStack> isl, CommandSender s, ConversationContext cc){
         StringBuilder sb = new StringBuilder("  §e附件物品:  §a");
@@ -435,7 +452,7 @@ public class MailView {
     
      // 获取此封邮件
     private static TextMail getMail(String type, int mid){
-        return MailBox.getHashMap(type).get(mid);
+        return MailBox.getMailHashMap(type).get(mid);
     }
     
     // 获取玩家是否可以领取这封邮件

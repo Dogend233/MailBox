@@ -14,6 +14,7 @@ import com.嘤嘤嘤.qwq.MailBox.Utils.NMS;
 import com.嘤嘤嘤.qwq.MailBox.Utils.SQLManager;
 import com.嘤嘤嘤.qwq.MailBox.Utils.UpdateCheck;
 import com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui;
+import com.嘤嘤嘤.qwq.MailBox.VexView.MailItemModifyGui;
 import com.嘤嘤嘤.qwq.MailBox.VexView.VexViewConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -29,9 +30,11 @@ import lk.vexview.api.VexViewAPI;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PlayerPoints;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -61,6 +64,18 @@ public class MailBox extends JavaPlugin {
         // 插件启动
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件正在启动......");
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:版本："+this.getDescription().getVersion());
+        String version = Bukkit.getServer().getVersion();
+        version = version.substring(version.indexOf("MC")+3, version.length()-1).trim();
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:服务器版本："+version);
+        if(GlobalConfig.lowServer1_12 = !UpdateCheck.check(version.substring(0, version.lastIndexOf('.')), "1.12")){
+            Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:服务器版本低于1.12, 进行邮件查看方法调整");
+            if(GlobalConfig.lowServer1_11 = !UpdateCheck.check(version.substring(0, version.lastIndexOf('.')), "1.11")){
+                Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:服务器版本低于1.11, 进行Title提醒方法调整");
+                if(GlobalConfig.lowServer1_9 = !UpdateCheck.check(version.substring(0, version.lastIndexOf('.')), "1.9")){
+                    Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:服务器版本低于1.9, 进行获取手上物品方法调整");
+                }
+            }
+        }
         // 加载插件
         instance = this;
         loadPlugin();
@@ -353,7 +368,11 @@ public class MailBox extends JavaPlugin {
                     sender.sendMessage("§b/mb [邮件类型] collect [邮件ID] §e领取一封邮件");
                     sender.sendMessage("§b/mb [邮件类型] delete [邮件ID] §e删除一封邮件");
                     if(sender.hasPermission("mailbox.admin.item")){
+                        if(GlobalConfig.enVexView) sender.sendMessage("§b/mb item §e打开物品编辑GUI（仅VV）");
                         sender.sendMessage("§b/mb item id §e查看手上物品的Material_ID");
+                        sender.sendMessage("§b/mb item name [名称] §e为手上物品重命名");
+                        sender.sendMessage("§b/mb item lore add [描述] §e为手上物品添加一行Lore");
+                        sender.sendMessage("§b/mb item lore remove [行数] §e为手上物品移除指定行Lore");
                         sender.sendMessage("§b/mb item list §e查看已导出的物品文件名列表");
                         sender.sendMessage("§b/mb item export §e导出手上的物品至itemstack.yml");
                         sender.sendMessage("§b/mb item export [文件名] §e将手上物品导出至ItemExport文件夹下的[文件名].yml");
@@ -390,6 +409,12 @@ public class MailBox extends JavaPlugin {
                     }
                     if(sender.hasPermission("mailbox.admin.reload")){
                         sender.sendMessage("§b/mb reload §e重载插件");
+                    }
+                }else if(args[0].equals("item") && GlobalConfig.enVexView){
+                    if(sender instanceof Player){
+                        MailItemModifyGui.openItemModifyGui((Player)sender);
+                    }else{
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以打开GUI");
                     }
                 }else{
                     onCommandNormal(sender, args[0]);
@@ -514,7 +539,27 @@ public class MailBox extends JavaPlugin {
                                 if(!l.isEmpty()) return l;
                         }   break;
                     case "item":
-                        if(sender.hasPermission("mailbox.admin.item")) return Arrays.asList("id","import","export","list");
+                        if(sender.hasPermission("mailbox.admin.item")){
+                            if(args[1].length()==0){
+                                return Arrays.asList("export","id","import","list","lore","name");
+                            }
+                            if(args[1].length()>1){
+                                if(args[1].startsWith("id")) return Arrays.asList("id");
+                                if(args[1].startsWith("im")) return Arrays.asList("import");
+                                if(args[1].startsWith("li")) return Arrays.asList("list");
+                                if(args[1].startsWith("lo")) return Arrays.asList("lore");
+                            }
+                            switch (args[1].substring(0,1)){
+                                case "e":
+                                    return Arrays.asList("export");
+                                case "i":
+                                    return Arrays.asList("id","import");
+                                case "l":
+                                    return Arrays.asList("list","lore");
+                                case "n":
+                                    return Arrays.asList("name");
+                            }   break;
+                        }
                 }
                 break;
             case 3:
@@ -542,7 +587,17 @@ public class MailBox extends JavaPlugin {
                                 case "s":
                                     return Arrays.asList("system");
                             }   break;
-                        }
+                        }   break;
+                    case "item":
+                        if(args[1].equals("lore")){
+                            if(args[2].length()==0) return Arrays.asList("add","remove");
+                            switch (args[2].substring(0,1)){
+                                case "a":
+                                    return Arrays.asList("add");
+                                case "r":
+                                    return Arrays.asList("remove");
+                            }   break;
+                        }   break;
                 }
         }
         return null;
@@ -594,26 +649,27 @@ public class MailBox extends JavaPlugin {
         ItemStack is;
         switch (args[1]) {
             case "list":
-                    List<String> list = MailBoxAPI.getItemExport();
-                    if(list.isEmpty()){
-                        sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"没有已导出的物品");
-                    }else{
-                        int i = 0;
-                        for(String name:MailBoxAPI.getItemExport()){
-                            sender.sendMessage("§b"+(++i)+". §e"+name);
-                        }
-                    }   break;
+                List<String> list = MailBoxAPI.getItemExport();
+                if(list.isEmpty()){
+                    sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"没有已导出的物品");
+                }else{
+                    int i = 0;
+                    for(String name:MailBoxAPI.getItemExport()){
+                        sender.sendMessage("§b"+(++i)+". §e"+name);
+                    }
+                }   break;
             case "export":
                 if(sender instanceof Player){
-                    is = ((Player)sender).getInventory().getItemInMainHand();
+                    if(GlobalConfig.lowServer1_9) is = ((Player)sender).getInventory().getItemInHand();
+                    else is = ((Player)sender).getInventory().getItemInMainHand();
                     if(args.length==3){
-                        if(is!=null && MailBoxAPI.saveItem(is, args[2])){
+                        if(is.getType().equals(Material.AIR) && MailBoxAPI.saveItem(is, args[2])){
                             sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出至"+args[2]+".yml成功");
                         }else{
                             sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
                         }
                     }else{
-                        if(is!=null && MailBoxAPI.saveItem(is)){
+                        if(is.getType().equals(Material.AIR) && MailBoxAPI.saveItem(is)){
                             sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
                         }else{
                             sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
@@ -623,28 +679,100 @@ public class MailBox extends JavaPlugin {
                     sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以执行此指令");
                 }   break;
             case "import":
-                    if(args.length==3){
-                        is = MailBoxAPI.readItem(args[2]);
+                if(args.length==3){
+                    is = MailBoxAPI.readItem(args[2]);
+                }else{
+                    is = MailBoxAPI.readItem();
+                }
+                if(is==null){
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"读取物品失败");
+                }else{
+                    if(sender instanceof Player){
+                        if(GlobalConfig.lowServer1_9) ((Player)sender).getInventory().setItemInHand(is);
+                        else ((Player)sender).getInventory().setItemInMainHand(is);
                     }else{
-                        is = MailBoxAPI.readItem();
+                        sender.sendMessage("物品："+NMS.getItemName(is)+'\n'+"§a"+NMS.Item2Json(is).replace(',', '\n'));
                     }
-                    if(is==null){
-                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"读取物品失败");
-                    }else{
-                        if(sender instanceof Player){
-                            ((Player)sender).getInventory().setItemInMainHand(is);
-                        }else{
-                            sender.sendMessage("物品："+NMS.getItemName(is)+'\n'+"§a"+NMS.Item2Json(is).replace(',', '\n'));
-                        }
-                        sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已取出物品");
-                    }   break;
+                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已取出物品");
+                }   break;
+            case "lore":
+                if(args.length!=4 || (!args[2].equals("add") && !args[2].equals("remove"))){
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
+                    return;
+                }
+                if (sender instanceof Player) {
+                    if(GlobalConfig.lowServer1_9) is = ((Player)sender).getInventory().getItemInHand();
+                    else is = ((Player)sender).getInventory().getItemInMainHand();
+                    if(is.getType().equals(Material.AIR)){
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品失败");
+                        return;
+                    }
+                    ItemMeta im = is.getItemMeta();
+                    List<String> lores = new ArrayList();
+                    String lore = args[3].replace('&','§');
+                    int line;
+                    switch (args[2]) {
+                        case "remove":
+                            try {
+                                line = Integer.parseInt(lore);
+                            } catch (NumberFormatException e) {
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"Lore行数输入错误，请输入数字");
+                                return;
+                            }
+                            if(im.hasLore()){
+                                lores = im.getLore();
+                                if(line>lores.size()){
+                                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"要删除的行数超出该物品Lore的总行数");
+                                    return;
+                                }else{
+                                    lores.remove(line-1);
+                                    break;
+                                }
+                            }else{
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"该物品没有Lore");
+                                return;
+                            }
+                        case "add":
+                            if(im.hasLore()){
+                                lores = im.getLore();
+                            }
+                            lores.add(lore);
+                            break;
+                    }
+                    im.setLore(lores);
+                    is.setItemMeta(im);
+                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"Lore已修改");
+                } else {
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以执行此指令");
+                }
+                break;
+            case "name":
+                if(args.length!=3){
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
+                    return;
+                }
+                if(sender instanceof Player){
+                    if(GlobalConfig.lowServer1_9) is = ((Player)sender).getInventory().getItemInHand();
+                    else is = ((Player)sender).getInventory().getItemInMainHand();
+                    if(is.getType().equals(Material.AIR)){
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品失败");
+                        return;
+                    }
+                    ItemMeta im = is.getItemMeta();
+                    im.setDisplayName(args[2].replace('&','§'));
+                    is.setItemMeta(im);
+                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品已重命名");
+                }else{
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以执行此指令");
+                }   break;
             case "id":
                 if(sender instanceof Player){
-                    is = ((Player)sender).getInventory().getItemInMainHand();
-                    if(is!=null){
-                        sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品的Material_ID为: "+GlobalConfig.normal+is.getType().name());
+                    if(GlobalConfig.lowServer1_9) is = ((Player)sender).getInventory().getItemInHand();
+                    else is = ((Player)sender).getInventory().getItemInMainHand();
+                    if(is.getType().equals(Material.AIR)){
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品失败");
                     }else{
-                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品Material_ID失败");
+                        sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品的Material_ID为: "+GlobalConfig.normal+is.getType().name());
                     }
                 }else{
                     sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以执行此指令");
@@ -824,7 +952,7 @@ public class MailBox extends JavaPlugin {
                                 int mail;
                                 try{
                                     mail = Integer.parseInt(args[2]);
-                                    TextMail tm = MailBox.getHashMap(type).get(mail);
+                                    TextMail tm = MailBox.getMailHashMap(type).get(mail);
                                     if(tm!=null && (tm instanceof FileMail)){
                                         String filename = ((FileMail)tm).getFileName();
                                         if(args[1].equals("upload")){
@@ -895,7 +1023,7 @@ public class MailBox extends JavaPlugin {
     }
     
     // 根据类型获取Map集合
-    public static HashMap<Integer, TextMail> getHashMap(String type){
+    public static HashMap<Integer, TextMail> getMailHashMap(String type){
         switch (type){
             case "system":
                 return SYSTEM_LIST;
@@ -907,6 +1035,19 @@ public class MailBox extends JavaPlugin {
                 return DATE_LIST;
             default:
                 return null;
+        }
+    }
+    
+    // 获取邮件总数
+    public static int getMailAllCount(Player p){
+        if(p==null){
+            return (SYSTEM_LIST.size()+PERMISSION_LIST.size()+PLAYER_LIST.size()+DATE_LIST.size());
+        }else{
+            int count = 0;
+            for(String type:MailBoxAPI.getAllType()){
+                count += getRelevantMailList(p, type).get("asRecipient").size();
+            }
+            return count;
         }
     }
     
