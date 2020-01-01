@@ -1,6 +1,6 @@
 name: MailBox
 main: com.嘤嘤嘤.qwq.MailBox.MailBox
-version: 1.6.1
+version: 1.6.2
 description: 嘤嘤嘤邮箱插件
 author: Dogend
 website: qwq.嘤嘤嘤.com
@@ -26,6 +26,10 @@ commands:
             /mailbox item lore add [描述] *为手上物品添加一行Lore
             /mailbox item lore remove [行数] *为手上物品移除指定行Lore
             /mailbox item list *查看已导出的物品文件名列表
+            /mailbox item give [在线玩家] *将itemstack.yml中的物品给予指定玩家
+            /mailbox item give [在线玩家] [文件名] *将ItemExport文件夹下的[文件名].yml中的物品给予指定玩家
+            /mailbox item gived [在线玩家] *将itemstack.yml中的物品强制给予指定玩家，不会判断背包是否有空位
+            /mailbox item gived [在线玩家] [文件名] *将ItemExport文件夹下的[文件名].yml中的物品强制给予指定玩家，不会判断背包是否有空位
             /mailbox item export *导出手上的物品至itemstack.yml
             /mailbox item export [文件名] *将手上物品导出至ItemExport文件夹下的[文件名].yml
             /mailbox item import *将itemstack.yml中的物品取出到手上

@@ -31,7 +31,7 @@ import lk.vexview.api.VexViewAPI;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PlayerPoints;
-import org.bukkit.Material;
+import static org.bukkit.Material.AIR;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
@@ -378,6 +378,10 @@ public class MailBox extends JavaPlugin {
                         sender.sendMessage("§b/mb item lore add [描述] §e为手上物品添加一行Lore");
                         sender.sendMessage("§b/mb item lore remove [行数] §e为手上物品移除指定行Lore");
                         sender.sendMessage("§b/mb item list §e查看已导出的物品文件名列表");
+                        sender.sendMessage("§b/mb item give [在线玩家] §e将itemstack.yml中的物品给予指定玩家");
+                        sender.sendMessage("§b/mb item give [在线玩家] [文件名] §e将ItemExport文件夹下的[文件名].yml中的物品给予指定玩家");
+                        sender.sendMessage("§b/mb item gived [在线玩家] §e将itemstack.yml中的物品强制给予指定玩家，不会判断背包是否有空位");
+                        sender.sendMessage("§b/mb item gived [在线玩家] [文件名] §e将ItemExport文件夹下的[文件名].yml中的物品强制给予指定玩家，不会判断背包是否有空位");
                         sender.sendMessage("§b/mb item export §e导出手上的物品至itemstack.yml");
                         sender.sendMessage("§b/mb item export [文件名] §e将手上物品导出至ItemExport文件夹下的[文件名].yml");
                         sender.sendMessage("§b/mb item import §e将itemstack.yml中的物品取出到手上");
@@ -418,7 +422,7 @@ public class MailBox extends JavaPlugin {
                     if(sender instanceof Player){
                         MailItemModifyGui.openItemModifyGui((Player)sender);
                     }else{
-                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"只有玩家可以打开GUI");
+                        Bukkit.getServer().dispatchCommand(sender, "mb item list");
                     }
                 }else{
                     onCommandNormal(sender, args[0]);
@@ -545,9 +549,11 @@ public class MailBox extends JavaPlugin {
                     case "item":
                         if(sender.hasPermission("mailbox.admin.item")){
                             if(args[1].length()==0){
-                                return Arrays.asList("export","id","import","list","lore","name");
+                                return Arrays.asList("export","give","gived","id","import","list","lore","name");
                             }
                             if(args[1].length()>1){
+                                if(args[1].equals("gived")) return Arrays.asList("give");
+                                if(args[1].equals("give")) return Arrays.asList("gived");
                                 if(args[1].startsWith("id")) return Arrays.asList("id");
                                 if(args[1].startsWith("im")) return Arrays.asList("import");
                                 if(args[1].startsWith("li")) return Arrays.asList("list");
@@ -556,6 +562,8 @@ public class MailBox extends JavaPlugin {
                             switch (args[1].substring(0,1)){
                                 case "e":
                                     return Arrays.asList("export");
+                                case "g":
+                                    return Arrays.asList("give","gived");
                                 case "i":
                                     return Arrays.asList("id","import");
                                 case "l":
@@ -671,13 +679,13 @@ public class MailBox extends JavaPlugin {
                     if(GlobalConfig.lowServer1_9) is = ((Player)sender).getInventory().getItemInHand();
                     else is = ((Player)sender).getInventory().getItemInMainHand();
                     if(args.length==3){
-                        if(is.getType().equals(Material.AIR) && MailBoxAPI.saveItem(is, args[2])){
+                        if(is.getType().equals(AIR) && MailBoxAPI.saveItem(is, args[2])){
                             sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出至"+args[2]+".yml成功");
                         }else{
                             sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
                         }
                     }else{
-                        if(is.getType().equals(Material.AIR) && MailBoxAPI.saveItem(is)){
+                        if(is.getType().equals(AIR) && MailBoxAPI.saveItem(is)){
                             sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
                         }else{
                             sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
@@ -703,6 +711,32 @@ public class MailBox extends JavaPlugin {
                     }
                     sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已取出物品");
                 }   break;
+            case "give":
+            case "gived":
+                if(args.length<3){
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
+                    break;
+                }
+                Player p = Bukkit.getPlayer(args[2]);
+                if(p==null){
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家不在线");
+                    break;
+                }
+                if(args[1].equals("give") && p.getInventory().firstEmpty()==-1){
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标玩家背包空间不足");
+                    break;
+                }
+                if(args.length==4){
+                    is = MailBoxAPI.readItem(args[3]);
+                }else{
+                    is = MailBoxAPI.readItem();
+                }
+                if(is==null){
+                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"读取物品失败");
+                }else{
+                    p.getInventory().addItem(is);
+                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已给予物品");
+                }   break;
             case "lore":
                 if(args.length!=4 || (!args[2].equals("add") && !args[2].equals("remove"))){
                     sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"未知的指令");
@@ -711,7 +745,7 @@ public class MailBox extends JavaPlugin {
                 if (sender instanceof Player) {
                     if(GlobalConfig.lowServer1_9) is = ((Player)sender).getInventory().getItemInHand();
                     else is = ((Player)sender).getInventory().getItemInMainHand();
-                    if(is.getType().equals(Material.AIR)){
+                    if(is.getType().equals(AIR)){
                         sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品失败");
                         return;
                     }
@@ -762,7 +796,7 @@ public class MailBox extends JavaPlugin {
                 if(sender instanceof Player){
                     if(GlobalConfig.lowServer1_9) is = ((Player)sender).getInventory().getItemInHand();
                     else is = ((Player)sender).getInventory().getItemInMainHand();
-                    if(is.getType().equals(Material.AIR)){
+                    if(is.getType().equals(AIR)){
                         sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品失败");
                         return;
                     }
@@ -777,7 +811,7 @@ public class MailBox extends JavaPlugin {
                 if(sender instanceof Player){
                     if(GlobalConfig.lowServer1_9) is = ((Player)sender).getInventory().getItemInHand();
                     else is = ((Player)sender).getInventory().getItemInMainHand();
-                    if(is.getType().equals(Material.AIR)){
+                    if(is.getType().equals(AIR)){
                         sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品失败");
                     }else{
                         sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品的Material_ID为: "+GlobalConfig.normal+is.getType().name());
