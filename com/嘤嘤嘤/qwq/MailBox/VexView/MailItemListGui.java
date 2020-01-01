@@ -97,15 +97,19 @@ public class MailItemListGui extends VexGui{
     
     // 获取Lore列表
     private VexScrollingList getItemList(List<String> ItemList){
-        int mh = (ItemList.size()/slot_c)*list_sh+list_oh;
+        int h = ItemList.size()/slot_c;
+        if(ItemList.size()%slot_c!=0) h++;
+        int mh = (h)*list_sh+list_oh;
         if(mh<list_mh) mh = list_mh;
         VexScrollingList vsl = new VexScrollingList(list_x,list_y,list_w,list_h,mh);
         int count = 0;
         for(String name:ItemList){
             ItemStack is = MailBoxAPI.readItem(name.substring(0, name.length()-4));
+            ItemStack isc = is.clone();
+            isc.setAmount(1);
             int xc = count%slot_c;
             int yc = count/slot_c;
-            vsl.addComponent(new VexSlot(count,xc*slot_x_offset+slot_fx,yc*slot_y_offset+list_y+slot_fy,is));
+            vsl.addComponent(new VexSlot(count,xc*slot_x_offset+slot_fx,yc*slot_y_offset+list_y+slot_fy,isc));
             vsl.addComponent(new VexButton("ItemButton_"+count,"",slot_img,slot_img,xc*slot_x_offset+slot_fx+x_offset,yc*slot_y_offset+slot_fy-y_offset,slot_w,slot_h,player -> {
                 MailItemModifyGui.openItemModifyGui(player, is);
             }));

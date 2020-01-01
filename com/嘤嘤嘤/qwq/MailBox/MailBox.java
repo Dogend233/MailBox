@@ -679,13 +679,13 @@ public class MailBox extends JavaPlugin {
                     if(GlobalConfig.lowServer1_9) is = ((Player)sender).getInventory().getItemInHand();
                     else is = ((Player)sender).getInventory().getItemInMainHand();
                     if(args.length==3){
-                        if(is.getType().equals(AIR) && MailBoxAPI.saveItem(is, args[2])){
+                        if(!is.getType().equals(AIR) && MailBoxAPI.saveItem(is, args[2])){
                             sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出至"+args[2]+".yml成功");
                         }else{
                             sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
                         }
                     }else{
-                        if(is.getType().equals(AIR) && MailBoxAPI.saveItem(is)){
+                        if(!is.getType().equals(AIR) && MailBoxAPI.saveItem(is)){
                             sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出成功");
                         }else{
                             sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"导出物品失败");
