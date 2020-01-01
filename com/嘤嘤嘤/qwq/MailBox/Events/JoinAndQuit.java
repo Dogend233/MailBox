@@ -1,5 +1,6 @@
 package com.嘤嘤嘤.qwq.MailBox.Events;
 
+import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
 import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxHud;
@@ -13,8 +14,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class JoinAndQuit implements Listener {
     
-    private boolean enVexView;
-    private boolean enHud;
+    private final boolean enVexView;
+    private final boolean enHud;
     
     public JoinAndQuit(boolean enVexView, boolean enHud){
         this.enVexView = enVexView;
@@ -32,6 +33,14 @@ public class JoinAndQuit implements Listener {
         if(enVexView) VexViewAPI.removeHUD(player, MailBoxHud.id);
         // 设置HUD
         if(enVexView && enHud) MailBoxHud.setMailBoxHud(player);
+        for(String type:MailBoxAPI.getAllType()){
+            MailBox.updateRelevantMailList(player, type);
+            if(!MailBox.getRelevantMailList(player, type).get("asRecipient").isEmpty()){
+                MailBoxAPI.sendTips(player);
+                System.out.println(1);
+                return;
+            }
+        }
     }
     
     // 玩家退出事件

@@ -392,12 +392,19 @@ public class MailItemModifyGui extends VexGui{
             if(GlobalConfig.lowServer1_9) is = p.getInventory().getItemInHand();
             else is = p.getInventory().getItemInMainHand();
             if(is.getType().equals(Material.AIR)){
-                p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取物品失败");
+                p.performCommand("mb item list");
             }else{
                 VexViewAPI.openGui(p, new MailItemModifyGui(p, is));
             }
         }else{
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有执行此指令的权限");
+        }
+    }
+    public static void openItemModifyGui(Player p, ItemStack is) {
+        if(is.getType().equals(Material.AIR)){
+            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"该物品为空");
+        }else{
+            VexViewAPI.openGui(p, new MailItemModifyGui(p, is));
         }
     }
     

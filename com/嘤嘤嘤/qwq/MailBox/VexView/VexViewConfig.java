@@ -31,7 +31,13 @@ public class VexViewConfig {
         config.ConfigLoad();
     }
     
-    public void ConfigSet(YamlConfiguration hud, YamlConfiguration box, YamlConfiguration content, YamlConfiguration select, YamlConfiguration send, YamlConfiguration item_modify){
+    public void ConfigSet(YamlConfiguration hud, 
+            YamlConfiguration box, 
+            YamlConfiguration content, 
+            YamlConfiguration select, 
+            YamlConfiguration send, 
+            YamlConfiguration item_modify, 
+            YamlConfiguration item_list){
         MailBox mb = MailBox.getInstance();
         // 配置常驻Hud
         if(hud.getBoolean("hud.enable")){
@@ -535,6 +541,31 @@ public class VexViewConfig {
             item_modify.getInt("lore.button.delete.w"),
             item_modify.getInt("lore.button.delete.h")
         );
+        // 配置物品列表GUI
+        MailItemListGui.setItemListConfig(
+            item_list.getString("gui.img"),
+            item_list.getInt("gui.x"),
+            item_list.getInt("gui.y"),
+            item_list.getInt("gui.w"),
+            item_list.getInt("gui.h"),
+            item_list.getInt("gui.ww"),
+            item_list.getInt("gui.hh"),
+            item_list.getInt("list.x"),
+            item_list.getInt("list.y"),
+            item_list.getInt("list.w"),
+            item_list.getInt("list.h"),
+            item_list.getInt("list.mh"),
+            item_list.getInt("list.sh"),
+            item_list.getInt("list.oh"),
+            item_list.getString("slot.img"),
+            item_list.getInt("slot.w"),
+            item_list.getInt("slot.h"),
+            item_list.getInt("slot.c"),
+            item_list.getInt("slot.fx"),
+            item_list.getInt("slot.fy"),
+            item_list.getInt("slot.ox"),
+            item_list.getInt("slot.oy")
+        );
     }
     
     // 判断VexView文件夹是否存在
@@ -555,7 +586,8 @@ public class VexViewConfig {
         YamlConfiguration select = ConfigGet("select");
         YamlConfiguration send = ConfigGet("send");
         YamlConfiguration item_modify = ConfigGet("item_modify");
-        ConfigSet(hud, box, content, select, send, item_modify);
+        YamlConfiguration item_list = ConfigGet("item_list");
+        ConfigSet(hud, box, content, select, send, item_modify, item_list);
     }
     
     // 获取/创建 配置

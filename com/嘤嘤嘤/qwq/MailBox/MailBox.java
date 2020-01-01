@@ -14,6 +14,7 @@ import com.嘤嘤嘤.qwq.MailBox.Utils.NMS;
 import com.嘤嘤嘤.qwq.MailBox.Utils.SQLManager;
 import com.嘤嘤嘤.qwq.MailBox.Utils.UpdateCheck;
 import com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxGui;
+import com.嘤嘤嘤.qwq.MailBox.VexView.MailItemListGui;
 import com.嘤嘤嘤.qwq.MailBox.VexView.MailItemModifyGui;
 import com.嘤嘤嘤.qwq.MailBox.VexView.VexViewConfig;
 import org.bukkit.Bukkit;
@@ -73,6 +74,9 @@ public class MailBox extends JavaPlugin {
                 Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:服务器版本低于1.11, 进行Title提醒方法调整");
                 if(GlobalConfig.lowServer1_9 = !UpdateCheck.check(version.substring(0, version.lastIndexOf('.')), "1.9")){
                     Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:服务器版本低于1.9, 进行获取手上物品方法调整");
+                    if(GlobalConfig.lowServer1_8 = !UpdateCheck.check(version.substring(0, version.lastIndexOf('.')), "1.8")){
+                        Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:服务器版本低于1.8, 已删除标题提醒方法");
+                    }
                 }
             }
         }
@@ -166,7 +170,7 @@ public class MailBox extends JavaPlugin {
                     GlobalConfig.setLowVexView_2_5(false);
                     GlobalConfig.setLowVexView_2_4(false);
                 }else{
-                    Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]版本小于2.5, 已关闭发送邮件GUI, 使用指令代替");
+                    Bukkit.getConsoleSender().sendMessage("§c-----[MailBox]:前置插件[VexView]版本小于2.5, 已关闭发送邮件GUI和导出物品列表, 使用指令代替");
                     GlobalConfig.setLowVexView_2_5(true);
                     if(UpdateCheck.check(version, "2.4.0")){
                         GlobalConfig.setLowVexView_2_4(false);
@@ -349,7 +353,7 @@ public class MailBox extends JavaPlugin {
             if(args.length==0){
                 if(GlobalConfig.enVexView){
                     if(sender instanceof Player && MailBoxAPI.hasPlayerPermission(sender, "mailbox.gui.mailbox")){
-                        if(enCmdOpen) MailBoxGui.openMailBoxGui((Player) sender, "Recipient");
+                        if(enCmdOpen) MailBoxGui.openMailBoxGui((Player)sender, "Recipient");
                         else MailList.list(sender, "Recipient");
                     }else{
                         MailList.list(sender, "Recipient");
@@ -653,9 +657,13 @@ public class MailBox extends JavaPlugin {
                 if(list.isEmpty()){
                     sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"没有已导出的物品");
                 }else{
-                    int i = 0;
-                    for(String name:MailBoxAPI.getItemExport()){
-                        sender.sendMessage("§b"+(++i)+". §e"+name);
+                    if(GlobalConfig.lowVexView_2_5 || !(sender instanceof Player)){
+                        int i = 0;
+                        for(String name:MailBoxAPI.getItemExport()){
+                            sender.sendMessage("§b"+(++i)+". §e"+name);
+                        }
+                    }else{
+                        VexViewAPI.openGui((Player)sender, new MailItemListGui(list));
                     }
                 }   break;
             case "export":

@@ -1,7 +1,6 @@
 package com.嘤嘤嘤.qwq.MailBox.Original;
 
 import com.嘤嘤嘤.qwq.MailBox.API.MailBoxAPI;
-import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;

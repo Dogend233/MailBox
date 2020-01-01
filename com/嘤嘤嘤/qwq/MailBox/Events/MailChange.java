@@ -8,11 +8,8 @@ import com.嘤嘤嘤.qwq.MailBox.GlobalConfig;
 import com.嘤嘤嘤.qwq.MailBox.Mail.FileMail;
 import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
-import com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxHud;
-import com.嘤嘤嘤.qwq.MailBox.VexView.MailTipsHud;
 import java.io.IOException;
 import java.util.List;
-import lk.vexview.api.VexViewAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -40,21 +37,21 @@ public class MailChange implements Listener {
             case "system":
                 for(Player p:Bukkit.getOnlinePlayers()){
                     if(MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.system")){
-                        newMailTips(p);
+                        MailBoxAPI.sendTips(p);
                     }
                 }   break;
             case "permission":
                 for(Player p:Bukkit.getOnlinePlayers()){
                     String perm = tm.getPermission();
                     if(MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.permission") && p.hasPermission(perm)){
-                        newMailTips(p);
+                        MailBoxAPI.sendTips(p);
                     }
                 }   break;
             case "date":
                 if(MailBoxAPI.isStart(tm)){
                     for(Player p:Bukkit.getOnlinePlayers()){
                         if(MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.date")){
-                            newMailTips(p);
+                            MailBoxAPI.sendTips(p);
                         }
                     }
                 }   break;
@@ -62,7 +59,7 @@ public class MailChange implements Listener {
                 List<String> pl = tm.getRecipient();
                 for(Player p:Bukkit.getOnlinePlayers()){
                     if(MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.player") && pl.contains(p.getName())){
-                        newMailTips(p);
+                        MailBoxAPI.sendTips(p);
                     }
                 }   break;
             default:
@@ -87,19 +84,6 @@ public class MailChange implements Listener {
         MailBox.updateMailList(e.getPlayer(), type);
         // 输出到控制台
         Bukkit.getConsoleSender().sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+e.getName()+"删除了邮件: <"+tm.getTypeName()+" - "+tm.getId()+">");
-    }
-    
-    private static void newMailTips(Player p){
-        if(GlobalConfig.tips.contains("msg")) p.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.tipsMsg);
-        if(GlobalConfig.tips.contains("title")) {
-            if(GlobalConfig.lowServer1_11){
-                p.sendTitle(GlobalConfig.tipsMsg, "");
-            }else{
-                p.sendTitle(GlobalConfig.tipsMsg, "", 10, 70, 20);
-            }
-        }
-        if(GlobalConfig.enVexView && GlobalConfig.tips.contains("flow")) VexViewAPI.sendFlowView(p, GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.tipsMsg, 10, true);
-        if(GlobalConfig.enVexView && GlobalConfig.tips.contains("hud")) MailTipsHud.setMailTipsHud(p);
     }
     
 }

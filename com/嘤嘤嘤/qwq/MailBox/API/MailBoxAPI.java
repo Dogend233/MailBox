@@ -7,6 +7,7 @@ import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import com.嘤嘤嘤.qwq.MailBox.Utils.MD5;
 import com.嘤嘤嘤.qwq.MailBox.Utils.SQLManager;
+import com.嘤嘤嘤.qwq.MailBox.VexView.MailTipsHud;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import lk.vexview.api.VexViewAPI;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.black_ixx.playerpoints.PlayerPoints;
@@ -635,6 +637,20 @@ public class MailBoxAPI {
             }
         }
         return md5;
+    }
+    
+    // 向玩家发送邮件提醒
+    public static void sendTips(Player p){
+        if(GlobalConfig.tips.contains("msg")) p.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.tipsMsg);
+        if(!GlobalConfig.lowServer1_8 && GlobalConfig.tips.contains("title")) {
+            if(GlobalConfig.lowServer1_11){
+                p.sendTitle(GlobalConfig.tipsMsg, "");
+            }else{
+                p.sendTitle(GlobalConfig.tipsMsg, "", 10, 70, 20);
+            }
+        }
+        if(GlobalConfig.enVexView && GlobalConfig.tips.contains("flow")) VexViewAPI.sendFlowView(p, GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.tipsMsg, 10, true);
+        if(GlobalConfig.enVexView && GlobalConfig.tips.contains("hud")) MailTipsHud.setMailTipsHud(p);
     }
     
 }

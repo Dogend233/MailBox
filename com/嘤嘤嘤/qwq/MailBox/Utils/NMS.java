@@ -15,9 +15,9 @@ import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;*/
 public class NMS {
     
     private static String VERSION;
-    private static Map<String, Class<?>> loadedNMSClasses = new HashMap<>();
-    private static Map<String, Class<?>> loadedOBCClasses = new HashMap<>();
-    private static Map<Class<?>, Map<String, Method>> loadedMethods = new HashMap<>();
+    private static final Map<String, Class<?>> loadedNMSClasses = new HashMap<>();
+    private static final Map<String, Class<?>> loadedOBCClasses = new HashMap<>();
+    private static final Map<Class<?>, Map<String, Method>> loadedMethods = new HashMap<>();
     
     private static Class<?> craftItemStackClazz;
     private static Method asNMSCopyMethod;
