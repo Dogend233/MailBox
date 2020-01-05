@@ -515,7 +515,7 @@ public class SQLManager {
         return null;
     }
     
-    // 判断某邮件是否已存在
+    // 判断某附件是否已存在
     public boolean existMailFiles(String filename, String type){
         String sql = SQLCommand.SELECT_FILE.commandToString(SQLPrefix);
         try {

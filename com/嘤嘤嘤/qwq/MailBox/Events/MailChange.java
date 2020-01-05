@@ -70,6 +70,8 @@ public class MailChange implements Listener {
     public void onMailCollect(MailCollectEvent e){
         TextMail tm = e.getMail();
         String type = tm.getType();
+        // 更新邮件列表
+        if(type.equals("player")) MailBox.updateMailList(null, type);
         // 更新玩家可领取邮件列表
         MailBox.updateRelevantMailList(e.getPlayer(), type);
         // 输出到控制台

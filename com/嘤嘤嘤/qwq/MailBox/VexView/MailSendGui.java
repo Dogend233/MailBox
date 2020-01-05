@@ -303,7 +303,7 @@ public class MailSendGui extends VexInventoryGui{
         int x_offset = ((slot_w-18)/2)-1; 
         int y_offset = ((slot_h-18)/2)-1;
         solt_image.clear();
-        for(int i=0;i<5;i++){
+        for(int i=0;i<GlobalConfig.maxItem;i++){
             int x = slot_x.get(i);
             int y = slot_y.get(i);
             solt_image.add(new VexImage(slot_img,x+x_offset,y+y_offset,slot_w,slot_h));

@@ -9,8 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import static org.bukkit.Material.AIR;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.ConversationContext;
@@ -70,6 +71,11 @@ public class FileMail extends TextMail implements Item, Command{
         // 判断权限
         if(getType().equals("permission") && p.hasPermission(getPermission())){
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有领取这个邮件的权限！");
+            return false;
+        }
+        // 判断背包空间
+        if(hasItem && !hasBlank(p)){
+            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"背包空间不足！");
             return false;
         }
         // 设置玩家领取邮件
@@ -318,34 +324,46 @@ public class FileMail extends TextMail implements Item, Command{
     
     @Override
     public boolean hasBlank(Player p){
-         // 检查背包空位够不够
-        int x = 0;
-        boolean hasBlank = false;
-        for(int i = 0;i<36;i++){
-            if(p.getInventory().getItem(i)==null)x++;
-            if(x>=itemList.size()){
-                hasBlank = true;
-                break;
+        int ils = itemList.size();
+        int allAir = 0;
+        for(ItemStack it:p.getInventory().getStorageContents()){
+            if(it==null){
+                if((allAir++)>=ils){
+                    return true;
+                }
             }
         }
-        return hasBlank;
+        if(allAir<ils){
+            int needAir = 0;
+            o:for(int i=0;i<ils;i++){
+                ItemStack is1 = itemList.get(i);
+                HashMap<Integer, ? extends ItemStack> im = p.getInventory().all(is1.getType());
+                if(!im.isEmpty()){
+                    Set<Integer> ks = im.keySet();
+                    for(Integer k:ks){
+                        ItemStack is2 = im.get(k);
+                        if(is2.isSimilar(is1) && is2.getAmount()+is1.getAmount()<=is2.getMaxStackSize()){
+                            continue o;
+                        }
+                    }
+                }
+                needAir++;
+            }
+            return allAir >= needAir;
+        }else{
+            return true;
+        }
     }
 
     @Override
     public boolean giveItem(Player p) {
         // 检查背包空位够不够
-        if(hasBlank(p)){
-            ItemStack[] isa = {new ItemStack(Material.AIR),new ItemStack(Material.AIR),new ItemStack(Material.AIR),new ItemStack(Material.AIR),new ItemStack(Material.AIR)};
-            for(int i = 0 ;i<itemList.size();i++){
-                ItemStack is = itemList.get(i);
-                isa[i] = is;
-            }
-            p.getInventory().addItem(isa);
-            return true;
-        }else{
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 领取失败，请在背包中留出"+itemList.size()+"个空位！");
-            return false;
+        ItemStack[] isa = new ItemStack[itemList.size()];
+        for(int i = 0 ;i<itemList.size();i++){
+            isa[i] = itemList.get(i);
         }
+        p.getInventory().addItem(isa);
+        return true;
     }
     
     // 判断玩家背包里是否有想要发送的物品

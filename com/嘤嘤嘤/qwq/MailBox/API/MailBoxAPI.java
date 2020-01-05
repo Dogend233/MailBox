@@ -106,16 +106,18 @@ public class MailBoxAPI {
         String name = p.getName();
         ArrayList<Integer> senderList = new ArrayList();
         ArrayList<Integer> recipientList = new ArrayList();
+        ArrayList<Integer> deleteList = new ArrayList();
         switch (type) {
             case "player":
                 MailBox.getMailHashMap(type).forEach((k, v) -> {
                     if(MailBoxAPI.isExpired(v)){
-                        v.Delete(p);
+                        deleteList.add(k);
                     }else{
                         if(v.getSender().equals(name)) senderList.add(k);
                         if(v.getRecipient().contains(name)) recipientList.add(k);
                     }
                 });
+                for(Integer i:deleteList) MailBox.getMailHashMap(type).get(i).Delete(p);
                 break;
             case "system":
                 ArrayList<Integer> collectedSystem = SQLManager.get().getCollectedMailList(p, type);
@@ -136,19 +138,20 @@ public class MailBoxAPI {
                 MailBox.getMailHashMap(type).forEach((k, v) -> {
                     if(MailBoxAPI.isStart(v) || p.hasPermission("mailbox.admin.see.date")){
                         if(MailBoxAPI.isExpired(v)){
-                            v.Delete(p);
+                            deleteList.add(k);
                         }else{
                             if(v.getSender().equals(name)) senderList.add(k);
                             if(!collectedDate.contains(k)) recipientList.add(k);
                         }
                     }else{
                         if(MailBoxAPI.isExpired(v)){
-                            v.Delete(p);
+                            deleteList.add(k);
                         }else{
                             if(v.getSender().equals(name)) senderList.add(k);
                         }
                     }
                 });
+                for(Integer i:deleteList) MailBox.getMailHashMap(type).get(i).Delete(p);
                 break;
         }
         hm.put("asSender", senderList);

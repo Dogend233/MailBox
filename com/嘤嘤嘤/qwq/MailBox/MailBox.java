@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import lk.vexview.api.VexViewAPI;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.milkbowl.vault.economy.Economy;
@@ -671,7 +672,7 @@ public class MailBox extends JavaPlugin {
                             sender.sendMessage("§b"+(++i)+". §e"+name);
                         }
                     }else{
-                        VexViewAPI.openGui((Player)sender, new MailItemListGui(list));
+                        MailItemListGui.openItemListGui((Player)sender, list);
                     }
                 }   break;
             case "export":
@@ -722,10 +723,6 @@ public class MailBox extends JavaPlugin {
                     sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家不在线");
                     break;
                 }
-                if(args[1].equals("give") && p.getInventory().firstEmpty()==-1){
-                    sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标玩家背包空间不足");
-                    break;
-                }
                 if(args.length==4){
                     is = MailBoxAPI.readItem(args[3]);
                 }else{
@@ -734,8 +731,25 @@ public class MailBox extends JavaPlugin {
                 if(is==null){
                     sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"读取物品失败");
                 }else{
-                    p.getInventory().addItem(is);
-                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已给予物品");
+                    if(args[1].equals("give") && p.getInventory().firstEmpty()==-1){
+                        HashMap<Integer, ? extends ItemStack> im = p.getInventory().all(is.getType());
+                        if(!im.isEmpty()){
+                            Set<Integer> ks = im.keySet();
+                            for(Integer k:ks){
+                                ItemStack iss = im.get(k);
+                                if(iss.isSimilar(is) && iss.getAmount()+is.getAmount()<=iss.getMaxStackSize()){
+                                    p.getInventory().addItem(is);
+                                    sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已给予物品");
+                                    return;
+                                }
+                            }
+                        }
+                        sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标玩家背包空间不足");
+                        break;
+                    }else{
+                        p.getInventory().addItem(is);
+                        sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已给予物品");
+                    }
                 }   break;
             case "lore":
                 if(args.length!=4 || (!args[2].equals("add") && !args[2].equals("remove"))){
