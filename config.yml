@@ -74,7 +74,7 @@ mailbox:
       #领取邮件的玩家变量
       player: '%player%'
     #最大发送物品数量
-    maxItem: 5
+    maxItem: 12
     #禁止作为附件发送的物品
     ban:
       #Lore中包含此文字的物品

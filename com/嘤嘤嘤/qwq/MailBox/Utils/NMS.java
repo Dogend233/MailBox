@@ -15,9 +15,9 @@ import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;*/
 public class NMS {
     
     private static String VERSION;
-    private static final Map<String, Class<?>> loadedNMSClasses = new HashMap<>();
-    private static final Map<String, Class<?>> loadedOBCClasses = new HashMap<>();
-    private static final Map<Class<?>, Map<String, Method>> loadedMethods = new HashMap<>();
+    private static Map<String, Class<?>> loadedNMSClasses = new HashMap<>();
+    private static Map<String, Class<?>> loadedOBCClasses = new HashMap<>();
+    private static Map<Class<?>, Map<String, Method>> loadedMethods = new HashMap<>();
     
     private static Class<?> craftItemStackClazz;
     private static Method asNMSCopyMethod;
@@ -32,18 +32,19 @@ public class NMS {
     public static String getItemName(ItemStack is){
         Object nmsItemStackObj;
         Object nmsItemName;
+        String name = "";
         try {
             nmsItemStackObj = asNMSCopyMethod.invoke(null, is);
             nmsItemName = getNameMethod.invoke(nmsItemStackObj);
             if(nmsItemName instanceof String){
-                return (String)nmsItemName;
+                name = (String)nmsItemName;
             }else{
-                return getTextMethod.invoke(nmsItemName).toString();
+                name = getTextMethod.invoke(nmsItemName).toString();
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException  ex) {
             Logger.getLogger(NMS.class.getName()).log(Level.SEVERE, null, ex);
-            return "";
         }
+        return name;
     }
     
     // 物品转json

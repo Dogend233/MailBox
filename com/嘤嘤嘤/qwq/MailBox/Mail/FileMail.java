@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import org.bukkit.Bukkit;
-import static org.bukkit.Material.AIR;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.ConversationContext;
@@ -69,7 +68,7 @@ public class FileMail extends TextMail implements Item, Command{
             return false;
         }
         // 判断权限
-        if(getType().equals("permission") && p.hasPermission(getPermission())){
+        if(getType().equals("permission") && !p.hasPermission(getPermission())){
             p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有领取这个邮件的权限！");
             return false;
         }
@@ -260,11 +259,11 @@ public class FileMail extends TextMail implements Item, Command{
                         return true;
                     }else{
                         if(cc==null){
-                                send.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
-                            }else{
-                                cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
-                            }
-                            return false;
+                            send.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                        }else{
+                            cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                        }
+                        return false;
                     }
                 }else{
                     StringBuilder str = new StringBuilder(GlobalConfig.normal+"[邮件预览]：保存为附件失败");

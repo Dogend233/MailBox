@@ -307,7 +307,7 @@ public class MailView {
         for(ItemStack is:isl){
             HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM,  new BaseComponent[]{new TextComponent(NMS.Item2Json(is))});
             TextComponent component;
-            String name = NMS.getItemName(is);
+            String name = MailBoxAPI.getItemName(is);
             if(name.equals("")){
                 component = new TextComponent("[物品-"+(++count)+"]");
             }else{
@@ -327,7 +327,7 @@ public class MailView {
         StringBuilder sb = new StringBuilder("  §e附件物品:  §a");
         int count = 0;
         for(ItemStack is:isl){
-            String name = NMS.getItemName(is);
+            String name = MailBoxAPI.getItemName(is);
             if(name.equals("")){
                 sb.append("[物品-");
                 sb.append((++count));

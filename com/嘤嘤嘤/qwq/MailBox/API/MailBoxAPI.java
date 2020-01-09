@@ -6,6 +6,8 @@ import com.嘤嘤嘤.qwq.MailBox.Mail.TextMail;
 import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import com.嘤嘤嘤.qwq.MailBox.Utils.DateTime;
 import com.嘤嘤嘤.qwq.MailBox.Utils.MD5;
+import com.嘤嘤嘤.qwq.MailBox.Utils.Data2cn;
+import com.嘤嘤嘤.qwq.MailBox.Utils.NMS;
 import com.嘤嘤嘤.qwq.MailBox.Utils.SQLManager;
 import com.嘤嘤嘤.qwq.MailBox.VexView.MailTipsHud;
 import java.io.File;
@@ -654,6 +656,27 @@ public class MailBoxAPI {
         }
         if(GlobalConfig.enVexView && GlobalConfig.tips.contains("flow")) VexViewAPI.sendFlowView(p, GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.tipsMsg, 10, true);
         if(GlobalConfig.enVexView && GlobalConfig.tips.contains("hud")) MailTipsHud.setMailTipsHud(p);
+    }
+    
+    // 获取物品名称
+    public static String getItemName(ItemStack is){
+        if(is.getItemMeta().hasDisplayName()){
+            return is.getItemMeta().getDisplayName();
+        }else if(is.getItemMeta().hasLocalizedName()){
+            return is.getItemMeta().getLocalizedName();
+        }else{
+            String name = Data2cn.itemName(is);
+            if(name.equals(is.getType().toString())){
+                String nameNMS = NMS.getItemName(is);
+                if(nameNMS.equals("")){
+                    return name;
+                }else{
+                    return nameNMS;
+                }
+            }else{
+                return name;
+            }
+        }
     }
     
 }

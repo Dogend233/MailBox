@@ -6,9 +6,11 @@ import com.嘤嘤嘤.qwq.MailBox.MailBox;
 import com.嘤嘤嘤.qwq.MailBox.VexView.MailBoxHud;
 import lk.vexview.api.VexViewAPI;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -48,6 +50,18 @@ public class JoinAndQuit implements Listener {
     public void onPlayerQuitEvent(PlayerQuitEvent evt){
         // 将玩家移出邮件列表
         MailBox.removeRelevantMailList(evt.getPlayer());
+    }
+    
+    @EventHandler
+    public void test(EntityDamageByEntityEvent evt){
+        Entity e = evt.getEntity();
+        System.out.println(e.getName());
+        System.out.println(e.getCustomName());
+        System.out.println(e.getType());
+        e = evt.getDamager();
+        System.out.println(e.getName());
+        System.out.println(e.getCustomName());
+        System.out.println(e.getType());
     }
     
 }

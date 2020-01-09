@@ -118,7 +118,7 @@ public class SQLManager {
     private void connectMySQL()
     {
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://" + ip + ":" + port + "/" + databaseName + "?autoReconnect=true", userName, userPassword);
+            connection = DriverManager.getConnection("jdbc:mysql://" + ip + ":" + port + "/" + databaseName + "?useSSL=false&autoReconnect=true", userName, userPassword);
             Bukkit.getConsoleSender().sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"MySQL数据库连接成功！");
         } catch (SQLException e) {
             Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"MySQL数据库连接失败！");

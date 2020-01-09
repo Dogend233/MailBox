@@ -84,7 +84,6 @@ public class MailBox extends JavaPlugin {
         // 加载插件
         instance = this;
         loadPlugin();
-        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:获取NMS版本: "+NMS.getVersion());
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:插件启动完成");
         // 检查更新
         if(config.getBoolean("mailbox.updateCheck")){
@@ -222,6 +221,7 @@ public class MailBox extends JavaPlugin {
     
     // 加载插件
     private void loadPlugin(){
+        Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:获取NMS版本: "+NMS.getVersion());
         // 插件文件夹
         Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:检查插件文件夹是否存在");
         File f = new File(DATA_FOLDER);
@@ -708,7 +708,7 @@ public class MailBox extends JavaPlugin {
                         if(GlobalConfig.lowServer1_9) ((Player)sender).getInventory().setItemInHand(is);
                         else ((Player)sender).getInventory().setItemInMainHand(is);
                     }else{
-                        sender.sendMessage("物品："+NMS.getItemName(is)+'\n'+"§a"+NMS.Item2Json(is).replace(',', '\n'));
+                        sender.sendMessage("物品："+MailBoxAPI.getItemName(is)+'\n'+"§a"+NMS.Item2Json(is).replace(',', '\n'));
                     }
                     sender.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已取出物品");
                 }   break;

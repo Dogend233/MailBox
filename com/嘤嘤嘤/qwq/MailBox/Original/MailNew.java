@@ -71,6 +71,7 @@ public class MailNew {
         create(new Preview(tm, sender), sender);
     }
     public static void create(ValidatingPrompt p, CommandSender s){
+        ((Conversable)s).acceptConversationInput(OriginalConfig.stopStr);
         Conversation conversation = new ConversationFactory(MailBox.getInstance())
         .withFirstPrompt(p)
         .addConversationAbandonedListener((ConversationAbandonedEvent abandonedEvent) -> {
