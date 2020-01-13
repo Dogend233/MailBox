@@ -27,7 +27,7 @@ mailbox:
   #启动服务器时进行更新检查
   updateCheck: true
   #插件提示信息前缀(设置为 无 则不显示)
-  prefix: [邮箱]
+  prefix: '[邮箱]'
   #普通 插件信息颜色
   normalMessage: §6
   #成功 插件信息颜色
@@ -55,7 +55,15 @@ mailbox:
     permission: '[权限邮件]'
     #date 类型邮件
     date: '[期限邮件]'
-  #player邮件过期时间
+    #times 类型邮件
+    times: '[红包邮件]'
+    #cdkey 类型邮件
+    cdkey: '[CDK邮件]'
+    #online 类型邮件
+    online: '[在线邮件]'
+    #template 类型邮件
+    template: '[模板邮件]'
+  #player邮件过期时间（天）
   player_maxtime: 30
   #player类型邮件上限可选择数量
   #填好数组并给玩家对应权限
@@ -67,6 +75,8 @@ mailbox:
     - 10
     - 5
     - 2
+  #单封times邮件最大数量
+  times_count: 20
   #附件
   file:
     #指令

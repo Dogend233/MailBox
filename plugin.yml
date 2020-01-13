@@ -1,51 +1,18 @@
 name: MailBox
-main: com.嘤嘤嘤.qwq.MailBox.MailBox
-version: 1.7.0
-description: 嘤嘤嘤邮箱插件
+main: com.tripleying.qwq.MailBox.MailBox
+version: 2.0.0
+description: Send Mail with Item.
 author: Dogend
-website: qwq.嘤嘤嘤.com
-prefix: 邮箱
+website: qwq.tripleying.com
+prefix: MailBox
 softdepend: [VexView, Vault, PlayerPoints, PlaceholderAPI]
 commands:
     mailbox:
-        description: 嘤嘤嘤邮箱插件的指令
+        description: MailBox's Commands
         aliases: mb
         usage: |
-            /mailbox(mb) *打开邮箱
-            /mailbox new *新建一封邮件
-            /mailbox receivebox(rb) *查看收件列表
-            /mailbox sendbox(sb) *查看发件列表
-            /mailbox [邮件类型] see [邮件ID] *查看一封邮件
-            /mailbox [邮件类型] collect [邮件ID] *领取一封邮件
-            /mailbox [邮件类型] delete [邮件ID] *删除一封邮件
-            /mailbox reload *重载插件
-            /mailbox check *手动检查更新
-            /mailbox item *打开物品编辑GUI（仅VV）
-            /mailbox item id *查看手上物品的Material_ID
-            /mailbox item name [名称] *为手上物品重命名
-            /mailbox item lore add [描述] *为手上物品添加一行Lore
-            /mailbox item lore remove [行数] *为手上物品移除指定行Lore
-            /mailbox item list *查看已导出的物品文件名列表
-            /mailbox item give [在线玩家] *将itemstack.yml中的物品给予指定玩家
-            /mailbox item give [在线玩家] [文件名] *将ItemExport文件夹下的[文件名].yml中的物品给予指定玩家
-            /mailbox item gived [在线玩家] *将itemstack.yml中的物品强制给予指定玩家，不会判断背包是否有空位
-            /mailbox item gived [在线玩家] [文件名] *将ItemExport文件夹下的[文件名].yml中的物品强制给予指定玩家，不会判断背包是否有空位
-            /mailbox item export *导出手上的物品至itemstack.yml
-            /mailbox item export [文件名] *将手上物品导出至ItemExport文件夹下的[文件名].yml
-            /mailbox item import *将itemstack.yml中的物品取出到手上
-            /mailbox item import [文件名] *将ItemExport文件夹下的[文件名].yml中的物品取出到手上
-            /mailbox [邮件类型] update *更新目标类型邮件列表
-            /mailbox [邮件类型] upload [邮件ID] *将目标邮件的本地附件上传到数据库
-            /mailbox [邮件类型] upload all *将目标邮件类型的全部本地附件上传到数据库
-            /mailbox [邮件类型] download [邮件ID] *将目标邮件的数据库附件下载到本地
-            /mailbox [邮件类型] download all *将目标邮件类型的全部数据库附件下载到本地
-            /mailbox player clean *手动清理player类型过期邮件
-            /mailbox template [模板名] *读取一个邮件模板进入类型选择
-            /mailbox template [模板名] [邮件类型] *读取一个邮件模板以[邮件类型]类型进入预览/参数设置
-            /mailbox template [模板名] permission [所需权限] *读取一个邮件模板以permission类型进入预览，并写入所需权限
-            /mailbox template [模板名] player [收件人1] <收件人2> <收件人3> ... *读取一个邮件模板以player类型进入预览，并写入收件人
-            /mailbox template [模板名] date [开始时间] [截止时间] *读取一个邮件模板以date类型进入预览，并写入开始时间和截止时间
-            /mailbox send [模板名] system *读取一个邮件模板，为system类型，不进入预览直接发送
-            /mailbox send [模板名] permission [所需权限] *读取一个邮件模板，写入permission类型，并写入所需权限，不进入预览直接发送
-            /mailbox send [模板名] player [收件人1] <收件人2> <收件人3> ... *读取一个邮件模板，写入player类型，并写入收件人，不进入预览直接发送
-            /mailbox send [模板名] date [开始时间] [截止时间] *读取一个邮件模板，为date类型并写入开始时间和截止时间，不进入预览直接发送
+            /mb *Open MailBox
+            /mb new *Create a new Mail
+            /mb rb *See the list as recipient
+            /mb sb *See the list as sender
+            /mb cdk [cdkey] *Use cdkey
