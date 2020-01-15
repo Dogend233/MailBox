@@ -49,6 +49,10 @@ public class MailContentGui extends VexGui{
     private static int text_times_y;
     private static double text_times_size;
     private static String text_times_prefix;
+    private static int text_key_x;
+    private static int text_key_y;
+    private static double text_key_size;
+    private static String text_key_prefix;
     private static int text_sender_x;
     private static int text_sender_y;
     private static double text_sender_size;
@@ -152,8 +156,13 @@ public class MailContentGui extends VexGui{
                         }else{
                             // 关闭GUI
                             player.closeInventory();
-                            // 领取邮件
-                            bm.Collect(player);
+                            if(bm instanceof MailKeyTimes){
+                                // 发送口令
+                                player.chat(((MailKeyTimes) bm).getKey());
+                            }else{
+                                // 领取邮件
+                                bm.Collect(player);
+                            }
                         }
                     }else{
                         player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限领取此类型邮件");
@@ -237,6 +246,10 @@ public class MailContentGui extends VexGui{
         int text_times_y,
         double text_times_size,
         String text_times_prefix,
+        int text_key_x,
+        int text_key_y,
+        double text_key_size,
+        String text_key_prefix,
         int text_sender_x,
         int text_sender_y,
         double text_sender_size,
@@ -341,6 +354,11 @@ public class MailContentGui extends VexGui{
         MailContentGui.text_times_y = text_times_y;
         MailContentGui.text_times_size = text_times_size;
         MailContentGui.text_times_prefix = text_times_prefix;
+        // 邮件口令
+        MailContentGui.text_key_x = text_key_x;
+        MailContentGui.text_key_y = text_key_y;
+        MailContentGui.text_key_size = text_key_size;
+        MailContentGui.text_key_prefix = text_key_prefix;
         // 发件人
         MailContentGui.text_sender_x = text_sender_x;
         MailContentGui.text_sender_y = text_sender_y;
@@ -431,7 +449,6 @@ public class MailContentGui extends VexGui{
                     });
                     VexViewConfig.setHover(vtp, playerReci);
                     break;
-
                 case "permission":
                     VexViewConfig.setHover(vtp, Arrays.asList(bm.getTypeName()+" - "+bm.getId(),((MailPermission)bm).getPermission()));
                     break;
@@ -450,9 +467,11 @@ public class MailContentGui extends VexGui{
             this.addComponent(new VexText(text_date_x,text_date_y,Arrays.asList(text_date_prefix+date),text_date_size));
         }
         // 截止时间
-        if(type.equals("date") && !((MailDate)bm).getDeadline().equals("0")) this.addComponent(new VexText(text_deadline_x,text_deadline_y,Arrays.asList(text_deadline_prefix+((MailDate)bm).getDeadline()),text_deadline_size));
+        if(bm instanceof MailDate && !((MailDate)bm).getDeadline().equals("0")) this.addComponent(new VexText(text_deadline_x,text_deadline_y,Arrays.asList(text_deadline_prefix+((MailDate)bm).getDeadline()),text_deadline_size));
         // 邮件数量
-        if(type.equals("times")) this.addComponent(new VexText(text_times_x,text_times_y,Arrays.asList(text_times_prefix+((MailTimes)bm).getTimes()),text_times_size));
+        if(bm instanceof MailTimes) this.addComponent(new VexText(text_times_x,text_times_y,Arrays.asList(text_times_prefix+((MailTimes)bm).getTimes()),text_times_size));
+        // 邮件口令
+        if(bm instanceof MailKeyTimes) this.addComponent(new VexText(text_key_x,text_key_y,Arrays.asList(text_key_prefix+((MailKeyTimes)bm).getKey()),text_key_size));
         // 发送人
         this.addComponent(new VexText(text_sender_x,text_sender_y,Arrays.asList(text_sender_prefix+bm.getSender()),text_sender_size));
         // 邮件内容
@@ -473,7 +492,7 @@ public class MailContentGui extends VexGui{
                 if(bm instanceof MailCdkey){
                     if(p.hasPermission("mailbox.admin.create.cdkey")){
                         vbs.setName(BUTTON_STRING.get("cdk")[0]);
-                        vbs.setFunction(player -> player.performCommand("mb cdkey create "+((MailCdkey) bm).generateCdkey(1)));
+                        vbs.setFunction(player -> player.performCommand("mb cdkey create "+bm.getId()));
                         this.addComponent(vbs);
                     }
                 }else
@@ -525,7 +544,6 @@ public class MailContentGui extends VexGui{
             if(GlobalConfig.enVault){
                 double coin = fm.getCoin();
                 if(coin!=0){
-                    //String c = MailBoxAPI.getEconomyFormat(coin);
                     this.addComponent(image_coin);
                     this.addComponent(new VexText(text_coin_x,text_coin_y,Arrays.asList(text_coin_prefix+coin+text_coin_suffix),text_coin_size));
                 }
@@ -550,7 +568,7 @@ public class MailContentGui extends VexGui{
                 if(bm instanceof MailCdkey){
                     if(p.hasPermission("mailbox.admin.create.cdkey")){
                         vbs.setName(BUTTON_STRING.get("cdk")[0]);
-                        vbs.setFunction(player -> player.performCommand("mb cdkey create "+((MailCdkey) bm).generateCdkey(1)));
+                        vbs.setFunction(player -> player.performCommand("mb cdkey create "+bm.getId()));
                         this.addComponent(vbs);
                     }
                 }else{

@@ -13,6 +13,10 @@ public class TimesMail extends BaseMail implements MailTimes {
         super("times",id, sender, topic, content, date);
         this.times = times;
     }
+    public TimesMail(String type, int id, String sender, String topic, String content, String date, int times) {
+        super(type, id, sender, topic, content, date);
+        this.times = times;
+    }
     
     @Override
     public boolean TimesValidate() {
@@ -31,7 +35,7 @@ public class TimesMail extends BaseMail implements MailTimes {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("times", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", times, false, "0");
+        return MailBoxAPI.setSend("times", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", times, "", false, "0");
     }
 
     @Override

@@ -18,6 +18,7 @@ public class OriginalConfig {
     public static String msgDeadline = "§b[邮件预览]: 请输入邮件截止领取的: §e年 月 日 时 分 秒 §b（时分秒可不写）";
     public static String msgDeadlineCancel = "§b[邮件预览]: 输入 0 不设置截止日期";
     public static String msgTimes = "§b[邮件预览]: 请输入邮件的数量";
+    public static String msgTimesKey = "§b[邮件预览]: 请输入邮件的口令";
     public static String msgCdkey = "§b[邮件预览]: 兑换码是否唯一？（Y：是，N：否）";;
     public static String msgTemplate = "§b[邮件预览]: 请输入模板邮件的文件名";;
     public static String msgFile = "§b[邮件预览]: 是否发送附件？（Y：是，N：否）";

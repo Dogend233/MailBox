@@ -17,7 +17,7 @@ public class SystemMail extends BaseMail implements MailSystem{
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("system", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, false, "0");
+        return MailBoxAPI.setSend("system", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, "", false, "0");
     }
 
     @Override

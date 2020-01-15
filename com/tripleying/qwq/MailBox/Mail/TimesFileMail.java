@@ -21,6 +21,14 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
         super("times", id, sender, topic, content, date, filename, isl, cl, cd, coin, point);
         this.times = times;
     }
+    public TimesFileMail(String type, int id, String sender, String topic, String content, String date, int times, String filename) {
+        super(type, id, sender, topic, content, date, filename);
+        this.times = times;
+    }
+    public TimesFileMail(String type, int id, String sender, String topic, String content, String date, int times, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point) {
+        super(type, id, sender, topic, content, date, filename, isl, cl, cd, coin, point);
+        this.times = times;
+    }
     
     @Override
     public boolean TimesValidate() {
@@ -39,7 +47,7 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("times", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", times, false, getFileName());
+        return MailBoxAPI.setSend("times", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", times, "", false, getFileName());
     }
 
     @Override

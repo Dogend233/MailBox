@@ -72,6 +72,9 @@ public class SQLManager {
             cmd = SQLCommand.CREATE_TIMES.commandToStringToSQLite(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
+            cmd = SQLCommand.CREATE_KEYTIMES.commandToStringToSQLite(SQLPrefix);
+            ps = connection.prepareStatement(cmd);
+            ps.executeUpdate();
             cmd = SQLCommand.CREATE_CDKEY.commandToStringToSQLite(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
@@ -117,6 +120,9 @@ public class SQLManager {
             cmd = SQLCommand.CREATE_TIMES.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
+            cmd = SQLCommand.CREATE_KEYTIMES.commandToString(SQLPrefix);
+            ps = connection.prepareStatement(cmd);
+            ps.executeUpdate();
             cmd = SQLCommand.CREATE_CDKEY.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
@@ -151,6 +157,9 @@ public class SQLManager {
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
             cmd = SQLCommand.CREATE_TIMES_COLLECT.commandToString(SQLPrefix);
+            ps = connection.prepareStatement(cmd);
+            ps.executeUpdate();
+            cmd = SQLCommand.CREATE_KEYTIMES_COLLECT.commandToString(SQLPrefix);
             ps = connection.prepareStatement(cmd);
             ps.executeUpdate();
             cmd = SQLCommand.CREATE_CDKEY_COLLECT.commandToString(SQLPrefix);
@@ -203,6 +212,7 @@ public class SQLManager {
                     }else{
                         return false;
                     }
+                case "keytimes":
                 case "times":
                     sql = SQLCommand.SELECT_MAIL.commandToString(SQLPrefix, type);
                     ps = connection.prepareStatement(sql);
@@ -212,7 +222,7 @@ public class SQLManager {
                     if(rs.next()){
                         return false;
                     }else{
-                        sql = SQLCommand.SELECT_TIMES_MAIL.commandToString(SQLPrefix);
+                        sql = SQLCommand.SELECT_TIMES_MAIL.commandToString(SQLPrefix, type);
                         ps = connection.prepareStatement(sql);
                         ps.setInt(1, id);
                         rs = ps.executeQuery();
@@ -271,8 +281,9 @@ public class SQLManager {
                         ps.executeUpdate();
                     }
                     break;
+                case "keytimes":
                 case "times":
-                    sql = SQLCommand.SELECT_TIMES_MAIL.commandToString(SQLPrefix);
+                    sql = SQLCommand.SELECT_TIMES_MAIL.commandToString(SQLPrefix, type);
                     ps = connection.prepareStatement(sql);
                     ps.setInt(1, id);
                     rs = ps.executeQuery();
@@ -284,7 +295,7 @@ public class SQLManager {
                     if(times<1){
                         deleteMail(type, id);
                     }else{
-                        sql = SQLCommand.COLLECT_TIMES_MAIL.commandToString(SQLPrefix);
+                        sql = SQLCommand.COLLECT_TIMES_MAIL.commandToString(SQLPrefix, type);
                         ps = connection.prepareStatement(sql);
                         ps.setInt(1, times);
                         ps.setInt(2, id);
@@ -307,7 +318,7 @@ public class SQLManager {
     }
     
     //发送一封邮件
-    public boolean sendMail(String type, String mailsender, String mailrecipient, String permission, String topic, String text, String date, String deadline, int times, boolean only, String filename) {
+    public boolean sendMail(String type, String mailsender, String mailrecipient, String permission, String topic, String text, String date, String deadline, int times, String key, boolean only, String filename) {
         String sql;
         switch (type) {
             case "system":
@@ -325,6 +336,9 @@ public class SQLManager {
             case "times":
                 sql = SQLCommand.SEND_TIMES_MAIL.commandToString(SQLPrefix);
                 break;
+            case "keytimes":
+                sql = SQLCommand.SEND_KEYTIMES_MAIL.commandToString(SQLPrefix);
+                break;
             case "cdkey":
                 sql = SQLCommand.SEND_CDKEY_MAIL.commandToString(SQLPrefix);
                 break;
@@ -340,6 +354,8 @@ public class SQLManager {
             ps.setString(4, date);
             ps.setString(5, filename);
             switch (type) {
+                case "keytimes":
+                    ps.setString(7, key);
                 case "times":
                     ps.setInt(6, times);
                     break;
@@ -378,6 +394,7 @@ public class SQLManager {
             case "system":
             case "permission":
             case "date":
+            case "keytimes":
             case "times":
                 sql2 = SQLCommand.DELETE_COLLECTED_MAIL.commandToString(SQLPrefix, type);
             case "player":
@@ -427,6 +444,7 @@ public class SQLManager {
                 String permission = null;
                 String deadline = null;
                 int times = 0;
+                String key = null;
                 boolean only = false;
                 switch (type) {
                     case "cdkey" :
@@ -434,6 +452,10 @@ public class SQLManager {
                         break;
                     case "times" :
                         times = rs.getInt("times");
+                        break;
+                    case "keytimes" :
+                        times = rs.getInt("times");
+                        key = rs.getString("key");
                         break;
                     case "player" :
                         recipient = Arrays.asList(rs.getString("recipient").split(" "));
@@ -447,7 +469,7 @@ public class SQLManager {
                         break;
                 }
                 if(rs.getString("filename").equals("0")){
-                    BaseMail bm = MailBoxAPI.createBaseMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline, times, only, null);
+                    BaseMail bm = MailBoxAPI.createBaseMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline, times, key, only, null);
                     if(bm.ExpireValidate()) {
                         if(MailBoxAPI.setDelete(type, bm.getId())){
                             Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+bm.getTypeName()+"-"+bm.getId()+"邮件已过期，自动删除");
@@ -456,7 +478,7 @@ public class SQLManager {
                     }
                     hm.put(rs.getInt("mail"), bm);
                 }else{
-                    BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline, times, only, rs.getString("filename"));
+                    BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline, times, key, only, rs.getString("filename"));
                     if(fm.ExpireValidate()) {
                         if(fm.DeleteFile() & MailBoxAPI.setDelete(type, fm.getId())){
                             Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+fm.getTypeName()+"-"+fm.getId()+"邮件已过期，自动删除");
@@ -481,6 +503,7 @@ public class SQLManager {
             case "system":
             case "permission":
             case "date":
+            case "keytimes":
             case "times":
             case "cdkey":
                 sql = SQLCommand.SELECT_COLLECTED_MAIL.commandToString(SQLPrefix, type);

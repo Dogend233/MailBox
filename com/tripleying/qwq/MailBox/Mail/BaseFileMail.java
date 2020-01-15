@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.ConversationContext;
 import org.bukkit.entity.Player;
@@ -260,17 +259,22 @@ public class BaseFileMail extends BaseMail {
     // 执行指令
     public boolean doCommand(Player p) {
         if(commandList!=null){
+            List<String> op = new ArrayList();
             for(int i=0;i<commandList.size();i++){
                 String cs = commandList.get(i);
+                if(cs.endsWith(":op")){
+                    op.add(cs.substring(0, cs.length()-3));
+                }else{
+                    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cs.replace(GlobalConfig.fileCmdPlayer, p.getName()));
+                }
+            }
+            if(!op.isEmpty()){
+                boolean isOp = p.isOp();
                 try{
-                    cs = cs.replace(GlobalConfig.fileCmdPlayer, p.getName());
-                    if(Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cs)){
-                        p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"第"+(i+1)+"条指令执行成功");
-                    }else{
-                        p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"第"+(i+1)+"条指令执行失败");
-                    }
-                } catch (CommandException e) {
-                    p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"第"+(i+1)+"条指令执行失败");
+                    p.setOp(true);
+                    op.forEach(opc -> p.performCommand(opc.replace(GlobalConfig.fileCmdPlayer, p.getName())));
+                }finally {
+                    p.setOp(isOp);
                 }
             }
             return true;
@@ -505,7 +509,7 @@ public class BaseFileMail extends BaseMail {
     // 保存附件
     public boolean saveFile(){
         if(GlobalConfig.fileSQL){
-            return  MailBoxAPI.saveMailFilesSQL(this);
+            return MailBoxAPI.saveMailFilesSQL(this);
         }else{
             return MailBoxAPI.saveMailFilesLocal(this);
         }
@@ -513,7 +517,7 @@ public class BaseFileMail extends BaseMail {
     
     @Override
     public BaseFileMail setType(String type){
-        return MailBoxAPI.createBaseFileMail(type, getId(),getSender(), null, null, getTopic(),getContent(),getDate(), null, 0, false, null, fileName, itemList, commandList, commandDescription, coin, point);
+        return MailBoxAPI.createBaseFileMail(type, getId(),getSender(), null, null, getTopic(),getContent(),getDate(), null, 0, null, false, null, fileName, itemList, commandList, commandDescription, coin, point);
     }
     
     @Override

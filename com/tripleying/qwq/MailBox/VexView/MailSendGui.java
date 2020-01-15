@@ -43,6 +43,7 @@ public class MailSendGui extends VexInventoryGui{
     private static VexText text_startdate;
     private static VexText text_deadline;
     private static VexText text_times;
+    private static VexText text_key;
     private static VexText text_onlyCDK;
     private static VexText text_template;
     private static VexText text_sender;
@@ -72,6 +73,7 @@ public class MailSendGui extends VexInventoryGui{
     private String startdate = null;
     private String deadline = null;
     private int times = 1;
+    private String key = "";
     private boolean only = false;
     private String template = null;
     private List<String> cl = new ArrayList();
@@ -89,10 +91,10 @@ public class MailSendGui extends VexInventoryGui{
         super(gui_img,gui_x,gui_y,gui_w,gui_h,gui_ww,gui_hh,gui_ix,gui_iy);
         this.setClosable(false);
         this.p = p;
+        this.type = type;
         sender = p.getName();
         enVault = GlobalConfig.enVault;
         enPlayerPoints = GlobalConfig.enPlayerPoints;
-        this.type = type;
         perm_sender = p.hasPermission("mailbox.admin.send.sender");
         perm_cmd = p.hasPermission("mailbox.admin.send.command");
         perm_coin = MailBoxAPI.hasPlayerPermission(p, "mailbox.send.money.coin");
@@ -136,6 +138,9 @@ public class MailSendGui extends VexInventoryGui{
                 this.addComponent(text_deadline);
                 this.addComponent(getTextField(FIELD.get("deadline"),"0"));
                 break;
+            case "keytimes":
+                this.addComponent(text_key);
+                this.addComponent(getTextField(FIELD.get("key")));
             case "times":
                 this.addComponent(text_times);
                 this.addComponent(getTextField(FIELD.get("times"),"1"));
@@ -217,6 +222,10 @@ public class MailSendGui extends VexInventoryGui{
         int text_times_y,
         double text_times_size,
         String text_times_text,
+        int text_key_x,
+        int text_key_y,
+        double text_key_size,
+        String text_key_text,
         int text_onlyCDK_x,
         int text_onlyCDK_y,
         double text_onlyCDK_size,
@@ -275,6 +284,11 @@ public class MailSendGui extends VexInventoryGui{
         int field_times_w,
         int field_times_h,
         int field_times_max,
+        int field_key_x,
+        int field_key_y,
+        int field_key_w,
+        int field_key_h,
+        int field_key_max,
         int field_template_x,
         int field_template_y,
         int field_template_w,
@@ -355,6 +369,7 @@ public class MailSendGui extends VexInventoryGui{
         text_startdate = new VexText(text_startdate_x,text_startdate_y,Arrays.asList(text_startdate_text),text_startdate_size);
         text_deadline = new VexText(text_deadline_x,text_deadline_y,Arrays.asList(text_deadline_text),text_deadline_size);
         text_times = new VexText(text_times_x,text_times_y,Arrays.asList(text_times_text),text_times_size);
+        text_key = new VexText(text_key_x,text_key_y,Arrays.asList(text_key_text),text_key_size);
         text_onlyCDK = new VexText(text_onlyCDK_x,text_onlyCDK_y,Arrays.asList(text_onlyCDK_text),text_onlyCDK_size);
         text_template = new VexText(text_template_x,text_template_y,Arrays.asList(text_template_text),text_template_size);
         text_text = new VexText(text_text_x,text_text_y,Arrays.asList(text_text_text),text_text_size);
@@ -377,6 +392,7 @@ public class MailSendGui extends VexInventoryGui{
         FIELD.put("template", new int[]{field_template_x,field_template_y,field_template_w,field_template_h,field_template_max,11});
         FIELD.put("times", new int[]{field_times_x,field_times_y,field_times_w,field_times_h,field_times_max,12});
         FIELD.put("sender", new int[]{field_sender_x,field_sender_y,field_sender_w,field_sender_h,field_sender_max,13});
+        FIELD.put("key", new int[]{field_key_x,field_key_y,field_key_w,field_key_h,field_key_max,14});
         // 勾选框
         checkBox_onlyCDK = new int[]{0,checkBox_onlyCDK_x,checkBox_onlyCDK_y,checkBox_onlyCDK_w,checkBox_onlyCDK_h};
         // 勾选框图片
@@ -468,6 +484,8 @@ public class MailSendGui extends VexInventoryGui{
             case "template":
                 template = getTextField(FIELD.get("template")[5]).getTypedText();
                 break;
+            case "keytimes":
+                key = getTextField(FIELD.get("key")[5]).getTypedText();
             case "times":
                 try{
                     times = Integer.parseInt(getTextField(FIELD.get("times")[5]).getTypedText().trim());
@@ -491,14 +509,14 @@ public class MailSendGui extends VexInventoryGui{
                 al = getItem(p);
             }
             if(al.isEmpty() && cl.isEmpty() && co==0 && po==0){
-                BaseMail bm = MailBoxAPI.createBaseMail(type, 0, sender, rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), startdate, deadline, times, only, template);
+                BaseMail bm = MailBoxAPI.createBaseMail(type, 0, sender, rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), startdate, deadline, times, key.replaceAll("&", "§"), only, template);
                 try{
                     MailContentGui.openMailContentGui(p, bm, this, false);
                 }catch(Exception e){
                     p.sendMessage(GlobalConfig.warning+"[邮件预览]：打开预览界面失败");
                 }
             }else{
-                BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, 0, sender, rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), startdate, deadline, times, only, template, "0", al, cl, cd, co, po);
+                BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, 0, sender, rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), startdate, deadline, times, key.replaceAll("&", "§"), only, template, "0", al, cl, cd, co, po);
                 try{
                     MailContentGui.openMailContentGui(p, fm, this, false);
                 }catch(Exception e){
@@ -523,6 +541,11 @@ public class MailSendGui extends VexInventoryGui{
                     case "online":
                     case "system":
                         return true;
+                    case "keytimes":
+                        if(key.equals("")){
+                            p.sendMessage(GlobalConfig.warning+"[邮件预览]：邮件口令不能为空");
+                            return false;
+                        }
                     case "times":
                         if(times<1){
                             p.sendMessage(GlobalConfig.warning+"[邮件预览]：邮件数量不能小于1");

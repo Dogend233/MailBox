@@ -61,7 +61,7 @@ public class PlayerMail extends BaseMail implements MailPlayer{
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("player", getId(), getSender(), getRecipientString(), "", getTopic(), getContent(), getDate(), "", 0, false, "0");
+        return MailBoxAPI.setSend("player", getId(), getSender(), getRecipientString(), "", getTopic(), getContent(), getDate(), "", 0, "", false, "0");
     }
     
     @Override

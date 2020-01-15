@@ -19,6 +19,7 @@ import lk.vexview.api.VexViewAPI;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.black_ixx.playerpoints.PlayerPoints;
+import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -35,7 +36,7 @@ public class MailBoxAPI {
     private static PlayerPoints points = null;
     private static String VERSION;
     private static final String DATA_FOLDER = "plugins/MailBox";
-    private static final String[] TRUE_MAIL_TYPE = {"times","date","system","permission","player","cdkey"};
+    private static final String[] TRUE_MAIL_TYPE = {"keytimes","times","date","system","permission","player","cdkey"};
     private static final String[] SPECIAL_MAIL_TYPE = {"cdkey"};
     private static final String[] VIRTUAL_MAIL_TYPE = {"template","online"};
     
@@ -242,7 +243,18 @@ public class MailBoxAPI {
                 });
                 deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(p));
                 break;
-
+            case "keytimes":
+                ArrayList<Integer> collectedKeyTimes = SQLManager.get().getCollectedMailList(p, type);
+                MailBox.getMailHashMap(type).forEach((k, v) -> {
+                    if(v.TimesValidate()){
+                        if(v.getSender().equals(name)) senderList.add(k);
+                        if(!collectedKeyTimes.contains(k)) recipientList.add(k);
+                    }else{
+                        deleteList.add(k);
+                    }
+                });
+                deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(p));
+                break;
             case "cdkey":
                 ArrayList<Integer> collectedCdkey = SQLManager.get().getCollectedMailList(p, type);
                 MailBox.getMailHashMap(type).forEach((k, v) -> {
@@ -279,16 +291,17 @@ public class MailBoxAPI {
      * @param date 发送日期
      * @param deadline 截止日期
      * @param times 邮件数量
+     * @param key 邮件口令
      * @param only 兑换码唯一性
      * @param filename 附件名
      * @return boolean
      */
     public static boolean setSend(String type, int id, String playername,
             String recipient, String permission, String topic, String text, 
-            String date, String deadline, int times, boolean only,
+            String date, String deadline, int times, String key, boolean only,
             String filename){
         if(id==0){
-            return SQLManager.get().sendMail(type, playername, recipient, permission, topic, text, date, deadline, times, only, filename);
+            return SQLManager.get().sendMail(type, playername, recipient, permission, topic, text, date, deadline, times, key, only, filename);
         }else{
             // 修改现有邮件
             return false;
@@ -353,7 +366,8 @@ public class MailBoxAPI {
      * @param fm 附件类型邮件
      * @return boolean
      */
-    public static boolean saveMailFilesSQL(BaseFileMail fm){ 
+    public static boolean saveMailFilesSQL(BaseFileMail fm){
+        System.out.println(fm.getType());
         YamlConfiguration mailFiles = new YamlConfiguration();
         mailFiles.set("type", fm.getType());
         mailFiles.set("cmd.enable", fm.isHasCommand());
@@ -729,6 +743,7 @@ public class MailBoxAPI {
                     null,
                     null,
                     0,
+                    null,
                     false,
                     filename,
                     "0",
@@ -750,6 +765,7 @@ public class MailBoxAPI {
                     null,
                     null,
                     0,
+                    null,
                     false,
                     filename
                 );
@@ -911,6 +927,7 @@ public class MailBoxAPI {
                 p.sendTitle(GlobalConfig.tipsMsg, "", 10, 70, 20);
             }
         }
+        if(GlobalConfig.tips.contains("sound")) p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
         if(GlobalConfig.enVexView && GlobalConfig.tips.contains("flow")) VexViewAPI.sendFlowView(p, GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.tipsMsg, 10, true);
         if(GlobalConfig.enVexView && GlobalConfig.tips.contains("hud")) MailTipsHud.setMailTipsHud(p);
     }
@@ -952,11 +969,12 @@ public class MailBoxAPI {
      * @param date 发送日期
      * @param deadline 截止日期
      * @param times 邮件数量
+     * @param key 邮件口令
      * @param only 兑换码唯一性
      * @param template 模板名
      * @return 基础邮件
      */
-    public static BaseMail createBaseMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, int times, boolean only, String template){
+    public static BaseMail createBaseMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, int times, String key, boolean only, String template){
         switch(type){
             case "system":
                 return new SystemMail(id, sender, topic, content, date);
@@ -968,6 +986,8 @@ public class MailBoxAPI {
                 return new PlayerMail(id, sender, topic, content, date, recipient);
             case "times":
                 return new TimesMail(id, sender, topic, content, date, times);
+            case "keytimes":
+                return new KeyTimesMail(id, sender, topic, content, date, times, key);
             case "cdkey":
                 return new CdkeyMail(id, sender, topic, content, date, only);
             case "online":
@@ -991,11 +1011,12 @@ public class MailBoxAPI {
      * @param date 发送日期
      * @param deadline 截止日期
      * @param times 邮件数量
+     * @param key 邮件口令
      * @param only 兑换码唯一性
      * @param filename 附件名
      * @return 基础附件邮件
      */
-    public static BaseFileMail createBaseFileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, int times, boolean only, String filename){
+    public static BaseFileMail createBaseFileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, int times, String key, boolean only, String filename){
         switch(type){
             case "system":
                 return new SystemFileMail(id, sender, topic, content, date, filename);
@@ -1007,6 +1028,8 @@ public class MailBoxAPI {
                 return new PlayerFileMail(id, sender, topic, content, date, recipient, filename);
             case "times":
                 return new TimesFileMail(id, sender, topic, content, date, times, filename);
+            case "keytimes":
+                return new KeyTimesFileMail(id, sender, topic, content, date, times, key, filename);
             case "cdkey":
                 return new CdkeyFileMail(id, sender, topic, content, date, only, filename);
             case "online":
@@ -1028,6 +1051,7 @@ public class MailBoxAPI {
      * @param date 发送日期
      * @param deadline 截止日期
      * @param times 邮件数量
+     * @param key 邮件口令
      * @param only 兑换码唯一性
      * @param template 模板名
      * @param filename 附件名
@@ -1038,7 +1062,7 @@ public class MailBoxAPI {
      * @param point 点券
      * @return 基础附件邮件
      */
-    public static BaseFileMail createBaseFileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, int times, boolean only, String template, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
+    public static BaseFileMail createBaseFileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, int times, String key, boolean only, String template, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
         switch(type){
             case "system":
                 return new SystemFileMail(id, sender, topic, content, date, filename, isl, cl, cd, coin, point);
@@ -1050,6 +1074,8 @@ public class MailBoxAPI {
                 return new PlayerFileMail(id, sender, topic, content, date, recipient, filename, isl, cl, cd, coin, point);
             case "times":
                 return new TimesFileMail(id, sender, topic, content, date, times, filename, isl, cl, cd, coin, point);
+            case "keytimes":
+                return new KeyTimesFileMail(id, sender, topic, content, date, times, key, filename, isl, cl, cd, coin, point);
             case "cdkey":
                 return new CdkeyFileMail(id, sender, topic, content, date, only, filename, isl, cl, cd, coin, point);
             case "online":

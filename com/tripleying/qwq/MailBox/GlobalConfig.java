@@ -74,6 +74,7 @@ public class GlobalConfig {
         String mailDisplay_PERMISSION,
         String mailDisplay_DATE,
         String mailDisplay_TIMES,
+        String mailDisplay_KEYTIMES,
         String mailDisplay_CDKEY,
         String mailDisplay_ONLINE,
         String mailDisplay_TEMPLATE,
@@ -108,6 +109,7 @@ public class GlobalConfig {
         GlobalConfig.DISPLAY.put("permission", mailDisplay_PERMISSION);
         GlobalConfig.DISPLAY.put("date", mailDisplay_DATE);
         GlobalConfig.DISPLAY.put("times", mailDisplay_TIMES);
+        GlobalConfig.DISPLAY.put("keytimes", mailDisplay_KEYTIMES);
         GlobalConfig.DISPLAY.put("cdkey", mailDisplay_CDKEY);
         GlobalConfig.DISPLAY.put("online", mailDisplay_ONLINE);
         GlobalConfig.DISPLAY.put("template", mailDisplay_TEMPLATE);

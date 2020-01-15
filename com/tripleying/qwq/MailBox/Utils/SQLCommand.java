@@ -47,6 +47,13 @@ public enum SQLCommand {
         "VALUES (?, ?, ?, ?, ?, ?)"
     ),
     
+    //发送一封"keytimes"邮件
+    SEND_KEYTIMES_MAIL(
+        "INSERT INTO `", "_keytimes` " +
+        "(`sender`, `topic`, `text`, `sendtime`, `filename`, `times`, `key`)" +
+        "VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ),
+    
     //发送一封"cdkey"邮件
     SEND_CDKEY_MAIL(
         "INSERT INTO `", "_cdkey` " +
@@ -74,9 +81,9 @@ public enum SQLCommand {
         "DELETE FROM `", "_cdkey_list` WHERE `cdkey` = ?"
     ),
     
-    //获取一封"times"邮件的次数
+    //获取一封"times"或"keytimes"邮件的次数
     SELECT_TIMES_MAIL(
-        "SELECT `times` FROM `", "_times` WHERE `mail` = ?"
+        "SELECT `times` FROM `", "_", "` WHERE `mail` = ?"
     ),
     
     //获取一封"player"邮件的收件人
@@ -93,7 +100,7 @@ public enum SQLCommand {
     
     //设置一封"times"邮件已被某玩家领取
     COLLECT_TIMES_MAIL(
-        "UPDATE `", "_times` " +
+        "UPDATE `", "_", "` " +
         "SET `times` = ? " +
         "WHERE `mail` = ?"
     ),
@@ -177,17 +184,6 @@ public enum SQLCommand {
         "`filename` varchar(32)," +
         "PRIMARY KEY (`mail`))"
     ),
-    
-    //创建SQLite的"system"邮箱system数据表
-    CREATE_SYSTEM_SQLITE(
-        "CREATE TABLE IF NOT EXISTS `", "_system` (" +
-        "`mail` INTEGER PRIMARY KEY," +
-        "`sender` varchar(32)," +
-        "`topic` varchar(32)," +
-        "`text` varchar(255)," +
-        "`sendtime` datetime," +
-        "`filename` varchar(32))"
-    ),
 
     //创建"system"邮箱system_collect数据表
     CREATE_SYSTEM_COLLECT(
@@ -209,18 +205,6 @@ public enum SQLCommand {
         "PRIMARY KEY (`mail`))"
     ),
     
-    //创建SQLite的"player"邮箱player数据表
-    CREATE_PLAYER_SQLITE(
-        "CREATE TABLE IF NOT EXISTS `", "_player` (" +
-        "`mail` INTEGER PRIMARY KEY," +
-        "`sender` varchar(32)," +
-        "`recipient` varchar(255)," +
-        "`topic` varchar(32)," +
-        "`text` varchar(255)," +
-        "`sendtime` datetime," +
-        "`filename` varchar(32))"
-    ),
-    
     //创建"permission"邮箱permission数据表
     CREATE_PERMISSION(
         "CREATE TABLE IF NOT EXISTS `", "_permission` (" +
@@ -232,18 +216,6 @@ public enum SQLCommand {
         "`sendtime` datetime," +
         "`filename` varchar(32)," +
         "PRIMARY KEY (`mail`))"
-    ),
-    
-    //创建SQLite的"permission"邮箱permission数据表
-    CREATE_PERMISSION_SQLITE(
-        "CREATE TABLE IF NOT EXISTS `", "_permission` (" +
-        "`mail` INTEGER PRIMARY KEY," +
-        "`sender` varchar(32)," +
-        "`permission` varchar(32)," +
-        "`topic` varchar(32)," +
-        "`text` varchar(255)," +
-        "`sendtime` datetime," +
-        "`filename` varchar(32))"
     ),
 
     //创建"permission"邮箱permission_collect数据表
@@ -265,18 +237,6 @@ public enum SQLCommand {
         "`filename` varchar(32)," +
         "PRIMARY KEY (`mail`))"
     ),
-    
-    //创建SQLite的"date"邮箱date数据表
-    CREATE_DATE_SQLITE(
-        "CREATE TABLE IF NOT EXISTS `", "_date` (" +
-        "`mail` INTEGER PRIMARY KEY," +
-        "`sender` varchar(32)," +
-        "`deadline` datetime," +
-        "`topic` varchar(32)," +
-        "`text` varchar(255)," +
-        "`sendtime` datetime," +
-        "`filename` varchar(32))"
-    ),
 
     //创建"date"邮箱date_collect数据表
     CREATE_DATE_COLLECT(
@@ -297,22 +257,31 @@ public enum SQLCommand {
         "`filename` varchar(32)," +
         "PRIMARY KEY (`mail`))"
     ),
-    
-    //创建SQLite的"times"邮箱times数据表
-    CREATE_TIMES_SQLITE(
-        "CREATE TABLE IF NOT EXISTS `", "_times` (" +
-        "`mail` INTEGER PRIMARY KEY," +
-        "`sender` varchar(32)," +
-        "`times` int(11)," +
-        "`topic` varchar(32)," +
-        "`text` varchar(255)," +
-        "`sendtime` datetime," +
-        "`filename` varchar(32))"
-    ),
 
     //创建"times"邮箱times_collect数据表
     CREATE_TIMES_COLLECT(
         "CREATE TABLE IF NOT EXISTS `", "_times_collect` (" +
+        "`mail` int(11)," +
+        "`user` varchar(32))"
+    ),
+    
+    //创建"keytimes"邮箱keytimes数据表
+    CREATE_KEYTIMES(
+        "CREATE TABLE IF NOT EXISTS `", "_keytimes` (" +
+        "`mail` int(11) AUTO_INCREMENT," +
+        "`sender` varchar(32)," +
+        "`times` int(11)," +
+        "`key` varchar(255)," +
+        "`topic` varchar(32)," +
+        "`text` varchar(255)," +
+        "`sendtime` datetime," +
+        "`filename` varchar(32)," +
+        "PRIMARY KEY (`mail`))"
+    ),
+
+    //创建"keytimes"邮箱keytimes_collect数据表
+    CREATE_KEYTIMES_COLLECT(
+        "CREATE TABLE IF NOT EXISTS `", "_keytimes_collect` (" +
         "`mail` int(11)," +
         "`user` varchar(32))"
     ),
@@ -328,18 +297,6 @@ public enum SQLCommand {
         "`sendtime` datetime," +
         "`filename` varchar(32)," +
         "PRIMARY KEY (`mail`))"
-    ),
-    
-    //创建SQLite的"cdkey"邮箱cdkey数据表
-    CREATE_CDKEY_SQLITE(
-        "CREATE TABLE IF NOT EXISTS `", "_cdkey` (" +
-        "`mail` INTEGER PRIMARY KEY," +
-        "`sender` varchar(32)," +
-        "`only` varchar(5)," +
-        "`topic` varchar(32)," +
-        "`text` varchar(255)," +
-        "`sendtime` datetime," +
-        "`filename` varchar(32))"
     ),
 
     //创建"cdkey"邮箱cdkey_collect数据表

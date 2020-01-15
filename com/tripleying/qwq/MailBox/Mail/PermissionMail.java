@@ -17,7 +17,7 @@ public class PermissionMail extends BaseMail implements MailPermission {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("date", getId(), getSender(), "", permission, getTopic(), getContent(), getDate(), "", 0, false, "0");
+        return MailBoxAPI.setSend("date", getId(), getSender(), "", permission, getTopic(), getContent(), getDate(), "", 0, "", false, "0");
     }
     
     @Override

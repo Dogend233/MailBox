@@ -38,7 +38,7 @@ public class DateFileMail extends BaseFileMail implements MailDate {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("date", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), deadline, 0, false, getFileName());
+        return MailBoxAPI.setSend("date", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), deadline, 0, "", false, getFileName());
     }
 
     @Override

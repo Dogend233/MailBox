@@ -28,6 +28,8 @@ button:
       date: MailSelectButton_Date
       #times
       times: MailSelectButton_Times
+      #keytimes
+      keytimes: MailSelectButton_KeyTimes
       #cdkey
       cdkey: MailSelectButton_Cdkey
       #online
@@ -70,6 +72,7 @@ button:
       - permission
       - date
       - times
+      - keytimes
       - cdkey
       - online
       - template

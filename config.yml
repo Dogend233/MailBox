@@ -37,11 +37,13 @@ mailbox:
   #当一封新的邮件发送时，如果在线玩家可以领取，发送提示
   #msg 普通消息
   #title 标题消息
+  #sound 玩家升级的声音提示
   #flow vv的滚动条消息，需要开启vv
   #hud vv的HUD提示, 需要开启vv
   newMailTips: 
   - msg
   - title
+  - sound
   - flow
   - hud
   newMailTipsMsg: '§b你有新邮件！'
@@ -57,6 +59,8 @@ mailbox:
     date: '[期限邮件]'
     #times 类型邮件
     times: '[红包邮件]'
+    #keytimes 类型邮件
+    keytimes: '[口令邮件]'
     #cdkey 类型邮件
     cdkey: '[CDK邮件]'
     #online 类型邮件

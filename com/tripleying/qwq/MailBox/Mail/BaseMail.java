@@ -47,7 +47,7 @@ public class BaseMail {
     
     // 邮件领取额外验证
     public boolean collectValidate(Player p){
-        return false;
+        return true;
     }
     
     // 邮件发送额外验证
@@ -77,6 +77,7 @@ public class BaseMail {
     
     // 让玩家领取这封邮件
     public boolean Collect(Player p) {
+        if(!collectValidate(p)) return false;
         return Read(p);
     }
     
@@ -207,7 +208,7 @@ public class BaseMail {
     }
     
     public BaseMail setType(String type){
-        return MailBoxAPI.createBaseMail(type, id, sender, null, null, topic, content, date, null, 0, false, null);
+        return MailBoxAPI.createBaseMail(type, id, sender, null, null, topic, content, date, null, 0, null, false, null);
     }
     
     public final String getType(){

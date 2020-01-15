@@ -21,7 +21,7 @@ public class CdkeyMail extends BaseMail implements MailCdkey {
     
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("cdkey", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, only, "0");
+        return MailBoxAPI.setSend("cdkey", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, "", only, "0");
     }
 
     @Override
@@ -65,7 +65,7 @@ public class CdkeyMail extends BaseMail implements MailCdkey {
     
     @Override
     public boolean Collect(Player p){
-        if(MailBoxAPI.createBaseMail("player", 0, getSender(), Arrays.asList(p.getName()), "", getTopic(), getContent(), getDate(), "", 0, false, "").Send(Bukkit.getConsoleSender(), null)){
+        if(MailBoxAPI.createBaseMail("player", 0, getSender(), Arrays.asList(p.getName()), "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(Bukkit.getConsoleSender(), null)){
             MailBoxAPI.setCollect(getType(), getId(), p.getName());
             MailCollectEvent mse = new MailCollectEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mse);

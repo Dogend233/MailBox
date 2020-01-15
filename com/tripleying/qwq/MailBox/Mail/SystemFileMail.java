@@ -22,7 +22,7 @@ public class SystemFileMail extends BaseFileMail implements MailSystem {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("system", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, false, getFileName());
+        return MailBoxAPI.setSend("system", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, "", false, getFileName());
     }
 
     @Override

@@ -8,10 +8,25 @@ import com.tripleying.qwq.MailBox.MailBox;
 import java.io.IOException;
 import java.util.List;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class MailChange implements Listener {
+    
+    @EventHandler
+    public void onInputTimesKey(AsyncPlayerChatEvent e){
+        String m = e.getMessage();
+        if(MailBox.KEYTIMES_KEY.containsKey(m)){
+            Player p = e.getPlayer();
+            MailBox.KEYTIMES_KEY.get((m)).forEach(k -> {
+                p.performCommand("mb keytimes see "+k);
+                MailBox.getMailHashMap("keytimes").get(k).Collect(p);
+            });
+            
+        }
+    }
     
     @EventHandler
     public void onMailSend(MailSendEvent e) throws IOException{
@@ -65,12 +80,14 @@ public class MailChange implements Listener {
     public void onMailCollect(MailCollectEvent e){
         BaseMail bm = e.getMail();
         String type = bm.getType();
+        Player p = e.getPlayer();
+        String pn = p.getName();
         // 更新邮件列表
         MailBox.updateMailList(null, type);
         // 更新玩家可领取邮件列表
-        MailBox.updateRelevantMailList(e.getPlayer(), type);
+        MailBox.updateRelevantMailList(p, type);
         // 输出到控制台
-        Bukkit.getConsoleSender().sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+e.getPlayer().getName()+"领取了邮件: <"+bm.getTypeName()+" - "+bm.getId()+">");
+        Bukkit.getConsoleSender().sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+pn+"领取了邮件: <"+bm.getTypeName()+" - "+bm.getId()+">");
     }
     
     @EventHandler

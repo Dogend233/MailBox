@@ -4,6 +4,7 @@ import com.tripleying.qwq.MailBox.Mail.*;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
+import static com.tripleying.qwq.MailBox.Original.MailNew.color;
 import static com.tripleying.qwq.MailBox.Original.MailNew.sendable;
 import com.tripleying.qwq.MailBox.Utils.DateTime;
 import com.tripleying.qwq.MailBox.VexView.MailContentGui;
@@ -24,14 +25,20 @@ public class MailNew {
             || sender.hasPermission("mailbox.admin.send.permission")
             || sender.hasPermission("mailbox.admin.send.date")
             || sender.hasPermission("mailbox.admin.send.times")
+            || sender.hasPermission("mailbox.admin.send.keytimes")
             || sender.hasPermission("mailbox.admin.send.cdkey")
             || sender.hasPermission("mailbox.admin.send.online")
             || sender.hasPermission("mailbox.admin.send.template")){
             create(new TypeSelect(sender), sender);
-        }else if(MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.player") || MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.times")){
+        }else if(MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.player") || MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.times") || MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.keytimes")){
+            int c = 0;
             boolean pl = sendable(sender,"player",null);
             boolean ti = sendable(sender,"times",null);
-            if(pl && ti){
+            boolean kti = sendable(sender,"keytimes",null);
+            if(pl) c++;
+            if(ti) c++;
+            if(kti) c++;
+            if(c>1){
                 create(new TypeSelect(sender), sender);
             }else if(pl){
                 sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"正在创建"+GlobalConfig.getTypeName("player")+GlobalConfig.normal+"邮件");
@@ -39,6 +46,9 @@ public class MailNew {
             }else if(ti){
                 sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"正在创建"+GlobalConfig.getTypeName("times")+GlobalConfig.normal+"邮件");
                 create(new Topic(new TimesMail(0,sender.getName(),null,null,null,0), sender, false), sender);
+            }else if(kti){
+                sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"正在创建"+GlobalConfig.getTypeName("keytimes")+GlobalConfig.normal+"邮件");
+                create(new Topic(new KeyTimesMail(0,sender.getName(),null,null,null,0,null), sender, false), sender);
             }else{
                 sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 你没有权限发送邮件");
             }
@@ -47,18 +57,20 @@ public class MailNew {
         }
     }
     public static void New(CommandSender sender, BaseMail bm){
-        if(bm.getType().equals("template")){
+        if(bm==null) New(sender);
+        else if(bm instanceof MailTemplate){
             create(new TypeSelect(sender, bm), sender);
         }else{
             sender.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"正在创建"+GlobalConfig.getTypeName(bm.getType())+GlobalConfig.normal+"邮件");
             if(bm.getSender()==null){
                 create(new Sender(bm, sender, true), sender);
             }else{
-                if(bm.getType().equals("permission") && ((MailPermission)bm).getPermission()==null) create(new Permission(bm, sender, true),sender);
-                if(bm.getType().equals("player") && (((MailPlayer)bm).getRecipient()==null || ((MailPlayer)bm).getRecipient().isEmpty())) create(new Recipient(bm, sender, true),sender);
-                if(bm.getType().equals("date") && (bm.getDate().equals("0") && ((MailDate)bm).getDeadline().equals("0"))) create(new StartDate(bm, sender, true),sender);
-                if(bm.getType().equals("times") && ((MailTimes)bm).getTimes()==0) create(new Times(bm, sender, true),sender);
-                if(bm.getType().equals("cdkey")) create(new Cdkey(bm, sender, true),sender);
+                if(bm instanceof MailPermission && ((MailPermission)bm).getPermission()==null) create(new Permission(bm, sender, true),sender);
+                if(bm instanceof MailPlayer && (((MailPlayer)bm).getRecipient()==null || ((MailPlayer)bm).getRecipient().isEmpty())) create(new Recipient(bm, sender, true),sender);
+                if(bm instanceof MailDate && (bm.getDate().equals("0") && ((MailDate)bm).getDeadline().equals("0"))) create(new StartDate(bm, sender, true),sender);
+                if(bm instanceof MailTimes && ((MailTimes)bm).getTimes()==0) create(new Times(bm, sender, true),sender);
+                else if(bm instanceof MailKeyTimes && ((MailKeyTimes)bm).getKey()==null) create(new TimesKey(bm, sender, true),sender);
+                if(bm instanceof MailCdkey) create(new Cdkey(bm, sender, true),sender);
                 create(new Preview(bm, sender), sender);
             }
         }
@@ -110,6 +122,8 @@ public class MailNew {
                     return false;
                 case "times":
                     return MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.times");
+                case "keytimes":
+                    return MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.keytimes");
                 default:
                     return sender.hasPermission("mailbox.admin.send."+type);
             }
@@ -164,6 +178,10 @@ class TypeSelect extends ValidatingPrompt{
                 cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入"+(i++)+"发送"+GlobalConfig.getTypeName("times")+"§b邮件");
                 select.add("times");
             }
+            if(sendable(sender,"keytimes",null)){
+                cc.getForWhom().sendRawMessage("§b[邮件预览]: 输入"+(i++)+"发送"+GlobalConfig.getTypeName("keytimes")+"§b邮件");
+                select.add("keytimes");
+            }
         }
         return OriginalConfig.msgCancel;
     }
@@ -174,6 +192,11 @@ class TypeSelect extends ValidatingPrompt{
         }
         try{
             switch(Integer.parseInt(str)){
+                case 9:
+                    if(select.size()>=9){
+                        type = select.get(7);
+                        return true;
+                    }else break;
                 case 8:
                     if(select.size()>=8){
                         type = select.get(7);
@@ -231,18 +254,19 @@ class TypeSelect extends ValidatingPrompt{
         if(bm!=null){
             bm = bm.setType(type);
             if(bm.getSender()==null) return new Sender(bm, sender, true);
-            if(bm.getType().equals("permission") && ((MailPermission)bm).getPermission()==null) return new Permission(bm, sender, true);
-            if(bm.getType().equals("player") && (((MailPlayer)bm).getRecipient()==null || ((MailPlayer)bm).getRecipient().isEmpty())) return new Recipient(bm, sender, true);
-            if(bm.getType().equals("date") && (bm.getDate().equals("0") && ((MailDate)bm).getDeadline().equals("0"))) return new StartDate(bm, sender, true);
-            if(bm.getType().equals("times") && ((MailTimes)bm).getTimes()==0) return new Times(bm, sender, true);
-            if(bm.getType().equals("cdkey")) return new Cdkey(bm, sender, true);
-            if(bm.getType().equals("template") && ((MailTemplate)bm).getTemplate()==null) return new Template(bm, sender, true);
+            if(bm instanceof MailPermission && ((MailPermission)bm).getPermission()==null) return new Permission(bm, sender, true);
+            if(bm instanceof MailPlayer && (((MailPlayer)bm).getRecipient()==null || ((MailPlayer)bm).getRecipient().isEmpty())) return new Recipient(bm, sender, true);
+            if(bm instanceof MailDate && (bm.getDate().equals("0") && ((MailDate)bm).getDeadline().equals("0"))) return new StartDate(bm, sender, true);
+            if(bm instanceof MailTimes && ((MailTimes)bm).getTimes()==0) return new Times(bm, sender, true);
+            if(bm instanceof MailKeyTimes && ((MailKeyTimes)bm).getKey()==null) return new TimesKey(bm, sender, true);
+            if(bm instanceof MailCdkey) return new Cdkey(bm, sender, true);
+            if(bm instanceof MailTemplate && ((MailTemplate)bm).getTemplate()==null) return new Template(bm, sender, true);
             return new Preview(bm, sender);
         }
         if(sender instanceof Player){
-            return new Topic(MailBoxAPI.createBaseMail(type,0,sender.getName(),null,null,null,null,null,null,0,false,null), sender, false);
+            return new Topic(MailBoxAPI.createBaseMail(type,0,sender.getName(),null,null,null,null,null,null,0,null,false,null), sender, false);
         }else{
-            return new Topic(MailBoxAPI.createBaseMail(type,0,null,null,null,null,null,null,null,0,false,null), sender, false);
+            return new Topic(MailBoxAPI.createBaseMail(type,0,null,null,null,null,null,null,null,0,null,false,null), sender, false);
         }
     }
 }
@@ -329,6 +353,7 @@ class Content extends ValidatingPrompt{
                     return new Recipient(bm, sender, false);
                 case "date":
                     return new StartDate(bm, sender, false);
+                case "keytimes":
                 case "times":
                     return new Times(bm, sender, false);
                 case "template":
@@ -373,11 +398,12 @@ class Sender extends ValidatingPrompt{
         cc.getForWhom().sendRawMessage("§a[邮件预览]: 设置发件人: "+str);
         bm.setSender(str);
         if(change){
-            if(bm.getType().equals("permission") && ((MailPermission)bm).getPermission()==null) return new Permission(bm, sender, true);
-            if(bm.getType().equals("player") && (((MailPlayer)bm).getRecipient()==null || ((MailPlayer)bm).getRecipient().isEmpty())) return new Recipient(bm, sender, true);
-            if(bm.getType().equals("date") && (bm.getDate().equals("0") && ((MailDate)bm).getDeadline().equals("0"))) return new StartDate(bm, sender, true);
-            if(bm.getType().equals("times") && (((MailTimes)bm).getTimes()==0)) return new Times(bm, sender, true);
-            if(bm.getType().equals("template") && ((MailTemplate)bm).getTemplate()==null) return new Template(bm, sender, true);
+            if(bm instanceof MailPermission && ((MailPermission)bm).getPermission()==null) return new Permission(bm, sender, true);
+            if(bm instanceof MailPlayer && (((MailPlayer)bm).getRecipient()==null || ((MailPlayer)bm).getRecipient().isEmpty())) return new Recipient(bm, sender, true);
+            if(bm instanceof MailDate && (bm.getDate().equals("0") && ((MailDate)bm).getDeadline().equals("0"))) return new StartDate(bm, sender, true);
+            if(bm instanceof MailTimes && (((MailTimes)bm).getTimes()==0)) return new Times(bm, sender, true);
+            if(bm instanceof MailKeyTimes && (((MailKeyTimes)bm).getKey()==null)) return new TimesKey(bm, sender, true);
+            if(bm instanceof MailTemplate && ((MailTemplate)bm).getTemplate()==null) return new Template(bm, sender, true);
             return new Preview(bm, sender);
         }
         switch (bm.getType()){
@@ -387,6 +413,7 @@ class Sender extends ValidatingPrompt{
                 return new Recipient(bm, sender, false);
             case "date":
                 return new StartDate(bm, sender, false);
+            case "keytimes":
             case "times":
                 return new Times(bm, sender, false);
             case "template":
@@ -623,6 +650,42 @@ class Times extends ValidatingPrompt{
         int times = Integer.parseInt(str);
         cc.getForWhom().sendRawMessage("§a[邮件预览]: 设置邮件数量: "+times);
         ((MailTimes)bm).setTimes(times);
+        if(change) return new Preview(bm, sender);
+        if(bm instanceof MailKeyTimes) return new TimesKey(bm, sender, false);
+        if(MailNew.filable(sender)){
+            return new File(bm, sender);
+        }else{
+            return new Preview(bm, sender);
+        }
+    }
+}
+
+class TimesKey extends ValidatingPrompt{
+    BaseMail bm;
+    CommandSender sender;
+    boolean change;
+    TimesKey(BaseMail bm, CommandSender sender, boolean change){
+        this.bm = bm;
+        this.sender = sender;
+        this.change = change;
+    }
+    @Override
+    public String getPromptText(ConversationContext cc) {
+        return OriginalConfig.msgTimesKey+'\n'+OriginalConfig.msgCancel;
+    }
+    @Override
+    protected boolean isInputValid(ConversationContext cc, String str) {
+        if(str.trim().equals("")){
+            cc.getForWhom().sendRawMessage(GlobalConfig.warning+"[邮件预览]: 口令不能为空");
+            return false;
+        }
+        return true;
+    }
+    @Override
+    protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
+        if(str.equals(OriginalConfig.stopStr)) return Prompt.END_OF_CONVERSATION;
+        cc.getForWhom().sendRawMessage("§a[邮件预览]: 设置邮件口令: "+str);
+        ((MailKeyTimes)bm).setKey(color(str));
         if(change) return new Preview(bm, sender);
         if(MailNew.filable(sender)){
             return new File(bm, sender);
@@ -1073,6 +1136,7 @@ class Preview extends ValidatingPrompt{
         OPTION.put(15, "§b[邮件预览]: 输入 0 修改模板文件名");
         OPTION.put(16, "§b[邮件预览]: 输入 0 修改邮件数量");
         OPTION.put(17, "§b[邮件预览]: 输入 0 修改兑换码唯一性");
+        OPTION.put(18, "§b[邮件预览]: 输入 0 修改邮件口令");
     }
     public static HashMap<Integer,Integer> optional(BaseMail bm, CommandSender sender){
         HashMap<Integer,Integer> o = new HashMap();
@@ -1096,6 +1160,8 @@ class Preview extends ValidatingPrompt{
             case "template":
                 o.put((i++), 15);
                 break;
+            case "keytimes":
+                o.put((i++), 18);
             case "times":
                 o.put((i++), 16);
                 break;
@@ -1220,6 +1286,8 @@ class Preview extends ValidatingPrompt{
                     return new Times(bm, sender, true);
                 case 17:
                     return new Cdkey(bm, sender, true);
+                case 18:
+                    return new TimesKey(bm, sender, true);
                 default:
                     cc.getForWhom().sendRawMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标选项不存在");
                     return new Preview(bm, sender);

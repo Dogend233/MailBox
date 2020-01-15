@@ -8,6 +8,7 @@ import com.tripleying.qwq.MailBox.Mail.MailPermission;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Mail.MailCdkey;
+import com.tripleying.qwq.MailBox.Mail.MailKeyTimes;
 import com.tripleying.qwq.MailBox.Mail.MailTemplate;
 import com.tripleying.qwq.MailBox.Mail.MailTimes;
 import com.tripleying.qwq.MailBox.MailBox;
@@ -275,32 +276,26 @@ public class MailView {
     
     public static void viewTopic(BaseMail bm, Player p){
         TextComponent firstTC = new TextComponent("<"+bm.getTopic()+"§r>");
-        if(bm instanceof MailTimes) firstTC.addExtra("  剩余数量: "+((MailTimes)bm).getTimes());
+        if(bm instanceof MailTimes) firstTC.addExtra(" 剩余数量: "+((MailTimes)bm).getTimes());
+        if(bm instanceof MailKeyTimes) firstTC.addExtra('\n'+" 口令: "+((MailKeyTimes)bm).getKey());
         // 邮件类型+ID+信息
         if(p.hasPermission("mailbox.content.id")){
             TextComponent secondTC = new TextComponent(bm.getType()+" - "+bm.getId());
             switch (bm.getType()){
                 case "player":
-                    secondTC.addExtra('\n'+"  收件人:");
+                    secondTC.addExtra('\n'+" 收件人:");
                     ((MailPlayer)bm).getRecipient().forEach((re) -> {
                         secondTC.addExtra('\n'+"  "+re);
                     });
                     break;
                 case "permission":
-                    secondTC.addExtra('\n'+"  所需权限:");
-                    secondTC.addExtra('\n'+"  "+((MailPermission)bm).getPermission());
-                    break;
-                case "times":
-                    secondTC.addExtra('\n'+" 剩余数量:");
-                    secondTC.addExtra('\n'+"  "+((MailTimes)bm).getTimes());
+                    secondTC.addExtra('\n'+" 所需权限: "+((MailPermission)bm).getPermission());
                     break;
                 case "cdkey":
-                    secondTC.addExtra('\n'+" 兑换码唯一性:");
-                    secondTC.addExtra('\n'+"  "+((MailCdkey)bm).isOnly());
+                    secondTC.addExtra('\n'+" 兑换码唯一性: "+((MailCdkey)bm).isOnly());
                     break;
                 case "template":
-                    secondTC.addExtra('\n'+"  模板名称:");
-                    secondTC.addExtra('\n'+"  "+((MailTemplate)bm).getTemplate());
+                    secondTC.addExtra('\n'+" 模板名称: "+((MailTemplate)bm).getTemplate());
                     break;
             }
             firstTC.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{secondTC}));
@@ -309,6 +304,8 @@ public class MailView {
     }
     public static void viewTopic(BaseMail bm, CommandSender s, Conversable who){
         StringBuilder sb = new StringBuilder("<"+bm.getTopic()+"§r>");
+        if(bm instanceof MailTimes) sb.append(" 剩余数量: ").append(((MailTimes)bm).getTimes());
+        if(bm instanceof MailKeyTimes) sb.append('\n'+" 口令: ").append(((MailKeyTimes)bm).getKey());
         if(s.hasPermission("mailbox.content.id")){
             sb.append(" - ");
             sb.append(bm.getType());
@@ -329,10 +326,6 @@ public class MailView {
                 case "permission":
                     if(who==null)  s.sendMessage(" §6所需权限:" + "  §e"+((MailPermission)bm).getPermission());
                     else who.sendRawMessage(" §6所需权限:" + "  §e"+((MailPermission)bm).getPermission());
-                    break;
-                case "times":
-                    if(who==null)  s.sendMessage(" §6剩余数量: "+ "  §e"+((MailTimes)bm).getTimes());
-                    else who.sendRawMessage(" §6剩余数量: "+ "  §e"+((MailTimes)bm).getTimes());
                     break;
                 case "cdkey":
                     if(who==null)  s.sendMessage(" §6兑换码唯一性: "+ "  §e"+((MailCdkey)bm).isOnly());
@@ -494,7 +487,13 @@ public class MailView {
             return;
         }
         if(collectable(type,mid,sender) && bm.isStart()){
-            bm.Collect((Player)sender);
+            if(bm instanceof MailKeyTimes){
+                // 发送口令
+                ((Player)sender).chat(((MailKeyTimes) bm).getKey());
+            }else{
+                // 领取邮件
+                bm.Collect((Player)sender);
+            }
         }else{
             sender.sendMessage("你不能领取此邮件");
         }

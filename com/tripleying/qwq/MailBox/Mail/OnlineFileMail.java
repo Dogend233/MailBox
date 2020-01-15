@@ -33,14 +33,14 @@ public class OnlineFileMail extends BaseFileMail implements MailOnline {
             if(sb.append(" ").append(name).length()<=200){
                 l.add(name);
             }else{
-                if(!MailBoxAPI.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(send, cc)) return false;
+                if(!MailBoxAPI.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(send, cc)) return false;
                 sb.delete(0, sb.length());
                 l.clear();
                 sb.append(" ").append(name);
                 l.add(name);
             }
         }
-        if(!l.isEmpty()) return MailBoxAPI.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(send, cc);
+        if(!l.isEmpty()) return MailBoxAPI.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(send, cc);
         else return true;
     }
     

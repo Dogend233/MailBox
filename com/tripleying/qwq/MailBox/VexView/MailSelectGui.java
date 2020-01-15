@@ -45,6 +45,10 @@ public class MailSelectGui extends VexGui{
                 this.addComponent(new VexButton(BUTTON_ID.get("times"),GlobalConfig.getTypeName("times"),button_img_1,button_img_2,button_x.get(i),button_y.get(i),button_w,button_h,player -> MailSendGui.openMailSendGui(player, "times", null)));
                 i++;
             }
+            if(button_list.contains("keytimes") && MailBoxAPI.hasPlayerPermission(p, "mailbox.send.keytimes")){
+                this.addComponent(new VexButton(BUTTON_ID.get("keytimes"),GlobalConfig.getTypeName("keytimes"),button_img_1,button_img_2,button_x.get(i),button_y.get(i),button_w,button_h,player -> MailSendGui.openMailSendGui(player, "keytimes", null)));
+                i++;
+            }
         }
     }
     
@@ -61,6 +65,7 @@ public class MailSelectGui extends VexGui{
         String button_id_permission,
         String button_id_date,
         String button_id_times,
+        String button_id_keytimes,
         String button_id_cdkey,
         String button_id_online,
         String button_id_template,
@@ -87,6 +92,7 @@ public class MailSelectGui extends VexGui{
         BUTTON_ID.put("permission", button_id_permission);
         BUTTON_ID.put("date", button_id_date);
         BUTTON_ID.put("times", button_id_times);
+        BUTTON_ID.put("keytimes", button_id_keytimes);
         BUTTON_ID.put("cdkey", button_id_cdkey);
         BUTTON_ID.put("online", button_id_online);
         BUTTON_ID.put("template", button_id_template);
@@ -109,13 +115,16 @@ public class MailSelectGui extends VexGui{
         int count = 0;
         if(MailBoxAPI.hasPlayerPermission(p, "mailbox.send.player")) count++;
         if(MailBoxAPI.hasPlayerPermission(p, "mailbox.send.times")) count++;
+        if(MailBoxAPI.hasPlayerPermission(p, "mailbox.send.keytimes")) count++;
         switch (count) {
+            case 3:
             case 2:
                 VexViewAPI.openGui(p, new MailSelectGui(p));
                 break;
             case 1:
                 if(MailBoxAPI.hasPlayerPermission(p, "mailbox.send.player")) MailSendGui.openMailSendGui(p, "player", null);
-                else MailSendGui.openMailSendGui(p, "times", null);
+                else if(MailBoxAPI.hasPlayerPermission(p, "mailbox.send.times")) MailSendGui.openMailSendGui(p, "times", null);
+                else MailSendGui.openMailSendGui(p, "keytimes", null);
                 break;
             default:
                 p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 你没有权限发送邮件");

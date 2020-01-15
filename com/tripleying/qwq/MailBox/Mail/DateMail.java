@@ -26,7 +26,7 @@ public class DateMail extends BaseMail implements MailDate {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("date", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), deadline, 0, false, "0");
+        return MailBoxAPI.setSend("date", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), deadline, 0, "", false, "0");
     }
 
     @Override

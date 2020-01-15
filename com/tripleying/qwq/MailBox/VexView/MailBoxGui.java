@@ -355,16 +355,16 @@ public class MailBoxGui extends VexGui{
         boolean file = (bm instanceof BaseFileMail);
         // 邮件主题
         String t = bm.getTopic();
-        if(file) {
-            t = mail_topic_noFile + t;
-        }else{
-            t = mail_topic_noRead + t;
-        }
-        int reducedLength = t.length()-t.replace("§", "").length();
+        int reducedLength = t.length()-(t.length()-t.replace("§", "").length())*2;
         if(reducedLength>mail_topic_div){
             t = t.substring(0, mail_topic_div-2);
             if(t.endsWith("§")) t = t.substring(0, t.length()-1);
             t += "...";
+        }
+        if(file) {
+            t = mail_topic_noFile + t;
+        }else{
+            t = mail_topic_noRead + t;
         }
         vsl.addComponent(new VexText(mail_topic_x,mail_y_offset*i+mail_topic_y,Arrays.asList(t),mail_topic_size));
         // 邮件发送时间

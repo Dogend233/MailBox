@@ -1,6 +1,6 @@
 name: MailBox
 main: com.tripleying.qwq.MailBox.MailBox
-version: 2.0.0
+version: 2.1.0
 description: Send Mail with Item.
 author: Dogend
 website: qwq.tripleying.com

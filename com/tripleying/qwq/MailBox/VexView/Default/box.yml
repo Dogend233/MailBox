@@ -182,6 +182,7 @@ mail:
     prefix: §b
     #显示发送时间的邮件类型
     display:
+    - keytimes
     - times
     - date
     - system
@@ -200,6 +201,7 @@ mail:
     prefix: '§a来自: §6'
     #显示发件人的邮件类型
     display:
+    - keytimes
     - times
     - date
     - system
@@ -218,6 +220,7 @@ mail:
     prefix: '§d'
     #显示邮件类型的邮件类型
     display:
+    - keytimes
     - times
     - date
     - system
@@ -238,6 +241,7 @@ mail:
     h: 15
     #显示图标的邮件类型
     display:
+    - keytimes
     - times
     - date
     - system

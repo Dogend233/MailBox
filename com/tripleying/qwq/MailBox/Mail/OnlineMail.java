@@ -32,14 +32,14 @@ public class OnlineMail extends BaseMail implements MailOnline {
             if(sb.append(" ").append(name).length()<=200){
                 l.add(name);
             }else{
-                if(!MailBoxAPI.createBaseMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, false, "").Send(send, cc)) return false;
+                if(!MailBoxAPI.createBaseMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(send, cc)) return false;
                 sb.delete(0, sb.length());
                 l.clear();
                 sb.append(" ").append(name);
                 l.add(name);
             }
         }
-        if(!l.isEmpty()) return MailBoxAPI.createBaseMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, false, "").Send(send, cc);
+        if(!l.isEmpty()) return MailBoxAPI.createBaseMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(send, cc);
         else return true;
     }
     

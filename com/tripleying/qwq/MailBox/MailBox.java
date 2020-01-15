@@ -59,6 +59,10 @@ public class MailBox extends JavaPlugin {
     // times 类型邮件
     public static final HashMap<Integer, BaseMail> TIMES_LIST = new HashMap();
     private static final HashMap<String, HashMap<String, ArrayList<Integer>>> TIMES_RELEVANT = new HashMap();
+    // keytimes 类型邮件
+    public static final HashMap<String, List<Integer>> KEYTIMES_KEY = new HashMap();
+    public static final HashMap<Integer, BaseMail> KEYTIMES_LIST = new HashMap();
+    private static final HashMap<String, HashMap<String, ArrayList<Integer>>> KEYTIMES_RELEVANT = new HashMap();
     // cdkey 类型邮件
     public static final HashMap<Integer, BaseMail> CDKEY_LIST = new HashMap();
     private static final HashMap<String, HashMap<String, ArrayList<Integer>>> CDKEY_RELEVANT = new HashMap();
@@ -355,6 +359,7 @@ public class MailBox extends JavaPlugin {
             config.getString("mailbox.name.permission"),
             config.getString("mailbox.name.date"),
             config.getString("mailbox.name.times"),
+            config.getString("mailbox.name.keytimes"),
             config.getString("mailbox.name.cdkey"),
             config.getString("mailbox.name.online"),
             config.getString("mailbox.name.template"),
@@ -447,6 +452,7 @@ public class MailBox extends JavaPlugin {
                         sender.sendMessage("§b/mb template [模板名] [邮件类型] §e读取一个邮件模板以[邮件类型]类型进入预览/参数设置");
                         sender.sendMessage("§b/mb template [模板名] template [目标文件名] §e复制一个邮件模板进入预览，并写入目标文件名");
                         sender.sendMessage("§b/mb template [模板名] times [邮件数量] §e读取一个邮件模板以times类型进入预览，并写入邮件数量");
+                        sender.sendMessage("§b/mb template [模板名] keytimes [邮件数量] [邮件口令] §e读取一个邮件模板以keytimes类型进入预览，并写入邮件数量和口令");
                         sender.sendMessage("§b/mb template [模板名] cdkey [兑换码唯一性] §e读取一个邮件模板以cdkey类型进入预览，并设置兑换码唯一性");
                         sender.sendMessage("§b/mb template [模板名] permission [所需权限] §e读取一个邮件模板以permission类型进入预览，并写入所需权限");
                         sender.sendMessage("§b/mb template [模板名] date [开始时间] [截止时间] §e读取一个邮件模板以date类型进入预览，并写入开始时间和截止时间");
@@ -457,6 +463,7 @@ public class MailBox extends JavaPlugin {
                         sender.sendMessage("§b/mb send [模板名] online §e读取一个邮件模板，为online类型，不进入预览直接发送");
                         sender.sendMessage("§b/mb send [模板名] template [目标文件名] §e复制一个邮件模板，不进入预览直接保存为目标文件名");
                         sender.sendMessage("§b/mb send [模板名] times [邮件数量] §e读取一个邮件模板，写入times类型，并写入邮件数量，不进入预览直接发送");
+                        sender.sendMessage("§b/mb send [模板名] keytimes [邮件数量] [邮件口令] §e读取一个邮件模板，写入keytimes类型，并写入邮件数量和口令，不进入预览直接发送");
                         sender.sendMessage("§b/mb send [模板名] cdkey [兑换码唯一性] §e读取一个邮件模板，写入cdkey类型，并设置兑换码唯一性，不进入预览直接发送");
                         sender.sendMessage("§b/mb send [模板名] permission [所需权限] §e读取一个邮件模板，写入permission类型，并写入所需权限，不进入预览直接发送");
                         sender.sendMessage("§b/mb send [模板名] date [开始时间] [截止时间] §e读取一个邮件模板，写入player类型，并写入收件人，不进入预览直接发送");
@@ -496,6 +503,7 @@ public class MailBox extends JavaPlugin {
                     case "permission":
                     case "date":
                     case "times":
+                    case "keytimes":
                     case "cdkey":
                         onCommandMail(sender, args);
                         break;
@@ -519,6 +527,7 @@ public class MailBox extends JavaPlugin {
                     if(sender.hasPermission("mailbox.admin.check")) l.add("check");
                     l.add("date");
                     if(sender.hasPermission("mailbox.admin.item")) l.add("item");
+                    l.add("keytimes");
                     l.add("new");
                     if(MailBoxAPI.hasPlayerPermission(sender, "mailbox.onekey")) l.add("ok");
                     l.add("permission");
@@ -560,6 +569,8 @@ public class MailBox extends JavaPlugin {
                     case "i":
                         if(sender.hasPermission("mailbox.admin.item")) return Arrays.asList("item");
                         else break;
+                    case "k":
+                        return Arrays.asList("keytimes");
                     case "n":
                         return Arrays.asList("new");
                     case "o":
@@ -583,6 +594,7 @@ public class MailBox extends JavaPlugin {
                     case "permission":
                     case "player":
                     case "times":
+                    case "keytimes":
                     case "cdkey":
                         if(args[1].length()==0){
                             ArrayList<String> l = new ArrayList();
@@ -663,6 +675,7 @@ public class MailBox extends JavaPlugin {
                     case "permission":
                     case "player":
                     case "times":
+                    case "keytimes":
                     case "cdkey":
                         if((args[1].equals("download") && sender.hasPermission("mailbox.admin.download"))
                             || (args[1].equals("upload") && sender.hasPermission("mailbox.admin.upload"))) return Arrays.asList("all");
@@ -682,6 +695,8 @@ public class MailBox extends JavaPlugin {
                                     return Arrays.asList("cdkey");
                                 case "d":
                                     return Arrays.asList("date");
+                                case "k":
+                                    return Arrays.asList("keytimes");
                                 case "o":
                                     return Arrays.asList("online");
                                 case "p":
@@ -730,11 +745,11 @@ public class MailBox extends JavaPlugin {
                 if(sender instanceof Player && MailBoxAPI.hasPlayerPermission(sender, "mailbox.onekeycollect")){
                     Player p = (Player)sender;
                     for(String type:MailBoxAPI.getTrueTypeWhithoutSpecial()){
-                        if(!MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+type)) break;
+                        if(!MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+type)) continue;
                         MailBox.updateRelevantMailList(p, type);
                         HashMap<Integer, BaseMail> mhm = MailBox.getMailHashMap(type);
                         MailBox.getRelevantMailList(p, type).get("asRecipient").forEach(id -> {
-                            mhm.get(id).Collect(p);
+                            if(mhm.get(id) instanceof BaseFileMail) mhm.get(id).Collect(p);
                         });
                     }
                 }else{
@@ -979,10 +994,17 @@ public class MailBox extends JavaPlugin {
                             }
                             ((MailCdkey)bm).setOnly(only);
                             break;
+                        case "keytimes":
+                            if(args.length==5){
+                                ((MailKeyTimes)bm).setKey(args[4].replace('&', '§'));
+                            }else{
+                                sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"请输入足够的参数: 邮件数量 和 邮件口令");
+                                return;
+                            }
                         case "times":
                             int times;
                             try{
-                                times =Integer.parseInt(args[3]);
+                                times = Integer.parseInt(args[3]);
                             }catch(NumberFormatException e){
                                 sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件数量格式错误，请输入数字");
                                 return;
@@ -1132,13 +1154,14 @@ public class MailBox extends JavaPlugin {
                         break;
                     }
                     updateMailList(null, "cdkey");
-                    MailCdkey mc = null;
+                    MailCdkey mc;
                     try{
                         int mail = Integer.parseInt(args[2]);
                         mc = (MailCdkey)MailBox.getMailHashMap(type).get(mail);
                     }
                     catch(NumberFormatException e){
                         sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件格式输入错误，请输入数字ID");
+                        break;
                     }
                     if(mc==null){
                         sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"目标邮件不存在");
@@ -1264,6 +1287,22 @@ public class MailBox extends JavaPlugin {
                 TIMES_LIST.putAll(SQLManager.get().getMailList(type));
                 count = TIMES_LIST.size();
                 break;
+            case "keytimes": 
+                KEYTIMES_LIST.clear();
+                KEYTIMES_KEY.clear();
+                KEYTIMES_LIST.putAll(SQLManager.get().getMailList(type));
+                KEYTIMES_LIST.forEach((k,v) -> {
+                    String key = ((MailKeyTimes)v).getKey();
+                    if(KEYTIMES_KEY.containsKey(key)){
+                        KEYTIMES_KEY.get(key).add(k);
+                    }else{
+                        List<Integer> l = new ArrayList();
+                        l.add(k);
+                        KEYTIMES_KEY.put(key, l);
+                    }
+                });
+                count = KEYTIMES_LIST.size();
+                break;
             case "cdkey": 
                 CDKEY_LIST.clear();
                 CDKEY_LIST.putAll(SQLManager.get().getMailList(type));
@@ -1291,6 +1330,8 @@ public class MailBox extends JavaPlugin {
                 return DATE_LIST;
             case "times":
                 return TIMES_LIST;
+            case "keytimes":
+                return KEYTIMES_LIST;
             case "cdkey":
                 return CDKEY_LIST;
             default:
@@ -1325,6 +1366,9 @@ public class MailBox extends JavaPlugin {
             case "times":
                 if(!TIMES_RELEVANT.containsKey(p.getName())) updateRelevantMailList(p,type);
                 return TIMES_RELEVANT.get(p.getName());
+            case "keytimes":
+                if(!KEYTIMES_RELEVANT.containsKey(p.getName())) updateRelevantMailList(p,type);
+                return KEYTIMES_RELEVANT.get(p.getName());
             case "cdkey":
                 if(!CDKEY_RELEVANT.containsKey(p.getName())) updateRelevantMailList(p,type);
                 return CDKEY_RELEVANT.get(p.getName());
@@ -1356,6 +1400,10 @@ public class MailBox extends JavaPlugin {
                 TIMES_RELEVANT.remove(p.getName());
                 TIMES_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
                 break;
+            case "keytimes":
+                KEYTIMES_RELEVANT.remove(p.getName());
+                KEYTIMES_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
+                break;
             case "cdkey":
                 CDKEY_RELEVANT.remove(p.getName());
                 CDKEY_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, type));
@@ -1367,6 +1415,7 @@ public class MailBox extends JavaPlugin {
                 PERMISSION_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, "permission"));
                 DATE_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, "date"));
                 TIMES_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, "times"));
+                KEYTIMES_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, "keytimes"));
                 CDKEY_RELEVANT.put(p.getName(), MailBoxAPI.getRelevantMail(p, "cdkey"));
         }
     }
@@ -1378,6 +1427,7 @@ public class MailBox extends JavaPlugin {
         PERMISSION_RELEVANT.remove(p.getName());
         DATE_RELEVANT.remove(p.getName());
         TIMES_RELEVANT.remove(p.getName());
+        KEYTIMES_RELEVANT.remove(p.getName());
         CDKEY_RELEVANT.remove(p.getName());
     }
     

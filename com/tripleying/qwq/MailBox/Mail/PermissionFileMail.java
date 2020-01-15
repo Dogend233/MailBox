@@ -32,7 +32,7 @@ public class PermissionFileMail extends BaseFileMail implements MailPermission {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("permission", getId(), getSender(), "", permission, getTopic(), getContent(), getDate(), "", 0, false, getFileName());
+        return MailBoxAPI.setSend("permission", getId(), getSender(), "", permission, getTopic(), getContent(), getDate(), "", 0, "", false, getFileName());
     }
 
     @Override
