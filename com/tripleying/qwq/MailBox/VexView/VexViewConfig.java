@@ -1,31 +1,28 @@
 package com.tripleying.qwq.MailBox.VexView;
 
+import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.ConfigMessage;
 import com.tripleying.qwq.MailBox.Events.DoubleKeyPress;
 import com.tripleying.qwq.MailBox.Events.JoinAndQuit;
 import com.tripleying.qwq.MailBox.Events.SingleKeyPress;
-import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Events.VexGuiOpen;
 import com.tripleying.qwq.MailBox.MailBox;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
-import lk.vexview.gui.components.VexButton;
+import lk.vexview.gui.components.HoverTextComponent;
 import lk.vexview.gui.components.VexHoverText;
-import lk.vexview.gui.components.VexImage;
-import lk.vexview.gui.components.VexText;
-import lk.vexview.gui.components.VexTextField;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class VexViewConfig {
         
-    public static final String DATA_FOLDER = "plugins/MailBox/VexView";
+    private static final String DATA_FOLDER = "plugins/MailBox/VexView";
+    private static final String JAR_FOLDER = "com/tripleying/qwq/MailBox/VexView/Default/";
     
     // 配置VexView
     public static void VexViewConfigSet(){
-        Bukkit.getConsoleSender().sendMessage("§6-----正在配置VexView");
+        Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview);
+        Bukkit.getPluginManager().registerEvents(new VexGuiOpen(), MailBox.getInstance());
         VexViewConfig config = new VexViewConfig();
         config.ConfigExist();
         config.ConfigLoad();
@@ -51,10 +48,8 @@ public class VexViewConfig {
                 hud.getInt("hud.ww"),
                 hud.getInt("hud.hh")
             );
-            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 加入/退出 事件");
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, true), MailBox.getInstance());
         }else{
-            Bukkit.getConsoleSender().sendMessage("§6-----[MailBox]:正在注册 加入/退出 事件");
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, false), MailBox.getInstance());
         }
         // 配置邮件提醒Hud
@@ -72,18 +67,16 @@ public class VexViewConfig {
         // 配置BoxGui
         MailBox.getInstance().setOpenCmd(box.getBoolean("gui.openCmd"));
         String key = box.getString("gui.openKey");
-        if(key.equals("0")){
-            Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:已关闭按键打开邮箱GUI");
-        }else{
+        if(!key.equals("0")){
             if(key.contains("+")){
                 int l = key.indexOf("+");
                 String key1 = key.substring(0, l);
                 String key2 = key.substring(l+1);
                 Bukkit.getPluginManager().registerEvents(new DoubleKeyPress(Integer.parseInt(key1), Integer.parseInt(key2)), MailBox.getInstance());
-                Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:已启用组合键打开邮箱GUI");
+                Bukkit.getConsoleSender().sendMessage(ConfigMessage.double_box);
             }else{
                 Bukkit.getPluginManager().registerEvents(new SingleKeyPress(Integer.parseInt(key)), MailBox.getInstance());
-                Bukkit.getConsoleSender().sendMessage("§a-----[MailBox]:已启用单按键打开邮箱GUI");
+                Bukkit.getConsoleSender().sendMessage(ConfigMessage.single_box);
             }
         }
         MailBoxGui.setBoxConfig(
@@ -361,6 +354,8 @@ public class VexViewConfig {
             send.getInt("button.preview.y"),
             send.getInt("button.preview.w"),
             send.getInt("button.preview.h"),
+            send.getString("button.preview.error"),
+            send.getString("button.preview.item-ban"),
             send.getInt("text.topic.x"),
             send.getInt("text.topic.y"),
             send.getDouble("text.topic.size"),
@@ -650,62 +645,28 @@ public class VexViewConfig {
     // 判断VexView文件夹是否存在
     private void ConfigExist(){
         File f = new File(DATA_FOLDER);
-        Bukkit.getConsoleSender().sendMessage("§6-----正在检查VexView配置文件夹是否存在");
         if(!f.exists()){
-            Bukkit.getConsoleSender().sendMessage("§a-----正在创建VexView配置文件夹");
+            Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", "VexView"));
             f.mkdir();
         }
     }
     
     // 加载配置
     private void ConfigLoad(){
-        YamlConfiguration hud = ConfigGet("hud");
-        YamlConfiguration box = ConfigGet("box");
-        YamlConfiguration content = ConfigGet("content");
-        YamlConfiguration select = ConfigGet("select");
-        YamlConfiguration send = ConfigGet("send");
-        YamlConfiguration item_modify = ConfigGet("item_modify");
-        YamlConfiguration item_list = ConfigGet("item_list");
-        YamlConfiguration cdkey = ConfigGet("cdkey");
-        ConfigSet(hud, box, content, select, send, item_modify, item_list, cdkey);
+        ConfigSet(
+            MailBoxAPI.configGet(DATA_FOLDER, "hud.yml", JAR_FOLDER), 
+            MailBoxAPI.configGet(DATA_FOLDER, "box.yml", JAR_FOLDER), 
+            MailBoxAPI.configGet(DATA_FOLDER, "content.yml", JAR_FOLDER), 
+            MailBoxAPI.configGet(DATA_FOLDER, "select.yml", JAR_FOLDER), 
+            MailBoxAPI.configGet(DATA_FOLDER, "send.yml", JAR_FOLDER), 
+            MailBoxAPI.configGet(DATA_FOLDER, "item_modify.yml", JAR_FOLDER), 
+            MailBoxAPI.configGet(DATA_FOLDER, "item_list.yml", JAR_FOLDER), 
+            MailBoxAPI.configGet(DATA_FOLDER, "cdkey.yml", JAR_FOLDER)
+        );
     }
     
-    // 获取/创建 配置
-    private YamlConfiguration ConfigGet(String filename){
-        File f = new File(DATA_FOLDER, filename+".yml");
-        Bukkit.getConsoleSender().sendMessage("§6-----正在检查"+filename+"配置文件是否存在");
-        if(!f.exists()){
-            try {
-                Bukkit.getConsoleSender().sendMessage("§a-----正在创建"+filename+"配置文件");
-                try (InputStream is = VexViewConfig.class.getResourceAsStream("Default/"+filename+".yml"); OutputStream os = new FileOutputStream(f)) {
-                    byte[] flush = new byte[1024];
-                    int len;
-                    while((len=is.read(flush))!=-1) os.write(flush, 0, len);
-                    os.flush();
-                }
-                Bukkit.getConsoleSender().sendMessage("§a-----"+filename+"配置文件创建成功");
-            } catch (IOException ex) {
-                Bukkit.getConsoleSender().sendMessage("§c-----"+filename+"配置文件创建失败");
-                Bukkit.getLogger().info(ex.getLocalizedMessage());
-                return null;
-            }
-        }
-        Bukkit.getConsoleSender().sendMessage("§6-----正在加载"+filename+"配置文件");
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
-        return config;
-    }
-    
-    public static void setHover(VexImage v, List<String> t){
-        if(!GlobalConfig.lowVexView_2_4) v.setHover(new VexHoverText(t));
-    }
-    public static void setHover(VexButton v, List<String> t){
-        if(!GlobalConfig.lowVexView_2_4) v.setHover(new VexHoverText(t));
-    }
-    public static void setHover(VexText v, List<String> t){
-        if(!GlobalConfig.lowVexView_2_4) v.setHover(new VexHoverText(t));
-    }
-    public static void setHover(VexTextField v, List<String> t){
-        if(!GlobalConfig.lowVexView_2_4) v.setHover(new VexHoverText(t));
+    public static void setHover(HoverTextComponent v, List<String> t){
+        v.setHover(new VexHoverText(t));
     }
 
 }

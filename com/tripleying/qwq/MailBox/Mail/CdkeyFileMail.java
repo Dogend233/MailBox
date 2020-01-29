@@ -1,7 +1,6 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.Listener.MailCollectEvent;
-import com.tripleying.qwq.MailBox.API.Listener.MailSendEvent;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,6 +77,21 @@ public class CdkeyFileMail extends BaseFileMail implements MailCdkey {
             return true;
         }
         return false;
+    }
+    
+    @Override
+    public void DeleteLocalCdkey(){
+        MailBoxAPI.deleteLocalCdkey(getId());
+    }
+    
+    @Override
+    public boolean Delete(Player p){
+        DeleteLocalCdkey();
+        if(DeleteFile()){
+            return DeleteData(p);
+        }else{
+            return false;
+        }
     }
     
 }

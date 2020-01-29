@@ -1,8 +1,9 @@
 package com.tripleying.qwq.MailBox.Events;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.ConfigMessage;
 import com.tripleying.qwq.MailBox.MailBox;
+import com.tripleying.qwq.MailBox.Message;
 import com.tripleying.qwq.MailBox.VexView.MailBoxHud;
 import lk.vexview.api.VexViewAPI;
 import org.bukkit.Bukkit;
@@ -20,7 +21,7 @@ public class JoinAndQuit implements Listener {
     public JoinAndQuit(boolean enVexView, boolean enHud){
         this.enVexView = enVexView;
         this.enHud = enHud;
-        if(enHud) Bukkit.getConsoleSender().sendMessage(GlobalConfig.success+"-----[MailBox]:已启用邮箱HUD");
+        if(enHud) Bukkit.getConsoleSender().sendMessage(ConfigMessage.hud_box);
     }
     
     // 玩家进入事件
@@ -33,11 +34,10 @@ public class JoinAndQuit implements Listener {
         if(enVexView) VexViewAPI.removeHUD(player, MailBoxHud.id);
         // 设置HUD
         if(enVexView && enHud) MailBoxHud.setMailBoxHud(player);
-        for(String type:MailBoxAPI.getTrueType()){
+        for(String type:MailBoxAPI.getTrueTypeWhithoutSpecial()){
             MailBox.updateRelevantMailList(player, type);
             if(!MailBox.getRelevantMailList(player, type).get("asRecipient").isEmpty()){
-                MailBoxAPI.sendTips(player);
-                System.out.println(1);
+                MailBoxAPI.sendTips(player, Message.tipsJoin.replace("%player", player.getName()),"");
                 return;
             }
         }

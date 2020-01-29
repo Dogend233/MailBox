@@ -1,14 +1,22 @@
 package com.tripleying.qwq.MailBox.API;
 
+import com.tripleying.qwq.MailBox.ConfigMessage;
 import com.tripleying.qwq.MailBox.Mail.*;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
+import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.Original.MailNew;
 import com.tripleying.qwq.MailBox.Utils.*;
 import com.tripleying.qwq.MailBox.VexView.MailTipsHud;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,7 +27,7 @@ import lk.vexview.api.VexViewAPI;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.black_ixx.playerpoints.PlayerPoints;
-import org.bukkit.Sound;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -32,17 +40,25 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 public class MailBoxAPI {
     
+    public static long secondDay;
     private static Economy economy = null;
     private static PlayerPoints points = null;
     private static String VERSION;
     private static final String DATA_FOLDER = "plugins/MailBox";
+    private static final String[] DEFAULT_LANGUAGE = {"zh_cn"};
     private static final String[] TRUE_MAIL_TYPE = {"keytimes","times","date","system","permission","player","cdkey"};
     private static final String[] SPECIAL_MAIL_TYPE = {"cdkey"};
     private static final String[] VIRTUAL_MAIL_TYPE = {"template","online"};
     
-    // 读取插件版本
-    private static void setVersion(){
-        VERSION = MailBox.getInstance().getDescription().getVersion();
+    /**
+     * 更新上次操作时间
+     */
+    public static void updateLastTime(){
+        long newTime = System.currentTimeMillis();
+        if(newTime>secondDay){
+            MailBox.CDKEY_DAY.clear();
+        }
+        secondDay = System.currentTimeMillis()/(1000*3600*24)*(1000*3600*24)+24*60*60*1000;
     }
     
     /**
@@ -50,8 +66,16 @@ public class MailBoxAPI {
      * @return 插件版本
      */
     public static String getVersion(){
-        if(VERSION==null) setVersion();
+        if(VERSION==null) VERSION = MailBox.getInstance().getDescription().getVersion();
         return VERSION;
+    }
+    
+    /**
+     * 获取插件默认支持的语言
+     * @return 语言文件
+     */
+    public static List<String> getDefaultLanguage(){
+        return Arrays.asList(DEFAULT_LANGUAGE);
     }
     
     /**
@@ -324,7 +348,7 @@ public class MailBoxAPI {
      * 判断文件是否存在
      * @param fileName 文件名
      * @return boolean
-     * @throws IOException 创建文件失败
+     * @throws IOException 创建文件夹失败
      */
     public static boolean existFiles(String fileName) throws IOException{
         File f = new File(DATA_FOLDER);
@@ -338,7 +362,7 @@ public class MailBoxAPI {
      * @param fileName 附件名
      * @param type 邮件类型
      * @return boolean
-     * @throws IOException 创建文件失败
+     * @throws IOException 创建文件夹失败
      */
     public static boolean existFiles(String fileName, String type) throws IOException{
         File f = new File(DATA_FOLDER);
@@ -367,23 +391,24 @@ public class MailBoxAPI {
      * @return boolean
      */
     public static boolean saveMailFilesSQL(BaseFileMail fm){
-        System.out.println(fm.getType());
-        YamlConfiguration mailFiles = new YamlConfiguration();
-        mailFiles.set("type", fm.getType());
-        mailFiles.set("cmd.enable", fm.isHasCommand());
-        mailFiles.set("cmd.commands", fm.getCommandList());
-        mailFiles.set("cmd.descriptions", fm.getCommandDescription());
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("type", fm.getType());
+        yaml.set("cmd.enable", fm.isHasCommand());
+        yaml.set("cmd.commands", fm.getCommandList());
+        yaml.set("cmd.descriptions", fm.getCommandDescription());
+        yaml.set("money.coin", fm.getCoin());
+        yaml.set("money.point", fm.getPoint());
+        YamlConfiguration item = new YamlConfiguration();
         int i = 0;
         if(fm.isHasItem()){
             ArrayList<ItemStack> isl = fm.getItemList();
             for(;i<isl.size();i++){
-                mailFiles.set("is.is_"+(i+1), isl.get(i));
+                item.set("is.is_"+(i+1), isl.get(i));
             }
         }
-        mailFiles.set("is.count", i);
-        mailFiles.set("money.coin", fm.getCoin());
-        mailFiles.set("money.point", fm.getPoint());
-        return SQLManager.get().sendMailFiles(fm.getFileName(), mailFiles);
+        item.set("is.count", i);
+        String itemString = item.saveToString();
+        return SQLManager.get().sendMailFiles(fm.getFileName(), yaml, itemString);
     }
 
     /**
@@ -526,18 +551,16 @@ public class MailBoxAPI {
     public static void uploadFile(CommandSender cs, String type){
         List<String> nl = SQLManager.get().getAllFileName(type);
         int all = nl.size();
-        cs.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"共有"+all+"封待上传邮件");
         if(all!=0){
             int succ = 0;
             for(String fn : nl){
                 if(uploadFile(type,fn)){
                     succ++;
                 }else{
-                    cs.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"附件名"+fn+"上传失败");
+                    cs.sendMessage(Message.fileSuccess.replace("%file%", fn).replace("%state%", Message.fileUpload));
                 }
             }
-            cs.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已成功上传"+succ+"封邮件");
-            cs.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+(all-succ)+"封邮件上传失败");
+            cs.sendMessage(Message.fileMulti.replace("%state%", Message.fileUpload).replace("%ok%", Integer.toString(succ)).replace("all", Integer.toString(all)));
         }
     }
     
@@ -562,18 +585,17 @@ public class MailBoxAPI {
     public static void downloadFile(CommandSender cs, String type){
         List<String> nl = SQLManager.get().getAllFileName(type);
         int all = nl.size();
-        cs.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+"共有"+all+"封待下载邮件");
         if(all!=0){
             int succ = 0;
             for(String fn : nl){
                 if(downloadFile(type,fn)){
                     succ++;
                 }else{
-                    cs.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"附件名"+fn+"下载失败");
+                    cs.sendMessage(Message.fileSuccess.replace("%file%", fn).replace("%state%", Message.fileDownload));
                 }
             }
-            cs.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"已成功下载"+succ+"封邮件");
-            cs.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+(all-succ)+"封邮件下载失败");
+            cs.sendMessage(Message.fileMulti.replace("%state%", Message.fileDownload).replace("%ok%", Integer.toString(succ)).replace("all", Integer.toString(all)));
+
         }
     }
 
@@ -701,6 +723,15 @@ public class MailBoxAPI {
         File f = new File(DATA_FOLDER+"/Template", filename+".yml");
         return f.exists();
     }
+    
+    /**
+     * 将模板转化为邮件
+     * @param sender 发送者
+     * @param bm 邮件
+     */
+    public static void template2Mail(CommandSender sender, BaseMail bm){
+        MailNew.New(sender,bm);
+    }
 
     /**
      * 取出一封模板邮件
@@ -824,7 +855,7 @@ public class MailBoxAPI {
     }
 
     /**
-     * 获取玩家player类型邮件发件数量
+     * 获取玩家player类型邮件已发件数量
      * @param p 玩家
      * @return int
      */
@@ -832,15 +863,16 @@ public class MailBoxAPI {
         MailBox.updateRelevantMailList(p, "player");
         return MailBox.getRelevantMailList(p, "player").get("asSender").size();
     }
+    
     /**
      * 获取该玩家player类型邮件可以发件的数量
      * @param p 玩家
      * @return int
      */
     public static int playerAsSenderAllow(Player p){
-        for(int count : GlobalConfig.player_out){
-            if(p.hasPermission("mailbox.send.player.out."+count)){
-                return count;
+        for(int i=GlobalConfig.playerOut;i>0;i--){
+            if(p.hasPermission("mailbox.send.player.out."+i)){
+                return i;
             }
         }
         return 0;
@@ -869,7 +901,9 @@ public class MailBoxAPI {
      * @return boolean
      */
     public static boolean hasPlayerPermission(CommandSender sender, String perm){
-        if(sender.hasPermission("mailbox.player.*")) return true;
+        if(sender.hasPermission("mailbox.player.*")){
+            return !(!sender.isOp() && sender.hasPermission("."+perm));
+        }
         else return sender.hasPermission(perm);
     }
 
@@ -883,13 +917,42 @@ public class MailBoxAPI {
             ItemMeta im = is.getItemMeta();
             if(im.hasLore()){
                 List<String> lore = im.getLore();
-                if (!lore.stream().noneMatch((l) -> (l.contains(GlobalConfig.fileBanLore)))) {
+                if (!lore.stream().noneMatch((l) -> (l.equals(GlobalConfig.fileBanLore)))) {
                     return false;
                 }
             }
         }
         String id = is.getType().name();
         return GlobalConfig.fileBanId.stream().noneMatch((i) -> (i.equals(id)));
+    }
+    
+    /**
+     * 为物品添加随机的Lore
+     * @param is 待修改物品
+     * @return 修改后的物品
+     */
+    public static ItemStack randomLore(ItemStack is){
+        if(is.hasItemMeta()){
+            ItemMeta im = is.getItemMeta();
+            if(im.hasLore()){
+                List<String> lores = im.getLore();
+                GlobalConfig.fileRandomLoreSelect.forEach((k,v) -> {
+                    lores.replaceAll((String l) -> {
+                        if(l.equals(k)) return (String)Randoms.RandomObject(v);
+                        else return l;
+                    });
+                });
+                GlobalConfig.fileRandomLoreChange.forEach((k,v) -> {
+                    lores.replaceAll((String l) -> {
+                        if(l.contains(k)) return l.replace(k, Integer.toString(Randoms.RandomInt(v[0], v[1])));
+                        else return l;
+                    });
+                });
+                im.setLore(lores);
+                is.setItemMeta(im);
+            }
+        }
+        return is;
     }
 
     /**
@@ -917,18 +980,23 @@ public class MailBoxAPI {
     /**
      * 向玩家发送邮件提醒
      * @param p 玩家
+     * @param msg 邮件提醒内容
+     * @param key 提示口令
      */
-    public static void sendTips(Player p){
-        if(GlobalConfig.tips.contains("msg")) p.sendMessage(GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.tipsMsg);
-        if(!GlobalConfig.lowServer1_8 && GlobalConfig.tips.contains("title")) {
-            if(GlobalConfig.lowServer1_11){
-                p.sendTitle(GlobalConfig.tipsMsg, "");
+    public static void sendTips(Player p, String msg, String key){
+        if(GlobalConfig.tips.contains("msg")){
+            p.sendMessage(msg);
+            if(!key.equals("")) p.sendMessage(key);
+        }
+        if(!GlobalConfig.server_under_1_8 && GlobalConfig.tips.contains("title")) {
+            if(GlobalConfig.server_under_1_11){
+                p.sendTitle(msg, key);
             }else{
-                p.sendTitle(GlobalConfig.tipsMsg, "", 10, 70, 20);
+                p.sendTitle(msg, key, 10, 70, 20);
             }
         }
-        if(GlobalConfig.tips.contains("sound")) p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-        if(GlobalConfig.enVexView && GlobalConfig.tips.contains("flow")) VexViewAPI.sendFlowView(p, GlobalConfig.normal+GlobalConfig.pluginPrefix+GlobalConfig.tipsMsg, 10, true);
+        if(GlobalConfig.tips.contains("sound")) p.playSound(p.getLocation(), GlobalConfig.tipsSound, 1, 1);
+        if(GlobalConfig.enVexView && GlobalConfig.tips.contains("flow")) VexViewAPI.sendFlowView(p, msg+key, 10, true);
         if(GlobalConfig.enVexView && GlobalConfig.tips.contains("hud")) MailTipsHud.setMailTipsHud(p);
     }
 
@@ -940,9 +1008,9 @@ public class MailBoxAPI {
     public static String getItemName(ItemStack is){
         if(is.getItemMeta().hasDisplayName()){
             return is.getItemMeta().getDisplayName();
-        }else if(is.getItemMeta().hasLocalizedName()){
+        }else if(!GlobalConfig.server_under_1_11 && is.getItemMeta().hasLocalizedName()){
             return is.getItemMeta().getLocalizedName();
-        }else{
+        }else if(GlobalConfig.language.equals("zh_cn")){
             String name = Data2cn.itemName(is);
             if(name.equals(is.getType().toString())){
                 String nameNMS = Reflection.getItemName(is);
@@ -953,6 +1021,13 @@ public class MailBoxAPI {
                 }
             }else{
                 return name;
+            }
+        }else{
+            String nameNMS = Reflection.getItemName(is);
+            if(nameNMS.equals("")){
+                return is.getType().toString();
+            }else{
+                return nameNMS;
             }
         }
     }
@@ -1157,31 +1232,116 @@ public class MailBoxAPI {
      * @param cdkey 兑换码
      */
     public static void exchangeCdkey(Player p, String cdkey){
+        if(!p.hasPermission("mailbox.admin.cdkey.day") && cdkeyDay(p)>=GlobalConfig.cdkeyDay){
+            p.sendMessage(Message.exchangeExceedDay);
+            return;
+        }else{
+            cdkeyDayAdd(p);
+        }
         int mail = SQLManager.get().existCdkey(cdkey);
         if(mail>0){
             if(!MailBox.getRelevantMailList(p, "cdkey").get("asRecipient").contains(mail)){
-                p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"已领取过此类邮件");
+                p.sendMessage(Message.exchangeRepeat);
             }else{
                 MailCdkey mc = (MailCdkey)MailBox.getMailHashMap("cdkey").get(mail);
                 if(mc==null){
-                    p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"读取邮件失败");
+                    p.sendMessage(Message.exchangeNotMail);
                 }else{
                     if(SQLManager.get().existCdkey(cdkey)>0){
                         if(mc.Collect(p)){
                             if(mc.isOnly()) mc.Delete(p);
                             else MailBoxAPI.deleteCdkey(cdkey);
-                            p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"兑换成功");
+                            p.sendMessage(Message.exchangeSuccess);
                         }else{
-                            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"兑换失败");
+                            p.sendMessage(Message.exchangeError);
                         }
                     }else{
-                        p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"兑换失败");
+                        p.sendMessage(Message.exchangeError);
                     }
                 }
             }
         }else{
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"兑换码不存在");
+            p.sendMessage(Message.exchangeNotCdkey);
         }
+    }
+    
+    /**
+     * 获取玩家今日输入兑换码的次数
+     * @param p 玩家
+     * @return 玩家今日输入兑换码的次数
+     */
+    public static int cdkeyDay(Player p){
+        updateLastTime();
+        String pn = p.getName();
+        if(MailBox.CDKEY_DAY.containsKey(pn)){
+            return MailBox.CDKEY_DAY.get(pn);
+        }else{
+            return 0;
+        }
+    }
+    
+    /**
+     * 使玩家今日输入兑换码的次数加一
+     * @param p 玩家
+     */
+    public static void cdkeyDayAdd(Player p){
+        updateLastTime();
+        String pn = p.getName();
+        if(MailBox.CDKEY_DAY.containsKey(pn)){
+            MailBox.CDKEY_DAY.replace(pn, MailBox.CDKEY_DAY.get(pn)+1);
+        }else{
+            MailBox.CDKEY_DAY.put(pn, 1);
+        }
+    }
+    
+    /**
+     * 删除本地已导出的兑换码
+     * @param mail 邮件ID
+     * @return boolean
+     */
+    public static boolean deleteLocalCdkey(int mail){
+        File f = new File(DATA_FOLDER+"/Cdkey", mail+".txt");
+        if(f.exists()) return f.delete();
+        else return true;
+    }
+    
+    /**
+     * 获取配置文件，如果不存在则创建
+     * @param dir 服务端目录内相对路径
+     * @param filename 文件名
+     * @param jar 插件jar包内相对路径
+     * @return YamlConfiguration
+     */
+    public static YamlConfiguration configGet(String dir, String filename, String jar){
+        File f = new File(dir, filename);
+        if(!f.exists()){
+            try {
+                OutputStreamWriter osw;
+                BufferedWriter bw;
+                PrintWriter pw;
+                try (InputStreamReader isr = new InputStreamReader(MailBox.getInstance().getResource(jar+filename), "UTF-8"); 
+                    BufferedReader br = new BufferedReader(isr)) {
+                    if(GlobalConfig.server_under_1_9) osw = new OutputStreamWriter(new FileOutputStream(f), System.getProperty("file.encoding"));
+                    else osw = new OutputStreamWriter(new FileOutputStream(f), "UTF-8");
+                    bw = new BufferedWriter(osw);
+                    pw = new PrintWriter(bw);
+                    String temp;
+                    while((temp=br.readLine())!=null){
+                        pw.println(temp);
+                    }
+                }
+                bw.close();
+                osw.close();
+                pw.close();
+                Bukkit.getConsoleSender().sendMessage(ConfigMessage.file_create.replace("%file%", filename));
+            } catch (IOException ex) {
+                Bukkit.getConsoleSender().sendMessage(ConfigMessage.file_error.replace("%file%", filename));
+                Bukkit.getLogger().info(ex.getLocalizedMessage());
+                return null;
+            }
+        }
+        Bukkit.getConsoleSender().sendMessage(ConfigMessage.file_read.replace("%file%", filename));
+        return YamlConfiguration.loadConfiguration(f);
     }
     
 }

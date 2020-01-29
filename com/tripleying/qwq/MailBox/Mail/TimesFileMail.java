@@ -2,6 +2,7 @@ package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +39,7 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
     @Override
     public boolean collectValidate(Player p) {
         if(!TimesValidate()){
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已被领完，自动删除");
+            p.sendMessage(Message.timesZero.replace("%para%", ""));
             Delete(p);
             return false;
         }
@@ -60,9 +61,9 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
         for(int i=0;i<isl.size();i++){
             if(!p.getInventory().containsAtLeast(isl.get(i), isl.get(i).getAmount()*times)) {
                 if(cc==null){
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：要发送的第"+(i+1)+"个物品不足");
+                    p.sendMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
                 }else{
-                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：要发送的第"+(i+1)+"个物品不足");
+                    cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
                 }
                 return false;
             }
@@ -76,7 +77,7 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
         boolean success = true;
         ArrayList<Integer> clearList = new ArrayList();
         HashMap<Integer, ItemStack> reduceList = new HashMap();
-        String error = GlobalConfig.normal+"[邮件预览]：从背包中移除以下物品失败";
+        String error = "";
         for(int i=0;i<isl.size();i++){
             ItemStack is1 = isl.get(i);
             int count = is1.getAmount()*times;
@@ -104,7 +105,7 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
             }
             if(count!=0){
                 success = false;
-                error += "\n"+(i+1)+"号物品"+"缺少"+count+"个";
+                error += " "+MailBoxAPI.getItemName(is1)+"x"+count;
             }
         }
         if(success){
@@ -120,9 +121,9 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
             }
         }else{
             if(cc==null){
-                p.sendMessage(error);
+                p.sendMessage(Message.itemItemNotEnough.replace("%item%", error));
             }else{
-                cc.getForWhom().sendRawMessage(error);
+                cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", error));
             }
         }
         return success;
@@ -138,9 +139,9 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
     }
     
     @Override
-    public boolean sendValidate(Player p){
-        if(times>GlobalConfig.times_count && !p.hasPermission("mailbox.admin.send.check.times")){
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件数量不能大于"+GlobalConfig.times_count);
+    public boolean sendValidate(Player p, ConversationContext cc){
+        if(times>GlobalConfig.timesCount && !p.hasPermission("mailbox.admin.send.check.times")){
+            p.sendMessage(Message.timesSendExceed.replace("%max%", Integer.toString(GlobalConfig.timesCount)));
             return false;
         }
         return true;

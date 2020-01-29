@@ -1,7 +1,7 @@
 package com.tripleying.qwq.MailBox.VexView;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.HashMap;
 import java.util.List;
 import lk.vexview.api.VexViewAPI;
@@ -32,22 +32,18 @@ public class MailSelectGui extends VexGui{
         int i=0;
         for(String type: button_list){
             if(p.hasPermission("mailbox.admin.send."+type)){
-                this.addComponent(new VexButton(BUTTON_ID.get(type),GlobalConfig.getTypeName(type),button_img_1,button_img_2,button_x.get(i),button_y.get(i),button_w,button_h,player -> MailSendGui.openMailSendGui(player, type, null)));
-                i++;
+                this.addComponent(new VexButton(BUTTON_ID.get(type),Message.getTypeName(type),button_img_1,button_img_2,button_x.get(i),button_y.get(i++),button_w,button_h,player -> MailSendGui.openMailSendGui(player, type)));
             }
         }
         if(i==0){
             if(button_list.contains("player") && MailBoxAPI.hasPlayerPermission(p, "mailbox.send.player")){
-                this.addComponent(new VexButton(BUTTON_ID.get("player"),GlobalConfig.getTypeName("player"),button_img_1,button_img_2,button_x.get(i),button_y.get(i),button_w,button_h,player -> MailSendGui.openMailSendGui(player, "player", null)));
-                i++;
+                this.addComponent(new VexButton(BUTTON_ID.get("player"),Message.getTypeName("player"),button_img_1,button_img_2,button_x.get(i),button_y.get(i++),button_w,button_h,player -> MailSendGui.openMailSendGui(player, "player")));
             }
             if(button_list.contains("times") && MailBoxAPI.hasPlayerPermission(p, "mailbox.send.times")){
-                this.addComponent(new VexButton(BUTTON_ID.get("times"),GlobalConfig.getTypeName("times"),button_img_1,button_img_2,button_x.get(i),button_y.get(i),button_w,button_h,player -> MailSendGui.openMailSendGui(player, "times", null)));
-                i++;
+                this.addComponent(new VexButton(BUTTON_ID.get("times"),Message.getTypeName("times"),button_img_1,button_img_2,button_x.get(i),button_y.get(i++),button_w,button_h,player -> MailSendGui.openMailSendGui(player, "times")));
             }
             if(button_list.contains("keytimes") && MailBoxAPI.hasPlayerPermission(p, "mailbox.send.keytimes")){
-                this.addComponent(new VexButton(BUTTON_ID.get("keytimes"),GlobalConfig.getTypeName("keytimes"),button_img_1,button_img_2,button_x.get(i),button_y.get(i),button_w,button_h,player -> MailSendGui.openMailSendGui(player, "keytimes", null)));
-                i++;
+                this.addComponent(new VexButton(BUTTON_ID.get("keytimes"),Message.getTypeName("keytimes"),button_img_1,button_img_2,button_x.get(i),button_y.get(i++),button_w,button_h,player -> MailSendGui.openMailSendGui(player, "keytimes")));
             }
         }
     }
@@ -122,12 +118,12 @@ public class MailSelectGui extends VexGui{
                 VexViewAPI.openGui(p, new MailSelectGui(p));
                 break;
             case 1:
-                if(MailBoxAPI.hasPlayerPermission(p, "mailbox.send.player")) MailSendGui.openMailSendGui(p, "player", null);
-                else if(MailBoxAPI.hasPlayerPermission(p, "mailbox.send.times")) MailSendGui.openMailSendGui(p, "times", null);
-                else MailSendGui.openMailSendGui(p, "keytimes", null);
+                if(MailBoxAPI.hasPlayerPermission(p, "mailbox.send.player")) MailSendGui.openMailSendGui(p, "player");
+                else if(MailBoxAPI.hasPlayerPermission(p, "mailbox.send.times")) MailSendGui.openMailSendGui(p, "times");
+                else MailSendGui.openMailSendGui(p, "keytimes");
                 break;
             default:
-                p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 你没有权限发送邮件");
+                p.sendMessage(Message.globalNoPermission);
         }
     }
     

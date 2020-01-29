@@ -1,6 +1,8 @@
 package com.tripleying.qwq.MailBox.Utils;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.MailBox;
+import com.tripleying.qwq.MailBox.Message;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -43,7 +45,7 @@ public class UpdateCheck {
                 // 尝试从备用链接获取最新版本号
                 return getVersion("https://dogend233.github.io/version.txt", false);
             }else{
-                Bukkit.getConsoleSender().sendMessage("§c-----[MailBox更新检测]:获取最新版本信息失败");
+                Bukkit.getConsoleSender().sendMessage(Message.updateError);
             }
         }
         return null;
@@ -59,13 +61,17 @@ public class UpdateCheck {
                 int n = Integer.parseInt(nsl[i]);
                 int o = Integer.parseInt(osl[i]);
                 if(o==n){
-                    if(i==2) sender.sendMessage("§a-----[MailBox更新检测]:您的版本已是最新！");
+                    if(i==2) sender.sendMessage(Message.updateNewest);
                 }else if(o>n){
-                    sender.sendMessage("§a-----[MailBox更新检测]:您的版本已是最新！");
+                    sender.sendMessage(Message.updateNewest);
                     break;
                 }else{
-                    sender.sendMessage("§c-----[MailBox更新检测]:检测到新版本："+info.get(0)+" 更新时间："+info.get(1));
-                    sender.sendMessage("§6更新内容：");
+                    String msg = "";
+                    for(int j=Message.updateNew.size()-1;j>0;j++){
+                        msg += Message.updateNew.get(j)+ '\n';
+                    }
+                    msg += Message.updateNew.get(0);
+                    sender.sendMessage(msg.replace("%version%", info.get(0)).replace("%date%", info.get(1)).replace("%download%", MailBox.getInstance().getDescription().getWebsite()+"/download.php"));
                     String[] in = info.get(2).split("#");
                     for(int j=0;j<in.length;j++){
                         sender.sendMessage("§b"+(j+1)+": "+in[j]);

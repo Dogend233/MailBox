@@ -2,7 +2,9 @@ package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.ArrayList;
+import org.bukkit.conversations.ConversationContext;
 import org.bukkit.entity.Player;
 
 public class TimesMail extends BaseMail implements MailTimes {
@@ -26,7 +28,7 @@ public class TimesMail extends BaseMail implements MailTimes {
     @Override
     public boolean collectValidate(Player p) {
         if(!TimesValidate()){
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已被领完，自动删除");
+            p.sendMessage(Message.timesZero.replace("%para%", ""));
             Delete(p);
             return false;
         }
@@ -49,9 +51,9 @@ public class TimesMail extends BaseMail implements MailTimes {
     }
     
     @Override
-    public boolean sendValidate(Player p){
-        if(times>GlobalConfig.times_count && !p.hasPermission("mailbox.admin.send.check.times")){
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件数量不能大于"+GlobalConfig.times_count);
+    public boolean sendValidate(Player p, ConversationContext cc){
+        if(times>GlobalConfig.timesCount && !p.hasPermission("mailbox.admin.send.check.times")){
+            p.sendMessage(Message.timesSendExceed.replace("%max%", Integer.toString(GlobalConfig.timesCount)));
             return false;
         }
         return true;

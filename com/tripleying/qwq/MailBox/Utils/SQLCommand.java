@@ -323,7 +323,7 @@ public enum SQLCommand {
         "`descriptions` varchar(255)," +
         "`coin` varchar(22)," +
         "`point` varchar(20)," +
-        "`items` text)"
+        "`items` mediumtext)"
     );
 
     private final String A;

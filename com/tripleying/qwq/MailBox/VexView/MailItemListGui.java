@@ -109,11 +109,10 @@ public class MailItemListGui extends VexGui{
             isc.setAmount(1);
             int xc = count%slot_c;
             int yc = count/slot_c;
-            vsl.addComponent(new VexSlot(count,xc*slot_x_offset+slot_fx,yc*slot_y_offset+list_y+slot_fy,isc));
-            vsl.addComponent(new VexButton("ItemButton_"+count,"",slot_img,slot_img,xc*slot_x_offset+slot_fx+x_offset,yc*slot_y_offset+slot_fy-y_offset,slot_w,slot_h,player -> {
+            vsl.addComponent(new VexSlot(count++,xc*slot_x_offset+slot_fx,yc*slot_y_offset+list_y+slot_fy,isc));
+            vsl.addComponent(new VexButton("MailBoxItemButton_"+count,"",slot_img,slot_img,xc*slot_x_offset+slot_fx+x_offset,yc*slot_y_offset+slot_fy-y_offset,slot_w,slot_h,player -> {
                 MailItemModifyGui.openItemModifyGui(player, is);
             }));
-            count++;
         }
         return vsl;
     }

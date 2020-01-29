@@ -1,18 +1,18 @@
 name: MailBox
 main: com.tripleying.qwq.MailBox.MailBox
-version: 2.1.0
-description: Send Mail with Item.
+version: 2.2.0
+description: Send Mail with Items and Money.
 author: Dogend
-website: qwq.tripleying.com
+website: http://qwq.tripleying.com/plugins/mailbox
 prefix: MailBox
 softdepend: [VexView, Vault, PlayerPoints, PlaceholderAPI]
 commands:
-    mailbox:
-        description: MailBox's Commands
-        aliases: mb
-        usage: |
-            /mb *Open MailBox
-            /mb new *Create a new Mail
-            /mb rb *See the list as recipient
-            /mb sb *See the list as sender
-            /mb cdk [cdkey] *Use cdkey
+  mailbox:
+    description: MailBox's Commands
+    aliases: mb
+    usage: |
+      /mb *Open MailBox
+      /mb new *Create a new Mail
+      /mb rb *See the list as recipient
+      /mb sb *See the list as sender
+      /mb cdk [cdkey] *Use cdkey

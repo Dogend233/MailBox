@@ -1,7 +1,7 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import com.tripleying.qwq.MailBox.Utils.DateTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -44,7 +44,7 @@ public class DateFileMail extends BaseFileMail implements MailDate {
     @Override
     public boolean collectValidate(Player p) {
         if(ExpireValidate()){
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已过期，自动删除");
+            p.sendMessage(Message.mailExpire.replace("%para%",""));
             Delete(p);
             return false;
         }

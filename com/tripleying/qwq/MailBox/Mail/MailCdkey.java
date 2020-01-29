@@ -9,4 +9,5 @@ public interface MailCdkey {
     public boolean isOnly();
     public void setOnly(boolean only);
     public boolean Delete(Player p);
+    public void DeleteLocalCdkey();
 }

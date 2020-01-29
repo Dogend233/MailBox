@@ -1,10 +1,8 @@
-package com.tripleying.qwq.MailBox.VexView;
+    package com.tripleying.qwq.MailBox.VexView;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.GlobalConfig;
-import com.tripleying.qwq.MailBox.MailBox;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.Arrays;
-import java.util.List;
 import lk.vexview.api.VexViewAPI;
 import lk.vexview.gui.VexGui;
 import lk.vexview.gui.components.VexButton;
@@ -81,7 +79,7 @@ public class MailCdkeyGUI extends VexGui {
         if(MailBoxAPI.hasPlayerPermission(p, "mailbox.cdkey.use")){
             VexViewAPI.openGui(p, new MailCdkeyGUI(p));
         }else{
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限打开此GUI");
+            p.sendMessage(Message.globalNoPermission);
         }
     }
     

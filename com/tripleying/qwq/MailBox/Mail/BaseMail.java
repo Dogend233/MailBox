@@ -3,6 +3,7 @@ package com.tripleying.qwq.MailBox.Mail;
 import com.tripleying.qwq.MailBox.API.Listener.*;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import com.tripleying.qwq.MailBox.Utils.DateTime;
 import java.util.ArrayList;
 import org.bukkit.Bukkit;
@@ -37,7 +38,7 @@ public class BaseMail {
         this.topic = topic;
         this.content = content;
         this.date = date;
-        this.typeName = GlobalConfig.getTypeName(type);
+        this.typeName = Message.getTypeName(type);
     }
     
     // 将这封邮件的发送到数据库
@@ -51,7 +52,7 @@ public class BaseMail {
     }
     
     // 邮件发送额外验证
-    public boolean sendValidate(Player p){
+    public boolean sendValidate(Player p, ConversationContext cc){
         return true;
     }
     
@@ -88,7 +89,7 @@ public class BaseMail {
             Bukkit.getServer().getPluginManager().callEvent(mce);
             return true;
         }else{
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件阅读失败！");
+            p.sendMessage(Message.mailReadError);
             return false;
         }
     }
@@ -99,7 +100,7 @@ public class BaseMail {
         if(id==0){
             if(send instanceof Player){
                 Player p = (Player)send;
-                if(!sendValidate(p)) return false;
+                if(!sendValidate(p, cc)) return false;
                 double needCoin = getExpandCoin();
                 int needPoint = getExpandPoint();
                 if(!enoughMoney(p,needCoin,needPoint,cc)) return false;
@@ -110,16 +111,16 @@ public class BaseMail {
                     // 扣钱
                     if(needCoin!=0 && !p.hasPermission("mailbox.admin.send.noconsume.coin") && removeCoin(p, needCoin)){
                         if(cc==null){
-                            p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
+                            p.sendMessage(Message.mailExpand.replace("%type%", Message.moneyVault).replace("%count%", Double.toString(needCoin)));
                         }else{
-                            cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
+                            cc.getForWhom().sendRawMessage(Message.mailExpand.replace("%type%", Message.moneyVault).replace("%count%", Double.toString(needCoin)));
                         }
                     }
                     if(needPoint!=0 && !p.hasPermission("mailbox.admin.send.noconsume.point") && removePoint(p, needPoint)){
                         if(cc==null){
-                            p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
+                            p.sendMessage(Message.mailExpand.replace("%type%", Message.moneyPlayerpoints).replace("%count%", Integer.toString(needPoint)));
                         }else{
-                            cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
+                            cc.getForWhom().sendRawMessage(Message.mailExpand.replace("%type%", Message.moneyPlayerpoints).replace("%count%", Integer.toString(needPoint)));
                         }
                     }
                     MailSendEvent mse = new MailSendEvent(this, p);
@@ -127,9 +128,9 @@ public class BaseMail {
                     return true;
                 }else{
                     if(cc==null){
-                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                        p.sendMessage(Message.mailSendSqlError);
                     }else{
-                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                        cc.getForWhom().sendRawMessage(Message.mailSendSqlError);
                     }
                     return false;
                 }
@@ -141,9 +142,9 @@ public class BaseMail {
                     return true;
                 }else{
                     if(cc==null){
-                        send.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                        send.sendMessage(Message.mailSendSqlError);
                     }else{
-                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                        cc.getForWhom().sendRawMessage(Message.mailSendSqlError);
                     }
                     return false;
                 }
@@ -162,12 +163,12 @@ public class BaseMail {
     // 删除这封邮件的数据库数据
     public boolean DeleteData(Player p){
         if(MailBoxAPI.setDelete(type, id)){
-            if(p!=null) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件删除成功！");
+            if(p!=null) p.sendMessage(Message.mailDeleteSuccess);
             MailDeleteEvent mde = new MailDeleteEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mde);
             return true;
         }else{
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件删除失败！");
+            p.sendMessage(Message.mailDeleteError);
             return false;
         }
     }
@@ -178,9 +179,9 @@ public class BaseMail {
         if(GlobalConfig.enVault && !p.hasPermission("mailbox.admin.send.check.coin") && GlobalConfig.vaultExpand!=0){
             if(MailBoxAPI.getEconomyBalance(p)<needCoin){
                 if(cc==null){
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needCoin);
+                    p.sendMessage(Message.mailExpandError.replace("%type%", Message.moneyVault).replace("%count%", Double.toString(needCoin)));
                 }else{
-                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.vaultDisplay+GlobalConfig.normal+"不足，共需要"+needCoin);
+                    cc.getForWhom().sendRawMessage(Message.mailExpandError.replace("%type%", Message.moneyVault).replace("%count%", Double.toString(needCoin)));
                 }
                 return false;
             }
@@ -189,9 +190,9 @@ public class BaseMail {
         if(GlobalConfig.enPlayerPoints && !p.hasPermission("mailbox.admin.send.check.point") && GlobalConfig.playerPointsExpand!=0){
             if(MailBoxAPI.getPoints(p)<needPoint){
                 if(cc==null){
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.playerPointsDisplay+GlobalConfig.normal+"不足，共需要"+needPoint);
+                    p.sendMessage(Message.mailExpandError.replace("%type%", Message.moneyPlayerpoints).replace("%count%", Integer.toString(needPoint)));
                 }else{
-                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]："+GlobalConfig.playerPointsDisplay+GlobalConfig.normal+"不足，共需要"+needPoint);
+                    cc.getForWhom().sendRawMessage(Message.mailExpandError.replace("%type%", Message.moneyPlayerpoints).replace("%count%", Integer.toString(needPoint)));
                 }
                 return false;
             }

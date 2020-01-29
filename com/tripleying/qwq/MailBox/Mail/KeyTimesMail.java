@@ -1,9 +1,7 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.GlobalConfig;
 import java.util.ArrayList;
-import org.bukkit.entity.Player;
 
 public class KeyTimesMail extends TimesMail implements MailKeyTimes {
     

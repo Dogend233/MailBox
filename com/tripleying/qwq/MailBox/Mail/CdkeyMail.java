@@ -74,4 +74,15 @@ public class CdkeyMail extends BaseMail implements MailCdkey {
         return false;
     }
     
+    @Override
+    public void DeleteLocalCdkey(){
+        MailBoxAPI.deleteLocalCdkey(getId());
+    }
+    
+    @Override
+    public boolean Delete(Player p){
+        DeleteLocalCdkey();
+        return DeleteData(p);
+    }
+    
 }

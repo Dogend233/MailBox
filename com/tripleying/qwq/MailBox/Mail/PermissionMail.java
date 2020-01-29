@@ -1,7 +1,7 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.ArrayList;
 import org.bukkit.entity.Player;
 
@@ -33,7 +33,7 @@ public class PermissionMail extends BaseMail implements MailPermission {
     @Override
     public boolean collectValidate(Player p) {
         if(!p.hasPermission(getPermission())){
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有领取这个邮件的权限！");
+            p.sendMessage(Message.permissionNoPermission);
             return false;
         }
         return true;

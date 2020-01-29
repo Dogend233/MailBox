@@ -4,9 +4,9 @@ import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.Mail.BaseFileMail;
 import com.tripleying.qwq.MailBox.Mail.BaseMail;
 import com.tripleying.qwq.MailBox.MailBox;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
@@ -26,23 +26,23 @@ public class MailList {
         }).map((id) -> id.size()).reduce(Integer::sum).get();
         if(count==0){
             if(type.equals("Sender")){
-                p.sendMessage("§c您的发件箱没有邮件");
+                p.sendMessage(Message.listNullBox.replace("%box%", Message.listOutBox));
             }else{
-                p.sendMessage("§c您的收件箱没有邮件");
+                p.sendMessage(Message.listNullBox.replace("%box%", Message.listInBox));
             }
             return;
         }else{
             if(type.equals("Sender")){
-                p.sendMessage("§6发件箱共有"+count+"封邮件 (点击对应邮件查看)：");
+                p.sendMessage(Message.listCountBox.replace("%box%", Message.listOutBox).replace("%count%", Integer.toString(count)));
             }else{
-                p.sendMessage("§6收件箱共有"+count+"封邮件 (点击对应邮件查看)：");
+                p.sendMessage(Message.listCountBox.replace("%box%", Message.listInBox).replace("%count%", Integer.toString(count)));
             }
         }
         MailBoxAPI.getTrueTypeWhithoutSpecial().stream().filter((t) -> (idMap.containsKey(t))).forEachOrdered((t) -> {
             idMap.get(t).stream().map((mid) -> {
                 BaseMail bm = MailBox.getMailHashMap(t).get(mid);
                 StringBuilder str = new StringBuilder("§d"+bm.getTypeName()+" §r"+bm.getTopic());
-                if(bm instanceof BaseFileMail) str.append("§r - §c有附件");
+                if(bm instanceof BaseFileMail) str.append("§r - §c").append(Message.globalHasFile);
                 TextComponent msg = new TextComponent(str.toString());
                 msg.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+t+" see "+mid));
                 return msg;
@@ -50,13 +50,15 @@ public class MailList {
                 p.spigot().sendMessage(msg);
             });
         });
-        if(p.hasPermission("mailbox.admin.see.cdkey")) for(BaseMail bm:MailBox.getMailHashMap("cdkey").values()){
+        if(p.hasPermission("mailbox.admin.see.cdkey")) MailBox.getMailHashMap("cdkey").values().stream().map((bm) -> {
             StringBuilder str = new StringBuilder("§d"+bm.getTypeName()+" §r"+bm.getTopic());
-            if(bm instanceof BaseFileMail) str.append("§r - §c有附件");
+            if(bm instanceof BaseFileMail) str.append("§r - §c").append(Message.globalHasFile);
             TextComponent msg = new TextComponent(str.toString());
             msg.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb cdkey see "+bm.getId()));
+            return msg;
+        }).forEachOrdered((msg) -> {
             p.spigot().sendMessage(msg);
-        }
+        });
     }
     
     public static void listConsole(CommandSender sender){
@@ -65,15 +67,15 @@ public class MailList {
             return type;
         }).map((type) -> MailBox.getMailHashMap(type).size()).reduce(Integer::sum).get();
         if(count==0){
-            sender.sendMessage("§c当前没有邮件");
+            sender.sendMessage(Message.listNullConsole);
             return;
         }else{
-            sender.sendMessage("§6共有"+count+"封邮件");
+            sender.sendMessage(Message.listCountConsole.replace("%count%", Integer.toString(count)));
         }
         MailBoxAPI.getTrueType().forEach((type) -> {
             MailBox.getMailHashMap(type).forEach((k,v) -> {
                 StringBuilder str = new StringBuilder("§d"+v.getTypeName()+" §r- "+k+" - "+v.getTopic());
-                if(v instanceof BaseFileMail) str.append("§r - §c有附件");
+                if(v instanceof BaseFileMail) str.append("§r - §c").append(Message.globalHasFile);
                 sender.sendMessage(str.toString());
             });
         });

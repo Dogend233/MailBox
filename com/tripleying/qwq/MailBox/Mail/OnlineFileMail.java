@@ -1,7 +1,7 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -20,9 +20,9 @@ public class OnlineFileMail extends BaseFileMail implements MailOnline {
     public boolean Send(CommandSender send, ConversationContext cc) {
         if(Bukkit.getOnlinePlayers().isEmpty()){
             if(cc==null){
-                send.sendMessage(GlobalConfig.normal+"[邮件预览]：没有在线玩家");
+                send.sendMessage(Message.onlineNoPlayer);
             }else{
-                cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：没有在线玩家");
+                cc.getForWhom().sendRawMessage(Message.onlineNoPlayer);
             }
             return false;
         }
@@ -30,7 +30,7 @@ public class OnlineFileMail extends BaseFileMail implements MailOnline {
         List<String> l = new ArrayList();
         for(Player p:Bukkit.getOnlinePlayers()){
             String name = p.getName();
-            if(sb.append(" ").append(name).length()<=200){
+            if(sb.append(" ").append(name).length()<=255){
                 l.add(name);
             }else{
                 if(!MailBoxAPI.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(send, cc)) return false;

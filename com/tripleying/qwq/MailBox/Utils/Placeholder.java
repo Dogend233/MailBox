@@ -3,6 +3,7 @@ package com.tripleying.qwq.MailBox.Utils;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
+import com.tripleying.qwq.MailBox.Message;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
@@ -38,9 +39,13 @@ public class Placeholder extends PlaceholderExpansion {
             if(identifier.equals("player_hasmail")){
                 for(String type:MailBoxAPI.getTrueTypeWhithoutSpecial()){
                     MailBox.updateRelevantMailList(p, type);
-                    if(!MailBox.getRelevantMailList(p, type).get("asRecipient").isEmpty()) return "有";
+                    if(!MailBox.getRelevantMailList(p, type).get("asRecipient").isEmpty()) return Message.placeholderHasMail;
                 }
-                return "没有";
+                return Message.placeholderNoMail;
+            }
+            // 玩家今日输入兑换码的次数
+            if(identifier.equals("player_cdkey_day")){
+                return Integer.toString(MailBoxAPI.cdkeyDay(p));
             }
         }
         

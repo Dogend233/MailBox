@@ -4,6 +4,7 @@ import com.tripleying.qwq.MailBox.Mail.BaseFileMail;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Mail.BaseMail;
+import com.tripleying.qwq.MailBox.Message;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -88,13 +89,15 @@ public class SQLManager {
     private void connectSQLite()
     {
         try {
+            // 1.11以下手动加载数据库连接类
+            if(GlobalConfig.server_under_1_11) Class.forName("org.sqlite.JDBC");
             // 覆盖时间格式
             Properties pro = new Properties();
             pro.put("date_string_format", "yyyy-MM-dd HH:mm:ss"); 
             connection = DriverManager.getConnection("jdbc:sqlite:plugins/MailBox/" + databaseName + ".db", pro);
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"SQLite数据库连接成功！");
-        } catch (SQLException e) {
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"SQLite数据库连接失败！");
+            Bukkit.getConsoleSender().sendMessage(Message.sqlSuccess.replace("%sql%", "SQLite"));
+        } catch (SQLException | ClassNotFoundException e) {
+            Bukkit.getConsoleSender().sendMessage(Message.sqlError.replace("%sql%", "SQLite"));
             Bukkit.getLogger().info(e.getLocalizedMessage());
         }
     }
@@ -137,9 +140,9 @@ public class SQLManager {
     {
         try {
             connection = DriverManager.getConnection("jdbc:mysql://" + ip + ":" + port + "/" + databaseName + "?useSSL=false&autoReconnect=true", userName, userPassword);
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"MySQL数据库连接成功！");
+            Bukkit.getConsoleSender().sendMessage(Message.sqlSuccess.replace("%sql%", "MySQL"));
         } catch (SQLException e) {
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"MySQL数据库连接失败！");
+            Bukkit.getConsoleSender().sendMessage(Message.sqlError.replace("%sql%", "MySQL"));
             Bukkit.getLogger().info(e.getLocalizedMessage());
         }
     }
@@ -427,12 +430,9 @@ public class SQLManager {
     
     //获取邮件列表
     public HashMap<Integer, BaseMail> getMailList(String type){
-        String typeName = GlobalConfig.getTypeName(type);
+        String typeName = Message.getTypeName(type);
+        if(typeName==null) return null;
         String sql = SQLCommand.SELECT_LIST_MAIL.commandToString(SQLPrefix, type);
-        if(typeName==null) {
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取邮件失败：未定义的邮件类型 "+type);
-            return null;
-        }
         HashMap<Integer, BaseMail> hm = new HashMap();
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -472,7 +472,7 @@ public class SQLManager {
                     BaseMail bm = MailBoxAPI.createBaseMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline, times, key, only, null);
                     if(bm.ExpireValidate()) {
                         if(MailBoxAPI.setDelete(type, bm.getId())){
-                            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+bm.getTypeName()+"-"+bm.getId()+"邮件已过期，自动删除");
+                            Bukkit.getConsoleSender().sendMessage(Message.mailExpire.replace("%para%", bm.getTypeName()+"-"+bm.getId()));
                             continue;
                         }
                     }
@@ -481,7 +481,7 @@ public class SQLManager {
                     BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline, times, key, only, rs.getString("filename"));
                     if(fm.ExpireValidate()) {
                         if(fm.DeleteFile() & MailBoxAPI.setDelete(type, fm.getId())){
-                            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+fm.getTypeName()+"-"+fm.getId()+"邮件已过期，自动删除");
+                            Bukkit.getConsoleSender().sendMessage(Message.mailExpire.replace("%para%", fm.getTypeName()+"-"+fm.getId()));
                             continue;
                         }
                     }
@@ -489,7 +489,7 @@ public class SQLManager {
                 }
             }
         } catch (SQLException e) {
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取"+typeName+"邮件列表失败.");
+            Bukkit.getConsoleSender().sendMessage(Message.mailListError.replace("%type%", typeName));
             Bukkit.getLogger().info(e.getLocalizedMessage());
         }
         return hm;
@@ -497,7 +497,8 @@ public class SQLManager {
     
     //获取玩家已领取的邮件ID列表
     public ArrayList<Integer> getCollectedMailList(Player p, String type){
-        String typeName = GlobalConfig.getTypeName(type);
+        String typeName = Message.getTypeName(type);
+        if(typeName==null) return null;
         String sql;
         switch (type) {
             case "system":
@@ -509,24 +510,24 @@ public class SQLManager {
                 sql = SQLCommand.SELECT_COLLECTED_MAIL.commandToString(SQLPrefix, type);
                 break;
             default:
-                Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"查询可领取邮件失败：此邮件类型不可通过此方法查询");
                 return null;
         }
-        ArrayList l = new ArrayList<Integer>();
         try {
+            ArrayList l = new ArrayList<Integer>();
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, p.getName());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) l.add(rs.getInt("mail"));
+            return l;
         } catch (SQLException e) {
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"查询"+p.getName()+"已领取"+typeName+"邮件失败");
+            Bukkit.getConsoleSender().sendMessage(Message.mailPlayerError.replace("%player%", p.getName()).replace("%type%", typeName));
             Bukkit.getLogger().info(e.getLocalizedMessage());
+            return null;
         }
-        return l;
     }
     
     //发送/更新一个附件
-    public boolean sendMailFiles(String filename, YamlConfiguration fileyml) { 
+    public boolean sendMailFiles(String filename, YamlConfiguration fileyml, String item) { 
         try {
             String sql;
             PreparedStatement ps;
@@ -552,13 +553,7 @@ public class SQLManager {
             }
             ps.setString(3, Double.toString(fileyml.getDouble("money.coin")));
             ps.setString(4, Integer.toString(fileyml.getInt("money.point")));
-            int count = fileyml.getInt("is.count");
-            fy = new YamlConfiguration();
-            fy.set("is.count", count);
-            for(int i=0;i<count;i++){
-                fy.set("is.is_"+(i+1), fileyml.getItemStack("is.is_"+(i+1)));
-            }
-            ps.setString(5, fy.saveToString());
+            ps.setString(5, item);
             ps.setString(6, filename);
             ps.setString(7, type);
             ps.executeUpdate();

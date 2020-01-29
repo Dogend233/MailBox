@@ -5,6 +5,7 @@ import com.tripleying.qwq.MailBox.Mail.BaseFileMail;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -210,15 +211,11 @@ public class MailBoxGui extends VexGui{
         MailBoxGui.gui_hh = gui_hh;
         // 新邮件按钮
         button_new = new VexButton(button_new_id,button_new_text,button_new_img_1,button_new_img_2,button_new_x,button_new_y,button_new_w,button_new_h,player -> {
-            if(GlobalConfig.lowVexView_2_5){
+            if(GlobalConfig.vexview_over_2_5 || GlobalConfig.vexview_under_2_5 || !MailBoxAPI.hasPlayerPermission(player, "mailbox.gui.send")){
                 player.closeInventory();
                 player.performCommand("mailbox new");
             }else{
-                if(MailBoxAPI.hasPlayerPermission(player, "mailbox.gui.send")){
-                    MailSelectGui.openMailSelectGui(player);
-                }else{
-                    player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限打开此GUI");
-                }
+                MailSelectGui.openMailSelectGui(player);
             }
         });
         // 收件箱按钮
@@ -238,10 +235,8 @@ public class MailBoxGui extends VexGui{
             player.closeInventory();
             player.performCommand("mb ok");
         });
-        if(!GlobalConfig.lowVexView_2_4){
-            if(!button_new_hover.isEmpty()) VexViewConfig.setHover(button_new, button_new_hover);
-            if(!button_onekey_hover.isEmpty()) VexViewConfig.setHover(button_onekey, button_onekey_hover);
-        }
+        if(!button_new_hover.isEmpty()) VexViewConfig.setHover(button_new, button_new_hover);
+        if(!button_onekey_hover.isEmpty()) VexViewConfig.setHover(button_onekey, button_onekey_hover);
         // 标题
         MailBoxGui.title_enable = title_enable;
         if(title_enable){
@@ -342,13 +337,13 @@ public class MailBoxGui extends VexGui{
         // 查看邮件按钮
         vsl.addComponent(new VexButton(mail_button_id+"_"+i,"",mail_button_image_1,mail_button_image_2,mail_button_x,mail_y_offset*i+mail_button_y,mail_button_w,mail_button_h,player -> {
             if(bm.ExpireValidate()){
-                player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已过期，自动删除");
+                player.sendMessage(Message.mailExpire.replace("%para%",""));
                 if(bm.Delete(player)) player.closeInventory();
             }else if(!bm.TimesValidate()){
-                player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已领完，自动删除");
+                player.sendMessage(Message.mailExpire.replace("%para%",""));
                 if(bm.Delete(player)) player.closeInventory();
             }else{
-                MailContentGui.openMailContentGui(player, bm, null, asSender);
+                MailContentGui.openMailContentGui(player, bm, asSender);
             }
         }));
         String type = bm.getType();
@@ -383,7 +378,7 @@ public class MailBoxGui extends VexGui{
         if(MailBoxAPI.hasPlayerPermission(p, "mailbox.gui.mailbox")){
             VexViewAPI.openGui(p, new MailBoxGui(p, playertype));
         }else{
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有权限打开此GUI");
+            p.performCommand("mb rb");
         }
     }
     

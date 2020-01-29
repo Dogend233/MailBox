@@ -1,6 +1,6 @@
 package com.tripleying.qwq.MailBox.Utils;
 
-import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.Date; 
 import java.text.SimpleDateFormat; 
 import java.util.ArrayList;
@@ -50,8 +50,8 @@ public class DateTime {
             }
             return t;
         }catch(NumberFormatException e){
-            if(cc==null) sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"输入格式错误，请输入数字");
-            else cc.getForWhom().sendRawMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"输入格式错误，请输入数字");
+            if(cc==null) sender.sendMessage(Message.globalNumberError);
+            else cc.getForWhom().sendRawMessage(Message.globalNumberError);
             return new ArrayList();
         }
     }
@@ -95,29 +95,29 @@ public class DateTime {
                                     str.append(ss);
                                     return str.toString();
                                 }else{
-                                    if(cc==null) sender.sendMessage(GlobalConfig.warning+"秒数不合法，请输入0-59整数");
-                                    else cc.getForWhom().sendRawMessage(GlobalConfig.warning+"秒数不合法，请输入0-59整数");
+                                    if(cc==null) sender.sendMessage(Message.datess);
+                                    else cc.getForWhom().sendRawMessage(Message.datess);
                                 }
                             }else{
-                                if(cc==null) sender.sendMessage(GlobalConfig.warning+"分钟不合法，请输入0-59整数");
-                                else cc.getForWhom().sendRawMessage(GlobalConfig.warning+"分钟不合法，请输入0-59整数");
+                                if(cc==null) sender.sendMessage(Message.datemm);
+                                else cc.getForWhom().sendRawMessage(Message.datemm);
                             }
                         }else{
-                            if(cc==null) sender.sendMessage(GlobalConfig.warning+"小时不合法，请输入0-23整数");
-                            else cc.getForWhom().sendRawMessage(GlobalConfig.warning+"小时不合法，请输入0-23整数");
+                            if(cc==null) sender.sendMessage(Message.dateHH);
+                            else cc.getForWhom().sendRawMessage(Message.dateHH);
                         }
                     }
                 }else{
-                    if(cc==null) sender.sendMessage(GlobalConfig.warning+"天数不合法，请输入1-"+dayMax+"整数");
-                    else cc.getForWhom().sendRawMessage(GlobalConfig.warning+"天数不合法，请输入1-"+dayMax+"整数");
+                    if(cc==null) sender.sendMessage(Message.datedd.replace("%max%", Integer.toString(dayMax)));
+                    else cc.getForWhom().sendRawMessage(Message.datedd.replace("%max%", Integer.toString(dayMax)));
                 }
             }else{
-                if(cc==null) sender.sendMessage(GlobalConfig.warning+"月份不合法，请输入1-12整数");
-                else cc.getForWhom().sendRawMessage(GlobalConfig.warning+"月份不合法，请输入1-12整数");
+                if(cc==null) sender.sendMessage(Message.dateMM);
+                else cc.getForWhom().sendRawMessage(Message.dateMM);
             }
         }else{
-            if(cc==null) sender.sendMessage(GlobalConfig.warning+"年份不合法，请输入4位整数");
-            else cc.getForWhom().sendRawMessage(GlobalConfig.warning+"年份不合法，请输入4位整数");
+            if(cc==null) sender.sendMessage(Message.dateyyyy);
+            else cc.getForWhom().sendRawMessage(Message.dateyyyy);
         }
         return null;
     }

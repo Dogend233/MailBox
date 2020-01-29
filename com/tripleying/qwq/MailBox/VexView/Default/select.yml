@@ -67,12 +67,12 @@ button:
     h: 30
     #显示顺序
     list:
-      - player
-      - system
-      - permission
-      - date
-      - times
-      - keytimes
-      - cdkey
-      - online
-      - template
+    - player
+    - system
+    - permission
+    - date
+    - times
+    - keytimes
+    - cdkey
+    - online
+    - template

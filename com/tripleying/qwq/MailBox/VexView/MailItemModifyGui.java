@@ -2,6 +2,7 @@ package com.tripleying.qwq.MailBox.VexView;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -276,40 +277,40 @@ public class MailItemModifyGui extends VexGui{
         int count = 0;
         for(String lore:lores){
             final int line = count;
-            VexButton add = new VexButton(BUTTON_MODIFY.get("add")[0]+"_"+(line+1),BUTTON_MODIFY.get("add")[1],BUTTON_MODIFY.get("add")[2],BUTTON_MODIFY.get("add")[3],Integer.parseInt(BUTTON_MODIFY.get("add")[4]),lore_y_offset*count+Integer.parseInt(BUTTON_MODIFY.get("add")[5]),Integer.parseInt(BUTTON_MODIFY.get("add")[6]),Integer.parseInt(BUTTON_MODIFY.get("add")[7]),player -> {
+            VexButton add = new VexButton(BUTTON_MODIFY.get("add")[0]+line,BUTTON_MODIFY.get("add")[1],BUTTON_MODIFY.get("add")[2],BUTTON_MODIFY.get("add")[3],Integer.parseInt(BUTTON_MODIFY.get("add")[4]),lore_y_offset*count+Integer.parseInt(BUTTON_MODIFY.get("add")[5]),Integer.parseInt(BUTTON_MODIFY.get("add")[6]),Integer.parseInt(BUTTON_MODIFY.get("add")[7]),player -> {
                 type = "add";
                 loreLine = line;
                 OpenedVexGui ovg = VexViewAPI.getPlayerCurrentGui(player);
                 ovg.setTextFieldContent(0, field_text_lore);
             });
-            if(!GlobalConfig.lowVexView_2_4 && !BUTTON_HOVER_MODIFY.get("add").isEmpty()) VexViewConfig.setHover(add, BUTTON_HOVER_MODIFY.get("add"));
-            VexButton cha = new VexButton(BUTTON_MODIFY.get("change")[0]+"_"+(line+1),BUTTON_MODIFY.get("change")[1],BUTTON_MODIFY.get("change")[2],BUTTON_MODIFY.get("change")[3],Integer.parseInt(BUTTON_MODIFY.get("change")[4]),lore_y_offset*count+Integer.parseInt(BUTTON_MODIFY.get("change")[5]),Integer.parseInt(BUTTON_MODIFY.get("change")[6]),Integer.parseInt(BUTTON_MODIFY.get("change")[7]),player -> {
+            if(!BUTTON_HOVER_MODIFY.get("add").isEmpty()) VexViewConfig.setHover(add, BUTTON_HOVER_MODIFY.get("add"));
+            VexButton cha = new VexButton(BUTTON_MODIFY.get("change")[0]+line,BUTTON_MODIFY.get("change")[1],BUTTON_MODIFY.get("change")[2],BUTTON_MODIFY.get("change")[3],Integer.parseInt(BUTTON_MODIFY.get("change")[4]),lore_y_offset*count+Integer.parseInt(BUTTON_MODIFY.get("change")[5]),Integer.parseInt(BUTTON_MODIFY.get("change")[6]),Integer.parseInt(BUTTON_MODIFY.get("change")[7]),player -> {
                 type = "change";
                 loreLine = line;
                 OpenedVexGui ovg = VexViewAPI.getPlayerCurrentGui(player);
                 ovg.setTextFieldContent(0, lore);
             });
-            if(!GlobalConfig.lowVexView_2_4 && !BUTTON_HOVER_MODIFY.get("change").isEmpty()) VexViewConfig.setHover(cha, BUTTON_HOVER_MODIFY.get("change"));
-            VexButton del = new VexButton(BUTTON_MODIFY.get("delete")[0]+"_"+(line+1),BUTTON_MODIFY.get("delete")[1],BUTTON_MODIFY.get("delete")[2],BUTTON_MODIFY.get("delete")[3],Integer.parseInt(BUTTON_MODIFY.get("delete")[4]),lore_y_offset*count+Integer.parseInt(BUTTON_MODIFY.get("delete")[5]),Integer.parseInt(BUTTON_MODIFY.get("delete")[6]),Integer.parseInt(BUTTON_MODIFY.get("delete")[7]),player -> {
+            if(!BUTTON_HOVER_MODIFY.get("change").isEmpty()) VexViewConfig.setHover(cha, BUTTON_HOVER_MODIFY.get("change"));
+            VexButton del = new VexButton(BUTTON_MODIFY.get("delete")[0]+line,BUTTON_MODIFY.get("delete")[1],BUTTON_MODIFY.get("delete")[2],BUTTON_MODIFY.get("delete")[3],Integer.parseInt(BUTTON_MODIFY.get("delete")[4]),lore_y_offset*count+Integer.parseInt(BUTTON_MODIFY.get("delete")[5]),Integer.parseInt(BUTTON_MODIFY.get("delete")[6]),Integer.parseInt(BUTTON_MODIFY.get("delete")[7]),player -> {
                 lores.remove(line);
                 meta.setLore(lores);
                 is.setItemMeta(meta);
                 VexViewAPI.openGui(p, new MailItemModifyGui(p, is));
             });
-            if(!GlobalConfig.lowVexView_2_4 && !BUTTON_HOVER_MODIFY.get("delete").isEmpty()) VexViewConfig.setHover(del, BUTTON_HOVER_MODIFY.get("delete"));
+            if(!BUTTON_HOVER_MODIFY.get("delete").isEmpty()) VexViewConfig.setHover(del, BUTTON_HOVER_MODIFY.get("delete"));
             vsl.addComponent(add);
             vsl.addComponent(cha);
             vsl.addComponent(del);
             vsl.addComponent(new VexText(lore_text_x,lore_y_offset*(count++)+lore_text_y,Arrays.asList(lore),lore_text_size));
         }
         final int line = count;
-        VexButton add = new VexButton(BUTTON_MODIFY.get("add")[0]+"_"+(count+1),BUTTON_MODIFY.get("add")[1],BUTTON_MODIFY.get("add")[2],BUTTON_MODIFY.get("add")[3],Integer.parseInt(BUTTON_MODIFY.get("add")[4]),lore_y_offset*count+Integer.parseInt(BUTTON_MODIFY.get("add")[5]),Integer.parseInt(BUTTON_MODIFY.get("add")[6]),Integer.parseInt(BUTTON_MODIFY.get("add")[7]),player -> {
+        VexButton add = new VexButton(BUTTON_MODIFY.get("add")[0]+line,BUTTON_MODIFY.get("add")[1],BUTTON_MODIFY.get("add")[2],BUTTON_MODIFY.get("add")[3],Integer.parseInt(BUTTON_MODIFY.get("add")[4]),lore_y_offset*count+Integer.parseInt(BUTTON_MODIFY.get("add")[5]),Integer.parseInt(BUTTON_MODIFY.get("add")[6]),Integer.parseInt(BUTTON_MODIFY.get("add")[7]),player -> {
             type = "add";
             loreLine = line;
             OpenedVexGui ovg = VexViewAPI.getPlayerCurrentGui(player);
             ovg.setTextFieldContent(0, field_text_lore);
         });
-        if(!GlobalConfig.lowVexView_2_4 && !BUTTON_HOVER_MODIFY.get("add").isEmpty()) VexViewConfig.setHover(add, BUTTON_HOVER_MODIFY.get("add"));
+        if(!BUTTON_HOVER_MODIFY.get("add").isEmpty()) VexViewConfig.setHover(add, BUTTON_HOVER_MODIFY.get("add"));
         vsl.addComponent(add);
         return vsl;
     }
@@ -327,7 +328,7 @@ public class MailItemModifyGui extends VexGui{
                 case "name":
                     l = getTextField(0).getTypedText();
                     if(l.trim().equals("")){
-                        player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"名字不能为空!");
+                        player.sendMessage(Message.globalEmptyField.replace("%para%", ""));
                     }else{
                         meta.setDisplayName(l.replace('&', '§'));
                         is.setItemMeta(meta);
@@ -336,7 +337,7 @@ public class MailItemModifyGui extends VexGui{
                 case "add":
                     l = getTextField(0).getTypedText();
                     if(l.trim().equals("")){
-                        player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"Lore不能为空!");
+                        player.sendMessage(Message.globalEmptyField.replace("%para%", ""));
                     }else{
                         lores.add(loreLine, l.replace('&', '§'));
                         meta.setLore(lores);
@@ -346,7 +347,7 @@ public class MailItemModifyGui extends VexGui{
                 case "change":
                     l = getTextField(0).getTypedText();
                     if(l.trim().equals("")){
-                        player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"Lore不能为空!");
+                        player.sendMessage(Message.globalEmptyField.replace("%para%", ""));
                     }else{
                         lores.set(loreLine, l.replace('&', '§'));
                         meta.setLore(lores);
@@ -357,26 +358,26 @@ public class MailItemModifyGui extends VexGui{
                     l = getTextField(0).getTypedText();
                     if(l.endsWith(".yml")) l = l.substring(0, l.length()-4);
                     if(l.trim().equals("")){
-                        player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"文件名不能为空!");
+                        player.sendMessage(Message.globalEmptyField.replace("%para%", ""));
                     }else{
                         if(MailBoxAPI.saveItem(is, l)){
-                            player.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出至"+l+".yml成功");
+                            player.sendMessage(Message.commandExportItemSuccess);
                             player.closeInventory();
                         }else{
-                            player.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导出失败");
+                            player.sendMessage(Message.commandExportItemError);
                         }
                     }   break;
                 case "import":
                     l = getTextField(0).getTypedText();
                     if(l.endsWith(".yml")) l = l.substring(0, l.length()-4);
                     if(l.trim().equals("")){
-                        player.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"文件名不能为空!");
+                        player.sendMessage(Message.globalEmptyField.replace("%para%", ""));
                     }else{
                         ItemStack item = MailBoxAPI.readItem(l);
                         if(item==null){
-                            player.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品导入失败");
+                            player.sendMessage(Message.commandReadItemError);
                         }else{
-                            player.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"物品"+l+".yml导入成功");
+                            player.sendMessage(Message.commandImportItemSuccess);
                             VexViewAPI.openGui(player, new MailItemModifyGui(player, item));
                         }
                     }   break;
@@ -389,7 +390,7 @@ public class MailItemModifyGui extends VexGui{
     public static void openItemModifyGui(Player p) {
         if(p.hasPermission("mailbox.admin.item")){
             ItemStack is;
-            if(GlobalConfig.lowServer1_9) is = p.getInventory().getItemInHand();
+            if(GlobalConfig.server_under_1_9) is = p.getInventory().getItemInHand();
             else is = p.getInventory().getItemInMainHand();
             if(is.getType().equals(Material.AIR)){
                 p.performCommand("mb item list");
@@ -397,12 +398,12 @@ public class MailItemModifyGui extends VexGui{
                 VexViewAPI.openGui(p, new MailItemModifyGui(p, is));
             }
         }else{
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"你没有执行此指令的权限");
+            p.sendMessage(Message.globalNoPermission);
         }
     }
     public static void openItemModifyGui(Player p, ItemStack is) {
         if(is.getType().equals(Material.AIR)){
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"该物品为空");
+            p.performCommand("mb item list");
         }else{
             VexViewAPI.openGui(p, new MailItemModifyGui(p, is));
         }

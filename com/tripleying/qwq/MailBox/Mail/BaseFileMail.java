@@ -3,8 +3,8 @@ package com.tripleying.qwq.MailBox.Mail;
 import com.tripleying.qwq.MailBox.API.Listener.*;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Message;
 import com.tripleying.qwq.MailBox.Utils.DateTime;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +29,8 @@ public class BaseFileMail extends BaseMail {
     private boolean hasItem;
     // 物品列表
     private ArrayList<ItemStack> itemList;
+    // 附件经验（未实现）
+    private float exp;
     // 附件金币
     private double coin;
     // 附件点券
@@ -57,39 +59,25 @@ public class BaseFileMail extends BaseMail {
         if(!collectValidate(p)) return false;
         // 判断背包空间
         if(hasItem && !hasBlank(p)){
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"背包空间不足！");
+            p.sendMessage(Message.itemInvNotEnough);
             return false;
         }
         // 设置玩家领取邮件
         if(MailBoxAPI.setCollect(getType(), getId(), p.getName())){
             // 发送邮件附件
-            if(hasItem){
-                if(giveItem(p)){
-                    p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"附件发送完毕.");
-                }else{
-                    Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+getTypeName()+" - "+getId()+" 邮件附件失败.");
-                    return false;
-                }
-            }
+            if(hasItem) giveItem(p);
             // 执行邮件指令
-            if(hasCommand){
-                if(doCommand(p)){
-                    p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"指令执行完毕.");
-                }else{
-                    Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 执行 "+getTypeName()+" - "+getId()+" 邮件指令失败.");
-                }
-            }
+            if(hasCommand) doCommand(p);
             // 给钱
-            if(coin!=0 && giveCoin(p, coin)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+coin+GlobalConfig.vaultDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getEconomyBalance(p)+GlobalConfig.success+GlobalConfig.vaultDisplay);
-            if(point!=0 && givePoint(p, point)) p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"你获得了"+point+GlobalConfig.playerPointsDisplay+GlobalConfig.success+", 余额："+MailBoxAPI.getPoints(p)+GlobalConfig.success+GlobalConfig.playerPointsDisplay);
+            if(coin!=0 && giveCoin(p, coin)) p.sendMessage(Message.moneyBalanceAdd.replace("%money%", Message.moneyVault).replace("%count%", Double.toString(coin)));
+            if(point!=0 && givePoint(p, point)) p.sendMessage(Message.moneyBalanceAdd.replace("%money%", Message.moneyPlayerpoints).replace("%count%", Integer.toString(point)));
             MailCollectEvent mce = new MailCollectEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mce);
-            p.sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"邮件领取成功！");
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.success+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取了 "+getTypeName()+" - "+getId()+" 邮件.");
+            p.sendMessage(Message.mailCollectSuccess);
+            Bukkit.getConsoleSender().sendMessage(Message.mailCollect.replace("%player%", p.getName()).replace("%type%", getTypeName()).replace("%id%", Integer.toString(getId())));
             return true;
         }else{
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件领取失败！");
-            Bukkit.getConsoleSender().sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"玩家："+p.getName()+" 领取 "+getTypeName()+" - "+getId()+" 邮件失败.");
+            p.sendMessage(Message.mailCollectError);
             return false;
         }
     }
@@ -100,11 +88,11 @@ public class BaseFileMail extends BaseMail {
         if(getId()==0){
             if(send instanceof Player){
                 Player p = (Player)send;
-                if(!sendValidate(p)) return false;
+                if(!sendValidate(p, null)) return false;
                 // 新建邮件
                 // 判断玩家背包里是否有想要发送的物品
                 if(hasItem && !p.hasPermission("mailbox.admin.send.check.item")){
-                    if(!hasItem(itemList, p, cc)){
+                    if(!hasItem(getTrueItemList(), p, cc)){
                         return false;
                     }
                 }
@@ -116,23 +104,16 @@ public class BaseFileMail extends BaseMail {
                 try {
                     // 生成一个文件名
                     fileName = MailBoxAPI.generateFilename(getType());
-                } catch (IOException ex) {
+                }catch (Exception ex) {
                     if(cc==null){
-                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
+                        p.sendMessage(Message.mailFileNameError);
                     }else{
-                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
-                    }
-                    return false;
-                } catch (Exception ex) {
-                    if(cc==null){
-                        p.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败，可能是数据库出现问题");
-                    }else{
-                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败，可能是数据库出现问题");
+                        cc.getForWhom().sendRawMessage(Message.mailFileNameError);
                     }
                     return false;
                 }
                 if(saveFile()){
-                    if(!sendValidate(p)){
+                    if(!sendValidate(p, null)){
                         DeleteFile();
                         return false;
                     }
@@ -141,21 +122,21 @@ public class BaseFileMail extends BaseMail {
                         return false;
                     }
                     // 删除玩家背包里想要发送的物品
-                    if(removeItem(itemList, p, cc)){
+                    if(removeItem(getTrueItemList(), p, cc)){
                         if(sendData()){
                             // 扣钱
                             if(needCoin!=0 && !p.hasPermission("mailbox.admin.send.noconsume.coin") && removeCoin(p, needCoin)){
                                 if(cc==null){
-                                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
+                                    p.sendMessage(Message.mailExpand.replace("%type%", Message.moneyVault).replace("%count%", Double.toString(needCoin)));
                                 }else{
-                                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needCoin+GlobalConfig.vaultDisplay);
+                                    cc.getForWhom().sendRawMessage(Message.mailExpand.replace("%type%", Message.moneyVault).replace("%count%", Double.toString(needCoin)));
                                 }
                             }
                             if(needPoint!=0 && !p.hasPermission("mailbox.admin.send.noconsume.point") && removePoint(p, needPoint)){
                                 if(cc==null){
-                                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
+                                    p.sendMessage(Message.mailExpand.replace("%type%", Message.moneyPlayerpoints).replace("%count%", Integer.toString(needPoint)));
                                 }else{
-                                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：花费了"+needPoint+GlobalConfig.playerPointsDisplay);
+                                    cc.getForWhom().sendRawMessage(Message.mailExpand.replace("%type%", Message.moneyPlayerpoints).replace("%count%", Integer.toString(needPoint)));
                                 }
                             }
                             MailSendEvent mse = new MailSendEvent(this, p);
@@ -163,27 +144,19 @@ public class BaseFileMail extends BaseMail {
                             return true;
                         }else{
                             if(cc==null){
-                                p.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                                p.sendMessage(Message.mailSendSqlError);
                             }else{
-                                cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                                cc.getForWhom().sendRawMessage(Message.mailSendSqlError);
                             }
                             return false;
                         }
                     }else{
-                        if(cc==null){
-                            p.sendMessage(GlobalConfig.normal+"[邮件预览]：从背包中移除发送物品失败");
-                        }else{
-                            cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：从背包中移除发送物品失败");
-                        }
                         DeleteFile();
                         return false;
                     }
                 }else{
-                    StringBuilder str = new StringBuilder(GlobalConfig.normal+"[邮件预览]：保存为附件失败");
-                    if(p.isOp()){
-                        str.append(",附件名:");
-                        str.append(fileName);
-                    }
+                    StringBuilder str = new StringBuilder(Message.mailFileSaveError);
+                    if(p.isOp()) str.append(", ").append(Message.fileFilename).append(": ").append(fileName);
                     if(cc==null){
                         p.sendMessage(str.toString());
                     }else{
@@ -196,18 +169,11 @@ public class BaseFileMail extends BaseMail {
                 try {
                     // 生成一个文件名
                     fileName = MailBoxAPI.generateFilename(getType());
-                } catch (IOException ex) {
+                }catch (Exception ex) {
                     if(cc==null){
-                        send.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
+                        send.sendMessage(Message.mailFileNameError);
                     }else{
-                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败");
-                    }
-                    return false;
-                } catch (Exception ex) {
-                    if(cc==null){
-                        send.sendMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败，可能是数据库出现问题");
-                    }else{
-                        cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：生成文件名失败，可能是数据库出现问题");
+                        cc.getForWhom().sendRawMessage(Message.mailFileNameError);
                     }
                     return false;
                 }
@@ -218,18 +184,15 @@ public class BaseFileMail extends BaseMail {
                         return true;
                     }else{
                         if(cc==null){
-                            send.sendMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                            send.sendMessage(Message.mailSendSqlError);
                         }else{
-                            cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：邮件发送至数据库失败");
+                            cc.getForWhom().sendRawMessage(Message.mailSendSqlError);
                         }
                         return false;
                     }
                 }else{
-                    StringBuilder str = new StringBuilder(GlobalConfig.normal+"[邮件预览]：保存为附件失败");
-                    if(send.isOp()){
-                        str.append(",附件名:");
-                        str.append(fileName);
-                    }
+                    StringBuilder str = new StringBuilder(Message.mailFileSaveError);
+                    if(send.isOp()) str.append(", ").append(Message.fileFilename).append(": ").append(fileName);
                     if(cc==null){
                         send.sendMessage(str.toString());
                     }else{
@@ -265,21 +228,21 @@ public class BaseFileMail extends BaseMail {
                 if(cs.endsWith(":op")){
                     op.add(cs.substring(0, cs.length()-3));
                 }else{
-                    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cs.replace(GlobalConfig.fileCmdPlayer, p.getName()));
+                    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cs.replace("%player%", p.getName()));
                 }
             }
             if(!op.isEmpty()){
                 boolean isOp = p.isOp();
                 try{
                     p.setOp(true);
-                    op.forEach(opc -> p.performCommand(opc.replace(GlobalConfig.fileCmdPlayer, p.getName())));
+                    op.forEach(opc -> p.performCommand(opc.replace("%player%", p.getName())));
                 }finally {
                     p.setOp(isOp);
                 }
             }
             return true;
         }else{
-            p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+" 获取指令信息失败");
+            p.sendMessage(Message.extracommandCommandError);
             return false;
         }
     }
@@ -287,7 +250,7 @@ public class BaseFileMail extends BaseMail {
     public boolean hasBlank(Player p){
         int ils = itemList.size();
         int allAir = 0;
-        for(ItemStack it:p.getInventory().getStorageContents()){
+        for(ItemStack it:GlobalConfig.server_under_1_10?p.getInventory().getContents():p.getInventory().getStorageContents()){
             if(it==null){
                 if((allAir++)>=ils){
                     return true;
@@ -317,13 +280,35 @@ public class BaseFileMail extends BaseMail {
     }
 
     public boolean giveItem(Player p) {
-        // 检查背包空位够不够
         ItemStack[] isa = new ItemStack[itemList.size()];
         for(int i = 0 ;i<itemList.size();i++){
-            isa[i] = itemList.get(i);
+            isa[i] = MailBoxAPI.randomLore(itemList.get(i));
         }
         p.getInventory().addItem(isa);
         return true;
+    }
+    
+    // 获取真实发送物品列表
+    public ArrayList<ItemStack> getTrueItemList(){
+        ItemStack is;
+        int amount;
+        int size = itemList.size();
+        ArrayList<ItemStack> isn = new ArrayList();
+        List<Integer> ignore = new ArrayList();
+        for(int i=0;i<size;i++){
+            if(ignore.contains(i)) continue;
+            is = itemList.get(i).clone();
+            amount = is.getAmount();
+            for(int j=i+1;j<size;j++){
+                if(is.isSimilar(itemList.get(j))){
+                    ignore.add(j);
+                    amount += itemList.get(j).getAmount();
+                }
+            }
+            is.setAmount(amount);
+            isn.add(is);
+        }
+        return isn;
     }
     
     // 判断玩家背包里是否有想要发送的物品
@@ -331,9 +316,9 @@ public class BaseFileMail extends BaseMail {
         for(int i=0;i<isl.size();i++){
             if(!p.getInventory().containsAtLeast(isl.get(i), isl.get(i).getAmount())) {
                 if(cc==null){
-                    p.sendMessage(GlobalConfig.normal+"[邮件预览]：要发送的第"+(i+1)+"个物品不足");
+                    p.sendMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
                 }else{
-                    cc.getForWhom().sendRawMessage(GlobalConfig.normal+"[邮件预览]：要发送的第"+(i+1)+"个物品不足");
+                    cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
                 }
                 return false;
             }
@@ -347,7 +332,7 @@ public class BaseFileMail extends BaseMail {
         boolean success = true;
         ArrayList<Integer> clearList = new ArrayList();
         HashMap<Integer, ItemStack> reduceList = new HashMap();
-        String error = GlobalConfig.normal+"[邮件预览]：从背包中移除以下物品失败";
+        String error = "";
         for(int i=0;i<isl.size();i++){
             ItemStack is1 = isl.get(i);
             int count = is1.getAmount();
@@ -375,7 +360,7 @@ public class BaseFileMail extends BaseMail {
             }
             if(count!=0){
                 success = false;
-                error += "\n"+(i+1)+"号物品"+"缺少"+count+"个";
+                error += " "+MailBoxAPI.getItemName(is1)+"x"+count;
             }
         }
         if(success){
@@ -391,9 +376,9 @@ public class BaseFileMail extends BaseMail {
             }
         }else{
             if(cc==null){
-                p.sendMessage(error);
+                p.sendMessage(Message.itemItemNotEnough.replace("%item%", error));
             }else{
-                cc.getForWhom().sendRawMessage(error);
+                cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", error));
             }
         }
         return success;
@@ -446,6 +431,15 @@ public class BaseFileMail extends BaseMail {
         return this.commandList;
     }
     
+    public final String getCommandListString(){
+        String str = "";
+        if(!commandList.isEmpty()){
+            str = commandList.stream().map((n) -> "/"+n).reduce(str, String::concat);
+            str = str.substring(1);
+        }
+        return str;
+    }
+    
     public void setCommandDescription(List<String> commandDescription){
         this.commandDescription = commandDescription;
     }
@@ -454,9 +448,31 @@ public class BaseFileMail extends BaseMail {
         return this.commandDescription;
     }
     
+    public final String getCommandDescriptionString(){
+        String str = "";
+        if(!commandDescription.isEmpty()){
+            str = commandDescription.stream().map((n) -> " "+n).reduce(str, String::concat);
+            str = str.substring(1);
+        }
+        return str;
+    }
+    
     public void setItemList(ArrayList<ItemStack> itemList){
         this.itemList = itemList;
         this.hasItem = !itemList.isEmpty();
+    }
+    
+    public List<String> getItemNameList(){
+        List<String> l = new ArrayList();
+        if(hasItem) itemList.forEach(i -> l.add(MailBoxAPI.getItemName(i)));
+        return l;
+    }
+    
+    public String getItemNameString(){
+        String str = "";
+        str = itemList.stream().map((n) -> " "+MailBoxAPI.getItemName(n)).reduce(str, String::concat);
+        if(str.length()>0) str = str.substring(1);
+        return str;
     }
     
     public boolean isHasItem(){
@@ -545,12 +561,12 @@ public class BaseFileMail extends BaseMail {
         if(coin!=0){
             str.append("§r-含");
             str.append(coin);
-            str.append(GlobalConfig.vaultDisplay);
+            str.append(Message.moneyVault);
         }
         if(point!=0){
             str.append("§r-含");
             str.append(point);
-            str.append(GlobalConfig.playerPointsDisplay);
+            str.append(Message.moneyPlayerpoints);
         }
         return str.toString();
     }

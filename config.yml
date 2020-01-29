@@ -1,123 +1,165 @@
+#语言(自带zh_cn)
+#language(Default options zh_cn)
+language: 'zh_cn'
 #数据库
+#Database
 database:
   #是否使用MySQL(true为MySQL, false为SQLite)
+  #Use MySQL or not (true=MySQL, false=SQLite)
   enableMySQL: false
   #数据库名(MySQL与SQLite通用)
+  #Database name (common to MySQL and SQLite)
   dataBaseName: mailbox
   #数据表前缀(MySQL与SQLite通用)
+  #Data table prefix (common to MySQL and SQLite)
   dataTablePrefix: mailbox
   #MySQL数据库地址(仅MySQL)
+  #Mysql database address (MySQL only)
   mySQLhost: localhost
   #MySQL数据库端口(仅MySQL)
+  #Mysql database port (MySQL only)
   mySQLport: 3306
   #MySQL数据库用户名(仅MySQL)
+  #Mysql database user name (MySQL only)
   mySQLusername: 'root'
   #MySQL数据库密码(仅MySQL)
+  #Mysql database password (MySQL only)
   mySQLpassword: '111aaa'
   #是否使用数据库存储附件
+  #Use database to store attachment files
   fileSQL: false
 #是否启用前置插件
+#Enable pre plugin or not
 softDepend:
   Vault: true
   PlayerPoints: true
   PlaceholderAPI: true
   VexView: true
 #插件配置
+#Plugin configuration
 mailbox:
   #启动服务器时进行更新检查
+  #Check for updates when starting the server
   updateCheck: true
-  #插件提示信息前缀(设置为 无 则不显示)
-  prefix: '[邮箱]'
-  #普通 插件信息颜色
-  normalMessage: §6
-  #成功 插件信息颜色
-  successMessage: §a
-  #失败 插件信息颜色
-  warningMessage: §c
   #当一封新的邮件发送时，如果在线玩家可以领取，发送提示
-  #msg 普通消息
-  #title 标题消息
-  #sound 玩家升级的声音提示
-  #flow vv的滚动条消息，需要开启vv
-  #hud vv的HUD提示, 需要开启vv
+  #When a new email is sent, if online players can collect it, send a tip
+  #msg 普通消息(Chat message)
+  #title 标题消息(Title)
+  #sound 声音提示(Sound)
+  #flow vv的滚动消息，需要开启vv(Flowing message, need VexView)
+  #hud vv的HUD提示, 需要开启vv(HUD, need VexView)
   newMailTips: 
   - msg
   - title
   - sound
   - flow
   - hud
-  newMailTipsMsg: '§b你有新邮件！'
-  #邮件类型显示名称
-  name:
-    #system 类型邮件
-    system: '[系统邮件]'
-    #player 类型邮件
-    player: '[玩家邮件]'
-    #permission 类型邮件
-    permission: '[权限邮件]'
-    #date 类型邮件
-    date: '[期限邮件]'
-    #times 类型邮件
-    times: '[红包邮件]'
-    #keytimes 类型邮件
-    keytimes: '[口令邮件]'
-    #cdkey 类型邮件
-    cdkey: '[CDK邮件]'
-    #online 类型邮件
-    online: '[在线邮件]'
-    #template 类型邮件
-    template: '[模板邮件]'
-  #player邮件过期时间（天）
-  player_maxtime: 30
-  #player类型邮件上限可选择数量
-  #填好数组并给玩家对应权限
-  #权限判定顺序从上到下
-  player_max: 
-    #发件上限
-    #mailbox.send.player.out.x
-    out: 
-    - 10
-    - 5
-    - 2
+  #sound提示的声音 (默认:ENTITY_PLAYER_LEVELUP, 低于1.9为:LEVEL_UP)
+  #Sound of sound (Default:ENTITY_PLAYER_LEVELUP,Under 1.9:LEVEL_UP)
+  newMailTipsSound: 'ENTITY_PLAYER_LEVELUP'
+  #邮件主题最大长度
+  #Maximum length of mail topic
+  topic_max: 30
+  #邮件内容最大长度
+  #Maximum length of mail content
+  content_max: 255
+  #player邮件(mail)
+  player:
+    #邮件过期时间（天）
+    #Player-mail expiration time (days)
+    expire: 30
+    #单封player邮件可指定最大玩家数量
+    multiplayer: 1
+    #玩家player邮件发件最大数量
+    #Maximum number of player-mail players can send
+    out: 10
   #单封times邮件最大数量
+  #Maximum count of single times-mail
   times_count: 20
+  #玩家每日可输入兑换码的次数
+  #Players can input the number of exchange codes per day
+  cdkey_day: 5
   #附件
+  #Attachments
   file:
-    #指令
-    command:
-      #领取邮件的玩家变量
-      player: '%player%'
-    #最大发送物品数量
+    #最大发送物品格子数
+    #Maximum number of slots allowed to be sent
     maxItem: 12
     #禁止作为附件发送的物品
+    #Prohibited items sent as attachments
     ban:
-      #Lore中包含此文字的物品
-      lore: '无法作为邮件'
-      #MaterialID在此列表中的物品
-      #可通过手持物品输入 /mailbox item id 查看MaterialID
+      #Lore中含有此行的物品
+      #Items with this line in lore
+      lore: '§e- 无法作为邮件'
+      #Material在此列表中的物品
+      #Material in this list
+      #可通过手持物品输入 /mailbox item id 查看Material
+      #Material can be viewed by entering '/mailbox item id' of handheld items
       #可使用小写，自动转为大写
+      #Can use lowercase, automatically change to uppercase
       #大部分物品支持 [mod名]:[英文id] 格式
-      #例：ironbackpacks:backpack
+      #Most items support [mod id]:[English ID] format
+      #例(Example)：ironbackpacks:backpack
       id:
       - 'minecraft:stone'
       - 'GOLD_CHESTPLATE'
+    #物品被领取时随机进行的操作
+    #Random operation when items are collected
+    random:
+      #Lore
+      lore:
+        #将指定字符转成数字
+        #Converts a specified character to a number
+        change:
+        #示例: 将'%1~10%'换成1-10的随机整数
+        #Example: change '%1~10%' to a random integer of 1-10
+        - '%1-10%->1~10'
+        #示例: 将'§e随机'换成8-27的随机整数
+        #Example: change '§e随机' to a random integer of 8-27
+        - '§e随机->8~27'
+        #从指定列表里随机选择一个Lore添加
+        #Randomly select a lore from the specified list to add
+        select:
+          #示例方案, 请手动添加更多
+          #Sample scheme, please add more manually
+          aaa:
+            #判断的Lore全称
+            #Lore full name of judgment
+            lore: '§b示例随机'
+            #添加的Lore列表
+            #Randomly added lore list
+            list:
+            - '§a第1个随机的Lore'
+            - '§b第2个随机的Lore'
+            - '§c第3个随机的Lore'
+          #示例方案2
+          #Example scheme 2
+          bcde:
+            lore: '§b更改数字示例随机'
+            list:
+            - '§c+§e随机 攻击力'
+            - '§b+%1-10% 智商'
   #Vault经济插件
+  #Vault Plugin
   vault:
-    #显示名称
-    display: '§e金币'
     #玩家单封邮件可发送的最大数量
+    #Maximum number of this that can be sent in a single mail
     max: 5000
     #发送邮件时所消耗的金钱
+    #The amount consumed when sending mail
     expand: 10
     #每多一个附件物品增加的金钱消耗
+    #The amount of this consumed for each additional item
     item: 50
   #PlayerPoints点券插件
+  #PlayerPoints Plugin
   player_points:
-    #显示名称
-    display: '§b点券'
     #玩家单封邮件可发送的最大数量
+    #Maximum number of this that can be sent in a single mail
     max: 5000
     #发送邮件时所消耗的金钱
+    #The amount consumed when sending mail
     expand: 0
     #每多一个附件物品增加的金钱消耗
+    #The amount of this consumed for each additional item
     item: 0

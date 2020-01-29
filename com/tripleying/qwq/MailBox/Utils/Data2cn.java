@@ -1,5 +1,6 @@
 package com.tripleying.qwq.MailBox.Utils;
 
+import com.tripleying.qwq.MailBox.GlobalConfig;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,15 +72,18 @@ public class Data2cn {
         String material = is.getType().toString();
         switch(material){
             case "POTION":
-                return potionName((PotionMeta)is.getItemMeta());
+                if(GlobalConfig.server_under_1_9) return "药水";
+                else return potionName((PotionMeta)is.getItemMeta());
             case "SPLASH":
-                return "喷溅型"+potionName((PotionMeta)is.getItemMeta());
+                if(GlobalConfig.server_under_1_9) return "喷溅型药水";
+                else return "喷溅型"+potionName((PotionMeta)is.getItemMeta());
             case "LINGERING":
                 return "滞留型"+potionName((PotionMeta)is.getItemMeta());
             case "TIPPED_ARROW":
                 return potion(((PotionMeta)is.getItemMeta()).getBasePotionData().getType().getEffectType())+"之箭";
             case "MONSTER_EGG":
-                return spawnEggName((SpawnEggMeta)is.getItemMeta());
+                if(GlobalConfig.server_under_1_9) return "生成 ";
+                else return spawnEggName((SpawnEggMeta)is.getItemMeta());
         }
         short damage = is.getDurability();
         if(ITEM_NAME.containsKey(material)){

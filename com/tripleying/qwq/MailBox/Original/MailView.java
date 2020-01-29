@@ -12,13 +12,13 @@ import com.tripleying.qwq.MailBox.Mail.MailKeyTimes;
 import com.tripleying.qwq.MailBox.Mail.MailTemplate;
 import com.tripleying.qwq.MailBox.Mail.MailTimes;
 import com.tripleying.qwq.MailBox.MailBox;
+import com.tripleying.qwq.MailBox.Message;
 import com.tripleying.qwq.MailBox.Utils.DateTime;
 import com.tripleying.qwq.MailBox.Utils.Reflection;
 import java.util.ArrayList;
 import java.util.List;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
@@ -34,39 +34,37 @@ public class MailView {
     public static void view(String type, int mid, CommandSender sender){
         if(sender==null) return;
         if(type.equals("cdkey") && !sender.hasPermission("mailbox.admin.see.cdkey")){
-            sender.sendMessage("你不能查看此类邮件");
+            sender.sendMessage(Message.globalNoPermission);
             return;
         }
         BaseMail bm = getMail(type,mid);
         if(bm==null){
-            sender.sendMessage("目标邮件不存在");
+            sender.sendMessage(Message.mailNotMail);
             return;
         }
         if(bm.ExpireValidate()){
-            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"邮件已过期，自动删除");
+            sender.sendMessage(Message.mailExpire.replace("%para%",""));
             bm.Delete((Player)sender);
             return;
         }
         if(bm instanceof MailDate && !bm.isStart() && !sender.hasPermission("mailbox.admin.see.date")){
-            sender.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"此邮件现在还不能领取");
+            sender.sendMessage(Message.mailNoStart);
             return;
         }
         if(sender instanceof Player){
-            if((collectable(type,mid,sender) || deletable(bm, sender))){
+            if((collectable(bm,sender) || deletable(bm, sender))){
                 view(bm, (Player)sender);
             }else{
-                sender.sendMessage("你不能查看此邮件");
+                sender.sendMessage(Message.globalNoPermission);
             }
         }else if(sender instanceof ConsoleCommandSender){
             view(bm, sender);
         }else{
-            sender.sendMessage("你不能查看此邮件");
+            sender.sendMessage(Message.globalNoPermission);
         }
     }
     public static void view(BaseMail bm, Player p){
-        TextComponent firstTC;
-        ComponentBuilder CB = null;
-        boolean low1_12 = true;
+        List<BaseComponent> lbc = new ArrayList();
         p.sendMessage("====================");
         viewTopic(bm, p);
         // 邮件内容
@@ -77,89 +75,56 @@ public class MailView {
                 p.sendMessage("--------------------");
                 viewFile(fm,p);
                 if(GlobalConfig.enVault && fm.getCoin()!=0){
-                    p.sendMessage("  "+GlobalConfig.vaultDisplay+" "+fm.getCoin());
+                    p.sendMessage("  "+Message.moneyVault+" "+fm.getCoin());
                 }
                 if(GlobalConfig.enPlayerPoints && fm.getPoint()!=0){
-                    p.sendMessage("  "+GlobalConfig.playerPointsDisplay+" "+fm.getPoint());
+                    p.sendMessage("  "+Message.moneyPlayerpoints+" "+fm.getPoint());
                 }
                 if(fm.isHasCommand()){
                     viewCommand(fm.getCommandDescription(),p);
-                    if(p.hasPermission("mailbox.content.command")) viewCommandDescription(fm.getCommandList(), p, null);
+                    if(p.hasPermission("mailbox.content.command")) viewCommandTruth(fm.getCommandList(), p, null);
                 }
                 if(fm.isHasItem()){
                     viewItem(fm.getItemList(), p);
                 }
                 if(bm.getType().equals("cdkey")){
                     if(p.hasPermission("mailbox.admin.create.cdkey")){
-                        firstTC = new TextComponent("  §a[生成兑换码]");
-                        firstTC.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" create "+bm.getId()));
-                        if(GlobalConfig.lowServer1_12){
-                            p.sendMessage("--------------------");
-                            low1_12 = false;
-                            p.spigot().sendMessage(firstTC);
-                        }else{
-                            if(CB==null){
-                                CB = new ComponentBuilder(firstTC);
-                            }else{
-                                CB.append(firstTC);
-                            }
-                        }
+                        if(!lbc.isEmpty()) lbc.add(new TextComponent("  "));
+                        TextComponent tc = new TextComponent(Message.cdkeyCreate);
+                        tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" create "+bm.getId()));
+                        lbc.add(tc);
                     }
                     if(p.hasPermission("mailbox.admin.export.cdkey")){
-                        firstTC = new TextComponent("  §6[导出兑换码]");
-                        firstTC.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" export "+bm.getId()));
-                        if(GlobalConfig.lowServer1_12){
-                            if(low1_12) p.sendMessage("--------------------");
-                            low1_12 = false;
-                            p.spigot().sendMessage(firstTC);
-                        }else{
-                            if(CB==null){
-                                CB = new ComponentBuilder(firstTC);
-                            }else{
-                                CB.append(firstTC);
-                            }
-                        }
+                        if(!lbc.isEmpty()) lbc.add(new TextComponent("  "));
+                        TextComponent tc = new TextComponent("  "+Message.cdkeyExport);
+                        tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" export "+bm.getId()));
+                        lbc.add(tc);
                     }
                 }
-                if(collectable(bm.getType(),bm.getId(),p)){
-                    firstTC = new TextComponent("  §a[领取邮件]");
-                    firstTC.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" collect "+bm.getId()));
-                    if(GlobalConfig.lowServer1_12){
-                        if(low1_12) p.sendMessage("--------------------");
-                        low1_12 = false;
-                        p.spigot().sendMessage(firstTC);
-                    }else{
-                        if(CB==null){
-                            CB = new ComponentBuilder(firstTC);
-                        }else{
-                            CB.append(firstTC);
-                        }
-                    }
+                if(collectable(bm,p)){
+                    if(!lbc.isEmpty()) lbc.add(new TextComponent("  "));
+                    TextComponent tc = new TextComponent("  "+Message.commandCollect);
+                    tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" collect "+bm.getId()));
+                    lbc.add(tc);
                 }
             }else{
-                p.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取附件信息失败！");
+                p.sendMessage(Message.fileFailed);
             }
         }else{
             bm.Collect(p);
         }
         // 删除
         if(deletable(bm, p)) {
-            firstTC = new TextComponent("  §c[删除邮件]");
-            firstTC.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" delete "+bm.getId()));
-            if(GlobalConfig.lowServer1_12){
-                if(low1_12) p.sendMessage("--------------------");
-                p.spigot().sendMessage(firstTC);
-            }else{
-                if(CB==null){
-                    CB = new ComponentBuilder(firstTC);
-                }else{
-                    CB.append(firstTC);
-                }
-            }
+            if(!lbc.isEmpty()) lbc.add(new TextComponent("  "));
+            TextComponent tc = new TextComponent("  "+Message.commandDelete);
+            tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" delete "+bm.getId()));
+            lbc.add(tc);
         }
-        if(CB!=null){
+        if(!lbc.isEmpty()){
             p.sendMessage("--------------------");
-            p.spigot().sendMessage(CB.create());
+            BaseComponent[] bc = new BaseComponent[lbc.size()];
+            lbc.toArray(bc);
+            p.spigot().sendMessage(bc);
         }
         // 发送时间和发件人
         viewSenderAndTime(bm, p, null);
@@ -169,7 +134,7 @@ public class MailView {
         s.sendMessage("====================");
         viewTopic(bm, s, null);
         // 邮件内容
-        s.sendMessage(" §b邮件内容:");
+        s.sendMessage(" §b"+Message.globalContent+":");
         for(String c:("\""+bm.getContent()+"\"").split(" ")){
             s.sendMessage("  "+c);
         }
@@ -179,10 +144,10 @@ public class MailView {
                 s.sendMessage("--------------------");
                 viewFile(fm,s,null);
                 if(GlobalConfig.enVault && fm.getCoin()!=0){
-                    s.sendMessage("  "+GlobalConfig.vaultDisplay+" "+fm.getCoin());
+                    s.sendMessage("  "+Message.moneyVault+" "+fm.getCoin());
                 }
                 if(GlobalConfig.enPlayerPoints && fm.getPoint()!=0){
-                    s.sendMessage("  "+GlobalConfig.playerPointsDisplay+" "+fm.getPoint());
+                    s.sendMessage("  "+Message.moneyPlayerpoints+" "+fm.getPoint());
                 }
                 if(fm.isHasCommand()){
                     viewCommand(fm.getCommandList(), fm.getCommandDescription(), s, null);
@@ -191,7 +156,7 @@ public class MailView {
                     viewItem(fm.getItemList(), s, null);
                 }
             }else{
-                s.sendMessage(GlobalConfig.warning+GlobalConfig.pluginPrefix+"获取附件信息失败！");
+                s.sendMessage(Message.fileFailed);
             }
         }
         // 发送时间和发件人
@@ -202,7 +167,7 @@ public class MailView {
     // 预览
     public static void preview(BaseMail bm, CommandSender sender, ConversationContext cc){
         Conversable who = cc.getForWhom();
-        who.sendRawMessage("==========邮件预览==========");
+        who.sendRawMessage("=========="+Message.globalPreview+"==========");
         // 邮件类型+ID+信息
         if(sender instanceof Player){
             viewTopic(bm, (Player)sender);
@@ -224,15 +189,15 @@ public class MailView {
                 viewFile(fm,sender,who);
             }
             if(GlobalConfig.enVault && fm.getCoin()!=0){
-                who.sendRawMessage("  "+GlobalConfig.vaultDisplay+" "+fm.getCoin());
+                who.sendRawMessage("  "+Message.moneyVault+" "+fm.getCoin());
             }
             if(GlobalConfig.enPlayerPoints && fm.getPoint()!=0){
-                who.sendRawMessage("  "+GlobalConfig.playerPointsDisplay+" "+fm.getPoint());
+                who.sendRawMessage("  "+Message.moneyPlayerpoints+" "+fm.getPoint());
             }
             if(fm.isHasCommand()){
                 if(sender instanceof Player){
                     viewCommand(fm.getCommandDescription(), (Player)sender);
-                    viewCommandDescription(fm.getCommandList(), sender, who);
+                    viewCommandTruth(fm.getCommandList(), sender, who);
                 }else{
                     viewCommand(fm.getCommandList(), fm.getCommandDescription(), sender, cc.getForWhom());
                 }
@@ -249,53 +214,46 @@ public class MailView {
         viewSenderAndTime(bm, sender, who);
         if(bm.getExpandCoin()!=0 || bm.getExpandPoint()!=0){
             boolean f = true;
-            who.sendRawMessage("----------以下内容只在预览显示----------");
-            StringBuilder sb = new StringBuilder("§6发送此邮件");
+            StringBuilder sb = new StringBuilder();
             if(bm.getExpandCoin()!=0){
-                sb.append("消耗: ");
-                sb.append(bm.getExpandCoin());
-                sb.append(' ');
-                sb.append(GlobalConfig.vaultDisplay);
+                sb.append(Message.moneyExpand).append(": ").append(bm.getExpandCoin()).append(' ').append(Message.moneyVault);
                 f = false;
             }
             if(bm.getExpandPoint()!=0){
                 if(f){
-                    sb.append("消耗: ");
+                    sb.append(Message.moneyExpand).append(": ");
                 }else{
-                    sb.append("和: ");
+                    sb.append(", ");
                 }
-                sb.append(bm.getExpandPoint());
-                sb.append(' ');
-                sb.append(GlobalConfig.playerPointsDisplay);
+                sb.append(bm.getExpandPoint()).append(' ').append(Message.moneyPlayerpoints);
             }
             who.sendRawMessage(sb.toString());
-            who.sendRawMessage("----------以上内容只在预览显示----------");
         }
         who.sendRawMessage("====================");
     }
     
     public static void viewTopic(BaseMail bm, Player p){
         TextComponent firstTC = new TextComponent("<"+bm.getTopic()+"§r>");
-        if(bm instanceof MailTimes) firstTC.addExtra(" 剩余数量: "+((MailTimes)bm).getTimes());
-        if(bm instanceof MailKeyTimes) firstTC.addExtra('\n'+" 口令: "+((MailKeyTimes)bm).getKey());
+        if(bm instanceof MailTimes) firstTC.addExtra(" "+Message.timesTimes+": "+((MailTimes)bm).getTimes());
+        if(bm instanceof MailKeyTimes) firstTC.addExtra('\n'+" "+Message.keytimesKey+": "+((MailKeyTimes)bm).getKey());
         // 邮件类型+ID+信息
         if(p.hasPermission("mailbox.content.id")){
             TextComponent secondTC = new TextComponent(bm.getType()+" - "+bm.getId());
             switch (bm.getType()){
                 case "player":
-                    secondTC.addExtra('\n'+" 收件人:");
+                    secondTC.addExtra('\n'+" "+Message.playerRecipient+":");
                     ((MailPlayer)bm).getRecipient().forEach((re) -> {
                         secondTC.addExtra('\n'+"  "+re);
                     });
                     break;
                 case "permission":
-                    secondTC.addExtra('\n'+" 所需权限: "+((MailPermission)bm).getPermission());
+                    secondTC.addExtra('\n'+" "+Message.permissionPermission+": "+((MailPermission)bm).getPermission());
                     break;
                 case "cdkey":
-                    secondTC.addExtra('\n'+" 兑换码唯一性: "+((MailCdkey)bm).isOnly());
+                    secondTC.addExtra('\n'+" "+Message.cdkeyOnly+": "+((MailCdkey)bm).isOnly());
                     break;
                 case "template":
-                    secondTC.addExtra('\n'+" 模板名称: "+((MailTemplate)bm).getTemplate());
+                    secondTC.addExtra('\n'+" "+Message.templateTemplate+": "+((MailTemplate)bm).getTemplate());
                     break;
             }
             firstTC.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{secondTC}));
@@ -304,8 +262,8 @@ public class MailView {
     }
     public static void viewTopic(BaseMail bm, CommandSender s, Conversable who){
         StringBuilder sb = new StringBuilder("<"+bm.getTopic()+"§r>");
-        if(bm instanceof MailTimes) sb.append(" 剩余数量: ").append(((MailTimes)bm).getTimes());
-        if(bm instanceof MailKeyTimes) sb.append('\n'+" 口令: ").append(((MailKeyTimes)bm).getKey());
+        if(bm instanceof MailTimes) sb.append(" ").append(Message.timesTimes).append(": ").append(((MailTimes)bm).getTimes());
+        if(bm instanceof MailKeyTimes) sb.append('\n'+" ").append(Message.keytimesKey).append(": ").append(((MailKeyTimes)bm).getKey());
         if(s.hasPermission("mailbox.content.id")){
             sb.append(" - ");
             sb.append(bm.getType());
@@ -315,7 +273,7 @@ public class MailView {
             else who.sendRawMessage(sb.toString());
             switch (bm.getType()){
                 case "player":
-                    sb = new StringBuilder("  §6收件人:§e");
+                    sb = new StringBuilder("  §6"+Message.playerRecipient+":§e");
                         for(String re:((MailPlayer)bm).getRecipient()){
                             sb.append("  ");
                             sb.append(re);
@@ -324,16 +282,16 @@ public class MailView {
                         else who.sendRawMessage(sb.toString());
                         break;
                 case "permission":
-                    if(who==null)  s.sendMessage(" §6所需权限:" + "  §e"+((MailPermission)bm).getPermission());
-                    else who.sendRawMessage(" §6所需权限:" + "  §e"+((MailPermission)bm).getPermission());
+                    if(who==null)  s.sendMessage(" §6"+Message.permissionPermission+"  §e"+((MailPermission)bm).getPermission());
+                    else who.sendRawMessage(" §6"+Message.permissionPermission+"  §e"+((MailPermission)bm).getPermission());
                     break;
                 case "cdkey":
-                    if(who==null)  s.sendMessage(" §6兑换码唯一性: "+ "  §e"+((MailCdkey)bm).isOnly());
-                    else who.sendRawMessage(" §6兑换码唯一性: "+ "  §e"+((MailCdkey)bm).isOnly());
+                    if(who==null)  s.sendMessage(" §6"+Message.cdkeyOnly+"  §e"+((MailCdkey)bm).isOnly());
+                    else who.sendRawMessage(" §6"+Message.cdkeyOnly+"  §e"+((MailCdkey)bm).isOnly());
                     break;
                 case "template":
-                    if(who==null)  s.sendMessage(" §6模板名称:" + "  §e"+((MailTemplate)bm).getTemplate());
-                    else who.sendRawMessage(" §6模板名称:" + "  §e"+((MailTemplate)bm).getTemplate());
+                    if(who==null)  s.sendMessage(" §6"+Message.templateTemplate+"  §e"+((MailTemplate)bm).getTemplate());
+                    else who.sendRawMessage(" §6"+Message.templateTemplate+"  §e"+((MailTemplate)bm).getTemplate());
                     break;
             }
         }else{
@@ -343,14 +301,14 @@ public class MailView {
     }
     
     public static void viewFile(BaseFileMail fm, Player p){
-        TextComponent firstTC = new TextComponent("§d附件：");
+        TextComponent firstTC = new TextComponent("§d"+Message.globalHasFile+"：");
         if(p.hasPermission("mailbox.content.filename")){
             firstTC.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent(fm.getType()+" - "+fm.getFileName())}));
         }
         p.spigot().sendMessage(firstTC);
     }
     public static void viewFile(BaseFileMail fm, CommandSender s, Conversable who){
-        StringBuilder sb = new StringBuilder("§d附件：");
+        StringBuilder sb = new StringBuilder("§d"+Message.globalHasFile+"：");
         if(s.hasPermission("mailbox.content.filename")){
             sb.append(" - ");
             sb.append(fm.getType());
@@ -362,37 +320,33 @@ public class MailView {
     }
     
     public static void viewItem(ArrayList<ItemStack> isl, Player p){
-        ComponentBuilder CB = new ComponentBuilder("  §e附件物品:  §a");
-        if(GlobalConfig.lowServer1_12) p.spigot().sendMessage(CB.create());
+        List<BaseComponent> lbc = new ArrayList();
+        lbc.add(new TextComponent("§e"+Message.itemItem+":§a"));
         int count = 0;
         for(ItemStack is:isl){
             HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM,  new BaseComponent[]{new TextComponent(Reflection.Item2Json(is))});
             TextComponent component;
             String name = MailBoxAPI.getItemName(is);
             if(name.equals("")){
-                component = new TextComponent("[物品-"+(++count)+"]");
+                component = new TextComponent("["+Message.itemItem+"-"+(++count)+"]");
             }else{
                 component = new TextComponent(name);
             }
             component.setHoverEvent(event);
-            if(GlobalConfig.lowServer1_12){
-                p.spigot().sendMessage(component);
-            }else{
-                CB.append(component);
-                CB.append(" ");
-            }
+            lbc.add(new TextComponent("  "));
+            lbc.add(component);
         }
-        if(!GlobalConfig.lowServer1_12) p.spigot().sendMessage(CB.create());
+        BaseComponent[] bc = new BaseComponent[lbc.size()];
+        lbc.toArray(bc);
+        p.spigot().sendMessage(bc);
     }
     public static void viewItem(ArrayList<ItemStack> isl, CommandSender s, ConversationContext cc){
-        StringBuilder sb = new StringBuilder("  §e附件物品:  §a");
+        StringBuilder sb = new StringBuilder("  §e"+Message.itemItem+":  §a");
         int count = 0;
         for(ItemStack is:isl){
             String name = MailBoxAPI.getItemName(is);
             if(name.equals("")){
-                sb.append("[物品-");
-                sb.append((++count));
-                sb.append("]");
+                sb.append("[").append(Message.itemItem).append("-").append((++count)).append("]");
             }else{
                 sb.append(name);
             }
@@ -406,7 +360,7 @@ public class MailView {
     }
     
     public static void viewCommand(List<String> desc, Player p){
-        TextComponent tc = new TextComponent("  §e[执行指令]");
+        TextComponent tc = new TextComponent("  §e"+Message.extracommandDescription);
         if(!desc.isEmpty()){
             TextComponent hover = new TextComponent();
             boolean f = true;
@@ -423,7 +377,7 @@ public class MailView {
         p.spigot().sendMessage(tc);
     }
     public static void viewCommand(List<String> cmd, List<String> desc, CommandSender s, Conversable who){
-        StringBuilder sb = new StringBuilder("  §e[执行指令]");
+        StringBuilder sb = new StringBuilder("  §e"+Message.extracommandDescription);
         if(desc.isEmpty()){
             if(who==null){
                 s.sendMessage(sb.toString());
@@ -444,17 +398,17 @@ public class MailView {
                 });
             }
         }
-        viewCommandDescription(cmd, s, who);
+        viewCommandTruth(cmd, s, who);
     }
     
-    public static void viewCommandDescription(List<String> cmd, CommandSender s, Conversable who){
+    public static void viewCommandTruth(List<String> cmd, CommandSender s, Conversable who){
         if(who==null){
-            s.sendMessage(" §b此邮件执行以下指令");
+            s.sendMessage(" §b"+Message.extracommandCommand);
             cmd.forEach((c) -> {
                 s.sendMessage("  /"+c);
             });
         }else{
-            who.sendRawMessage(" §b此邮件执行以下指令");
+            who.sendRawMessage(" §b"+Message.extracommandCommand);
             cmd.forEach((c) -> {
                 who.sendRawMessage("  /"+c);
             });
@@ -462,7 +416,7 @@ public class MailView {
     }
     
     public static void viewSenderAndTime(BaseMail bm, CommandSender s, Conversable who){
-        StringBuilder str = new StringBuilder("§6来自: §a"+bm.getSender()+" - §b");
+        StringBuilder str = new StringBuilder("§6"+Message.globalFrom+": §a"+bm.getSender()+" - §b");
         if(bm.getDate()==null || bm.getDate().equals("0")){
             str.append(DateTime.get("ymdhms"));
         }else{
@@ -483,10 +437,10 @@ public class MailView {
     public static void collect(String type, int mid, CommandSender sender){
         BaseMail bm = getMail(type,mid);
         if(bm==null){
-            sender.sendMessage("目标邮件不存在");
+            sender.sendMessage(Message.commandMailNull);
             return;
         }
-        if(collectable(type,mid,sender) && bm.isStart()){
+        if(collectable(bm,sender) && bm.isStart()){
             if(bm instanceof MailKeyTimes){
                 // 发送口令
                 ((Player)sender).chat(((MailKeyTimes) bm).getKey());
@@ -495,7 +449,7 @@ public class MailView {
                 bm.Collect((Player)sender);
             }
         }else{
-            sender.sendMessage("你不能领取此邮件");
+            sender.sendMessage(Message.globalNoPermission);
         }
     }
     
@@ -503,7 +457,7 @@ public class MailView {
     public static void delete(String type, int mid, CommandSender sender){
         BaseMail bm = getMail(type,mid);
         if(bm==null){
-            sender.sendMessage("目标邮件不存在");
+            sender.sendMessage(Message.commandMailNull);
             return;
         }
         if(deletable(bm,sender)){
@@ -513,7 +467,7 @@ public class MailView {
                 bm.Delete(null);
             }
         }else{
-            sender.sendMessage("你不能删除此邮件");
+            sender.sendMessage(Message.globalNoPermission);
         }
     }
     
@@ -523,12 +477,14 @@ public class MailView {
     }
     
     // 获取玩家是否可以领取这封邮件
-    private static boolean collectable(String type, int mid, CommandSender sender){
+    private static boolean collectable(BaseMail bm, CommandSender sender){
+        String type = bm.getType();
         if(type.equals("cdkey")) return false;
         if(sender instanceof Player){
+            if(!MailBoxAPI.hasPlayerPermission(sender, "mailbox.collect."+type)) return false;
             Player p = (Player)sender;
-            ArrayList<Integer> l = MailBox.getRelevantMailList(p, type).get("asRecipient");
-            return l.contains(mid);
+            MailBox.updateRelevantMailList(p, type);
+            return MailBox.getRelevantMailList(p, type).get("asRecipient").contains(bm.getId());
         }else{
             return false;
         }
