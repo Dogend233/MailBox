@@ -1,10 +1,11 @@
 name: MailBox
 main: com.tripleying.qwq.MailBox.MailBox
-version: 2.2.0
+version: 2.3.0
 description: Send Mail with Items and Money.
 author: Dogend
 website: http://qwq.tripleying.com/plugins/mailbox
 prefix: MailBox
+depend: [LocaleLanguageAPI]
 softdepend: [VexView, Vault, PlayerPoints, PlaceholderAPI]
 commands:
   mailbox:

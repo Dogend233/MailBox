@@ -26,7 +26,7 @@ public class PlayerMail extends BaseMail implements MailPlayer{
     @Override
     public boolean ExpireValidate() {
         try {
-            long deadline = new SimpleDateFormat("dd").parse(GlobalConfig.playerExpiredDay).getTime();
+            long deadline = new SimpleDateFormat("dd").parse(GlobalConfig.playerExpired).getTime();
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             long sendTime = df.parse(getDate()).getTime();
             long now = df.parse(DateTime.get("ymdhms")).getTime();

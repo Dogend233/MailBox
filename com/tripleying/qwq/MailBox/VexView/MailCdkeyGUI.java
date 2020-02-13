@@ -39,7 +39,7 @@ public class MailCdkeyGUI extends VexGui {
         if(p.hasPermission("mailbox.admin.export.cdkey")){
             this.addComponent(new VexButton(button_export[0],button_export[1],button_export[2],button_export[3],Integer.parseInt(button_export[4]),Integer.parseInt(button_export[5]),Integer.parseInt(button_export[6]),Integer.parseInt(button_export[7]),player -> {
                 player.closeInventory();
-                player.performCommand("mb cdkey export all");
+                player.performCommand("mailbox cdkey export all");
             }));
         }
     }

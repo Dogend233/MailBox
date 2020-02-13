@@ -17,6 +17,7 @@ import com.tripleying.qwq.MailBox.Utils.DateTime;
 import com.tripleying.qwq.MailBox.Utils.Reflection;
 import java.util.ArrayList;
 import java.util.List;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -44,7 +45,7 @@ public class MailView {
         }
         if(bm.ExpireValidate()){
             sender.sendMessage(Message.mailExpire.replace("%para%",""));
-            bm.Delete((Player)sender);
+            bm.Delete(sender instanceof Player ? (Player)sender : null);
             return;
         }
         if(bm instanceof MailDate && !bm.isStart() && !sender.hasPermission("mailbox.admin.see.date")){
@@ -52,7 +53,7 @@ public class MailView {
             return;
         }
         if(sender instanceof Player){
-            if((collectable(bm,sender) || deletable(bm, sender))){
+            if((sender.hasPermission("mailbox.admin.see."+type) || collectable(bm,sender) || deletable(bm, sender))){
                 view(bm, (Player)sender);
             }else{
                 sender.sendMessage(Message.globalNoPermission);
@@ -68,7 +69,7 @@ public class MailView {
         p.sendMessage("====================");
         viewTopic(bm, p);
         // 邮件内容
-        p.sendMessage("  \""+bm.getContent().replace(" ", '\n'+"  ")+"\"");
+        p.sendMessage("  \""+(GlobalConfig.enPlaceholderAPI ? PlaceholderAPI.setPlaceholders(p, bm.getContent()) : bm.getContent()).replace(" ", '\n'+"  ")+"\"");
         if(bm instanceof BaseFileMail){
             BaseFileMail fm = (BaseFileMail)bm;
             if(fm.readFile()){
@@ -135,7 +136,7 @@ public class MailView {
         viewTopic(bm, s, null);
         // 邮件内容
         s.sendMessage(" §b"+Message.globalContent+":");
-        for(String c:("\""+bm.getContent()+"\"").split(" ")){
+        for(String c:("\""+(GlobalConfig.enPlaceholderAPI ? PlaceholderAPI.setPlaceholders(null, bm.getContent()) : bm.getContent())+"\"").split(" ")){
             s.sendMessage("  "+c);
         }
         if(bm instanceof BaseFileMail){
@@ -322,16 +323,9 @@ public class MailView {
     public static void viewItem(ArrayList<ItemStack> isl, Player p){
         List<BaseComponent> lbc = new ArrayList();
         lbc.add(new TextComponent("§e"+Message.itemItem+":§a"));
-        int count = 0;
         for(ItemStack is:isl){
             HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM,  new BaseComponent[]{new TextComponent(Reflection.Item2Json(is))});
-            TextComponent component;
-            String name = MailBoxAPI.getItemName(is);
-            if(name.equals("")){
-                component = new TextComponent("["+Message.itemItem+"-"+(++count)+"]");
-            }else{
-                component = new TextComponent(name);
-            }
+            TextComponent component = new TextComponent(" §r"+MailBoxAPI.getItemName(is)+"§8x§r"+is.getAmount());
             component.setHoverEvent(event);
             lbc.add(new TextComponent("  "));
             lbc.add(component);
@@ -342,16 +336,9 @@ public class MailView {
     }
     public static void viewItem(ArrayList<ItemStack> isl, CommandSender s, ConversationContext cc){
         StringBuilder sb = new StringBuilder("  §e"+Message.itemItem+":  §a");
-        int count = 0;
-        for(ItemStack is:isl){
-            String name = MailBoxAPI.getItemName(is);
-            if(name.equals("")){
-                sb.append("[").append(Message.itemItem).append("-").append((++count)).append("]");
-            }else{
-                sb.append(name);
-            }
-            sb.append(" ");
-        }
+        isl.forEach((is) -> {
+            sb.append(MailBoxAPI.getItemName(is)).append("§8x§r").append(is.getAmount()).append(" ");
+        });
         if(cc==null){
             s.sendMessage(sb.toString());
         }else{

@@ -14,25 +14,32 @@ import org.bukkit.entity.Player;
 
 public class MailList {
     
-    public static void listPlayer(Player p, String type){
+    public static void listPlayer(Player p, String playertype){
         HashMap<String, ArrayList<Integer>> idMap = new HashMap();
-        int count = MailBoxAPI.getTrueTypeWhithoutSpecial().stream().filter((t) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+t))).map((t) -> {
-            MailBox.updateRelevantMailList(p, t);
-            return t;
-        }).map((t) -> {
-            ArrayList<Integer> id = MailBox.getRelevantMailList(p, t).get("as"+type);
-            idMap.put(t, id);
-            return id;
-        }).map((id) -> id.size()).reduce(Integer::sum).get();
+        int count;
+        if(MailBoxAPI.getTrueTypeWhithoutSpecial().stream().noneMatch(t -> MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+t) || p.hasPermission("mailbox.admin.see."+t))){
+            count = 0;
+        }else{
+            count = MailBoxAPI.getTrueTypeWhithoutSpecial().stream().filter((type) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+type) || p.hasPermission("mailbox.admin.see."+type))).map((type) -> {
+                MailBox.updateRelevantMailList(p, type);
+                return type;
+            }).map((type) -> {
+                ArrayList<Integer> id;
+                if(playertype.equals("Recipient") && p.hasPermission("mailbox.admin.see."+type)){
+                    id = new ArrayList();
+                    id.addAll(MailBox.getMailHashMap(type).keySet());
+                }else{
+                    id = MailBox.getRelevantMailList(p, type).get("as"+playertype);
+                }
+                idMap.put(type, id);
+                return id;
+            }).map((id) -> id.size()).reduce(Integer::sum).get();
+        }
         if(count==0){
-            if(type.equals("Sender")){
-                p.sendMessage(Message.listNullBox.replace("%box%", Message.listOutBox));
-            }else{
-                p.sendMessage(Message.listNullBox.replace("%box%", Message.listInBox));
-            }
+            p.sendMessage(Message.listNullBox.replace("%box%", playertype.equals("Sender") ? Message.listOutBox : Message.listInBox));
             return;
         }else{
-            if(type.equals("Sender")){
+            if(playertype.equals("Sender")){
                 p.sendMessage(Message.listCountBox.replace("%box%", Message.listOutBox).replace("%count%", Integer.toString(count)));
             }else{
                 p.sendMessage(Message.listCountBox.replace("%box%", Message.listInBox).replace("%count%", Integer.toString(count)));

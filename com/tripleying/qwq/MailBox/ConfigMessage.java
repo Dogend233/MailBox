@@ -1,13 +1,8 @@
 package com.tripleying.qwq.MailBox;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class ConfigMessage {
@@ -16,11 +11,13 @@ public class ConfigMessage {
     public static String author;
     public static String website;
     public static String version;
+    public static String server_jar;
     public static String server_version;
     public static String under1_11;
     public static String under1_10;
     public static String under1_9;
     public static String under1_8;
+    public static String config_charset;
     public static String reflect_version;
     public static String folder_create;
     public static String file_create;
@@ -29,8 +26,12 @@ public class ConfigMessage {
     public static String soft_depend_enable;
     public static String soft_depend_close;
     public static String soft_depend_disable;
+    public static String vexview_temp2_6_3;
+    public static String vexview_under2_6_3_server_over1_12;
+    public static String vexview_under2_6_3;
+    public static String vexview_under2_6;
     public static String vexview_under2_5_6;
-    public static String vexview_over2_5;
+    public static String vexview_under2_5_6_over2_5;
     public static String vexview_under2_5;
     public static String vexview_under2_4;
     public static String lang_check;
@@ -55,17 +56,19 @@ public class ConfigMessage {
     public static boolean set(MailBox mb){
         try {
             YamlConfiguration config;
-            if(MailBoxAPI.existFiles("message")) config = YamlConfiguration.loadConfiguration(new File("plugins/MailBox", "message.yml"));
-            else config = YamlConfiguration.loadConfiguration(new InputStreamReader(mb.getResource("message.yml"), "UTF-8"));
+            if(MailBoxAPI.existFiles("message")) config = YamlConfiguration.loadConfiguration(new File("plugins/MailBox/message", "message.yml"));
+            else config = YamlConfiguration.loadConfiguration(new InputStreamReader(mb.getResource("message/message.yml"), "UTF-8"));
             enable = config.getString("enable");
             author = config.getString("author");
             website = config.getString("website");
             version = config.getString("version");
+            server_jar = config.getString("server-jar","§6-----服务端核心: %server%");
             server_version = config.getString("server-version");
             under1_11 = config.getString("under1-11");
             under1_10 = config.getString("under1-10");
             under1_9 = config.getString("under1-9");
             under1_8 = config.getString("under1-8");
+            config_charset = config.getString("config-charset","§6-----生成配置文件编码: %charset%");
             reflect_version = config.getString("reflect-version");
             folder_create = config.getString("folder-create");
             file_create = config.getString("file-create");
@@ -74,8 +77,12 @@ public class ConfigMessage {
             soft_depend_enable = config.getString("soft-depend-enable");
             soft_depend_close = config.getString("soft-depend-close");
             soft_depend_disable = config.getString("soft-depend-disable");
-            vexview_under2_5_6 = config.getString("vexview_under2-5-6");
-            vexview_over2_5 = config.getString("vexview-over2-5");
+            vexview_temp2_6_3 = config.getString("vexview-temp2-6-3","§c-----前置插件[VexView]版本达到2.6.3，已关闭相关功能");
+            vexview_under2_6_3_server_over1_12 = config.getString("vexview-under2-6-3-server-over1-12","§c-----前置插件[VexView]版本小于2.6.3并且服务器版本高于1.12，已关闭相关功能");
+            vexview_under2_6_3 = config.getString("vexview-under2-6-3","§c-----前置插件[VexView]版本小于2.6.3, 文本域替换为文本框");
+            vexview_under2_6 = config.getString("vexview-under2-6","§c-----前置插件[VexView]版本小于2.6, HUD不可点击");
+            vexview_under2_5_6 = config.getString("vexview-under2-5-6");
+            vexview_under2_5_6_over2_5 = config.getString("vexview-under2-5-6-over2-5","§c-----前置插件[VexView]版本小于2.5.6且大于2.5, 已关闭发送邮件GUI");
             vexview_under2_5 = config.getString("vexview-under2-5");
             vexview_under2_4 = config.getString("vexview-under2-4");
             lang_check = config.getString("lang-check");

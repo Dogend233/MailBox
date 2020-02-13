@@ -5,10 +5,14 @@ import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Message;
 import com.tripleying.qwq.MailBox.Utils.DateTime;
+import com.tripleying.qwq.MailBox.Utils.Reflection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.ConversationContext;
@@ -250,7 +254,7 @@ public class BaseFileMail extends BaseMail {
     public boolean hasBlank(Player p){
         int ils = itemList.size();
         int allAir = 0;
-        for(ItemStack it:GlobalConfig.server_under_1_10?p.getInventory().getContents():p.getInventory().getStorageContents()){
+        for(ItemStack it:GlobalConfig.server_under_1_10 ? p.getInventory().getContents() : p.getInventory().getStorageContents()){
             if(it==null){
                 if((allAir++)>=ils){
                     return true;
@@ -280,11 +284,18 @@ public class BaseFileMail extends BaseMail {
     }
 
     public boolean giveItem(Player p) {
+        BaseComponent[] bc = new BaseComponent[itemList.size()+1];
+        bc[0] = new TextComponent(Message.itemItemClaim);
         ItemStack[] isa = new ItemStack[itemList.size()];
         for(int i = 0 ;i<itemList.size();i++){
             isa[i] = MailBoxAPI.randomLore(itemList.get(i));
+            HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM,  new BaseComponent[]{new TextComponent(Reflection.Item2Json(isa[i]))});
+            TextComponent component = new TextComponent(" §r"+MailBoxAPI.getItemName(isa[i])+"§8x§r"+isa[i].getAmount());
+            component.setHoverEvent(event);
+            bc[i+1] = component;
         }
         p.getInventory().addItem(isa);
+        p.spigot().sendMessage(bc);
         return true;
     }
     

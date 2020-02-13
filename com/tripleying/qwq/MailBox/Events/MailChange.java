@@ -21,10 +21,7 @@ public class MailChange implements Listener {
         String m = e.getMessage();
         if(MailBox.KEYTIMES_KEY.containsKey(m)){
             Player p = e.getPlayer();
-            MailBox.KEYTIMES_KEY.get((m)).forEach(k -> {
-                p.performCommand("mb keytimes see "+k);
-                MailBox.getMailHashMap("keytimes").get(k).Collect(p);
-            });
+            MailBox.KEYTIMES_KEY.get(m).forEach(k -> {if(MailBox.getRelevantMailList(p, "keytimes").get("asRecipient").contains(k)) MailBox.getMailHashMap("keytimes").get(k).Collect(p);});
             
         }
     }
@@ -96,11 +93,12 @@ public class MailChange implements Listener {
     @EventHandler
     public void onMailDelete(MailDeleteEvent e){
         BaseMail bm = e.getMail();
+        String deleter = e.getName();
         String type = bm.getType();
         // 更新邮件列表
         MailBox.updateMailList(e.getPlayer(), type);
         // 输出到控制台
-        Bukkit.getConsoleSender().sendMessage(Message.mailDelete.replace("%deleter%", e.getName()).replace("%type%", bm.getTypeName()).replace("%id%", Integer.toString(bm.getId())));
+        Bukkit.getConsoleSender().sendMessage(Message.mailDelete.replace("%deleter%", deleter).replace("%type%", bm.getTypeName()).replace("%id%", Integer.toString(bm.getId())));
     }
     
 }

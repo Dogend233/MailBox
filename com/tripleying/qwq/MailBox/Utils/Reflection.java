@@ -4,8 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
@@ -19,30 +17,8 @@ public class Reflection {
     private static Class<?> craftItemStackClazz;
     private static Method asNMSCopyMethod;
     private static Class<?> nmsItemStackClazz;
-    private static Method getNameMethod;
     private static Class<?> nbtTagCompoundClazz;
     private static Method saveNmsItemStackMethod;
-    private static Class<?> iChatBaseComponentClazz;
-    private static Method getTextMethod;
-    
-    // 获取物品名称
-    public static String getItemName(ItemStack is){
-        Object nmsItemStackObj;
-        Object nmsItemName;
-        String name = "";
-        try {
-            nmsItemStackObj = asNMSCopyMethod.invoke(null, is);
-            nmsItemName = getNameMethod.invoke(nmsItemStackObj);
-            if(nmsItemName instanceof String){
-                name = (String)nmsItemName;
-            }else{
-                name = getTextMethod.invoke(nmsItemName).toString();
-            }
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException  ex) {
-            Logger.getLogger(Reflection.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return name;
-    }
     
     // 物品转json
     public static String Item2Json(ItemStack is){
@@ -55,7 +31,6 @@ public class Reflection {
             itemAsJsonObject = saveNmsItemStackMethod.invoke(nmsItemStackObj, nmsNbtTagCompoundObj);
             return itemAsJsonObject.toString();
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException ex) {
-            Logger.getLogger(Reflection.class.getName()).log(Level.SEVERE, null, ex);
             return "";
         }
     }
@@ -73,11 +48,8 @@ public class Reflection {
         craftItemStackClazz = getOBCClass("inventory.CraftItemStack");
         asNMSCopyMethod = getMethod(craftItemStackClazz, "asNMSCopy", ItemStack.class);
         nmsItemStackClazz = getNMSClass("ItemStack");
-        getNameMethod = getMethod(nmsItemStackClazz, "getName");
         nbtTagCompoundClazz = getNMSClass("NBTTagCompound");
         saveNmsItemStackMethod = getMethod(nmsItemStackClazz, "save", nbtTagCompoundClazz);
-        iChatBaseComponentClazz  = getNMSClass("IChatBaseComponent");
-        getTextMethod = getMethod(iChatBaseComponentClazz, "getText");
     }
     
     public static Class<?> getNMSClass(String nmsClassName) {

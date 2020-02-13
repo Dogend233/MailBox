@@ -93,7 +93,7 @@ public class MailItemModifyGui extends VexGui{
             ovg.setTextFieldContent(0, field_text_import);
         }));
         this.addComponent(new VexButton(BUTTON_MODIFY.get("list")[0],BUTTON_MODIFY.get("list")[1],BUTTON_MODIFY.get("list")[2],BUTTON_MODIFY.get("list")[3],Integer.parseInt(BUTTON_MODIFY.get("list")[4]),Integer.parseInt(BUTTON_MODIFY.get("list")[5]),Integer.parseInt(BUTTON_MODIFY.get("list")[6]),Integer.parseInt(BUTTON_MODIFY.get("list")[7]),player -> {
-            player.performCommand("mb item list");
+            player.performCommand("mailbox item list");
         }));
         this.addComponent(button_close);
         this.addComponent(new VexSlot(0,slot_x,slot_y,is));
@@ -393,7 +393,7 @@ public class MailItemModifyGui extends VexGui{
             if(GlobalConfig.server_under_1_9) is = p.getInventory().getItemInHand();
             else is = p.getInventory().getItemInMainHand();
             if(is.getType().equals(Material.AIR)){
-                p.performCommand("mb item list");
+                p.performCommand("mailbox item list");
             }else{
                 VexViewAPI.openGui(p, new MailItemModifyGui(p, is));
             }
@@ -403,7 +403,7 @@ public class MailItemModifyGui extends VexGui{
     }
     public static void openItemModifyGui(Player p, ItemStack is) {
         if(is.getType().equals(Material.AIR)){
-            p.performCommand("mb item list");
+            p.performCommand("mailbox item list");
         }else{
             VexViewAPI.openGui(p, new MailItemModifyGui(p, is));
         }

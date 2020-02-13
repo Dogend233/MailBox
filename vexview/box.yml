@@ -11,13 +11,13 @@ gui:
   #y坐标
   y: -1
   #显示宽度
-  ww: 290
+  ww: 260
   #显示高度
-  hh: 250
+  hh: 220
   #原图宽度
-  w: 290
+  w: 260
   #原图高度
-  h: 250
+  h: 220
 #按钮
 button:
   #新邮件
@@ -34,69 +34,48 @@ button:
     img_1: '[local]MailBox/button_newmail.png'
     img_2: '[local]MailBox/button_newmail_.png'
     #x坐标
-    x: 257
+    x: 10
     #y坐标
-    y: 4
+    y: 6
     #显示宽度
-    w: 30
+    w: 44
     #显示高度
-    h: 22
+    h: 25
   #切换收/发件箱
   box:
-    #按钮ID
     id: MailBoxButton_Box
     #收件箱按钮文字
     text_r: §r收件箱
     #发件箱按钮文字
     text_s: §r发件箱
-    #按钮背景图
     img_1: '[local]MailBox/button_newmail.png'
     img_2: '[local]MailBox/button_newmail_.png'
-    #x坐标
-    x: 257
-    #y坐标
-    y: 27
-    #显示宽度
-    w: 30
-    #显示高度
-    h: 22
+    x: 56
+    y: 6
+    w: 44
+    h: 25
   #CDK
   cdkey:
-    #按钮ID
     id: MailBoxButton_Cdkey
-    #按钮文字
     text: §r兑换码
-    #按钮背景图
     img_1: '[local]MailBox/button_newmail.png'
     img_2: '[local]MailBox/button_newmail_.png'
-    #x坐标
-    x: 257
-    #y坐标
-    y: 50
-    #显示宽度
-    w: 30
-    #显示高度
-    h: 22
+    x: 160
+    y: 6
+    w: 44
+    h: 25
   #一键领取
   onekey:
-    #按钮ID
     id: MailBoxButton_Onekey
-    #按钮文字
-    text: §r全领取
-    #按钮提示文字
+    text: §r一键领取
     hover:
     - §b一键领取所有邮件
-    #按钮背景图
     img_1: '[local]MailBox/button_newmail.png'
     img_2: '[local]MailBox/button_newmail_.png'
-    #x坐标
-    x: 257
-    #y坐标
-    y: 73
-    #显示宽度
-    w: 30
-    #显示高度
-    h: 22
+    x: 206
+    y: 6
+    w: 44
+    h: 25
 #标题
 title:
   #是否启用标题（true 启用 | false 关闭）
@@ -126,9 +105,9 @@ list:
   #显示宽度
   w: 240
   #显示高度
-  h: 203
+  h: 178
   #最小高度（建议比显示高度小5）
-  mh: 198
+  mh: 173
   #最大高度计算公式：(邮件数量 * sh) + ih
   #每一封邮件所占高度
   sh: 30
@@ -168,7 +147,7 @@ mail:
     noRead: §e[未读] §r
     #未领取附件邮件前缀
     noFile: §c[附件] §r
-    #当邮件标题长度大于div(不包含div)时，(div-2)后的文字裁剪为 ...
+    #当邮件标题长度大于div(不包含div)时，(div-2)后的文字裁剪为 '...'
     div: 15
   #邮件发送时间
   date:
@@ -185,8 +164,6 @@ mail:
     - keytimes
     - times
     - date
-    - system
-    - permission
     - player
     - cdkey
   #发件人

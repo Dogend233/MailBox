@@ -1,7 +1,5 @@
 package com.tripleying.qwq.MailBox.Events;
 
-import com.tripleying.qwq.MailBox.VexView.MailBoxGui;
-import lk.vexview.api.VexViewAPI;
 import lk.vexview.event.KeyBoardPressEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,8 +19,8 @@ public class DoubleKeyPress implements Listener {
     @EventHandler
     public void openMailBox(KeyBoardPressEvent e){
         // 按Ctrl+M打开邮箱GUI
-        if(canOpen&&e.getKey()==key2&&VexViewAPI.getPlayerCurrentGui(e.getPlayer())==null){
-            MailBoxGui.openMailBoxGui(e.getPlayer(), "Recipient");
+        if(canOpen&&e.getKey()==key2){
+            e.getPlayer().performCommand("mailbox");
             canOpen = false;
         }
         if(e.getKey()==key1){

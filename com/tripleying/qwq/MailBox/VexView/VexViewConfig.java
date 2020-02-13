@@ -5,7 +5,7 @@ import com.tripleying.qwq.MailBox.ConfigMessage;
 import com.tripleying.qwq.MailBox.Events.DoubleKeyPress;
 import com.tripleying.qwq.MailBox.Events.JoinAndQuit;
 import com.tripleying.qwq.MailBox.Events.SingleKeyPress;
-import com.tripleying.qwq.MailBox.Events.VexGuiOpen;
+import com.tripleying.qwq.MailBox.Events.SendGuiOpen;
 import com.tripleying.qwq.MailBox.MailBox;
 import java.io.File;
 import java.util.List;
@@ -17,12 +17,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public class VexViewConfig {
         
     private static final String DATA_FOLDER = "plugins/MailBox/VexView";
-    private static final String JAR_FOLDER = "com/tripleying/qwq/MailBox/VexView/Default/";
+    private static final String JAR_FOLDER = "vexview/";
     
     // 配置VexView
     public static void VexViewConfigSet(){
         Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview);
-        Bukkit.getPluginManager().registerEvents(new VexGuiOpen(), MailBox.getInstance());
+        Bukkit.getPluginManager().registerEvents(new SendGuiOpen(), MailBox.getInstance());
         VexViewConfig config = new VexViewConfig();
         config.ConfigExist();
         config.ConfigLoad();
@@ -38,32 +38,13 @@ public class VexViewConfig {
             YamlConfiguration cdkey){
         // 配置常驻Hud
         if(hud.getBoolean("hud.enable")){
-            MailBoxHud.setHudConfig(
-                hud.getString("hud.id"),
-                hud.getString("hud.img"),
-                hud.getInt("hud.x"),
-                hud.getInt("hud.y"),
-                hud.getInt("hud.w"),
-                hud.getInt("hud.h"),
-                hud.getInt("hud.ww"),
-                hud.getInt("hud.hh")
-            );
+            MailBoxHud.setHudConfig(hud);
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, true), MailBox.getInstance());
         }else{
             Bukkit.getPluginManager().registerEvents(new JoinAndQuit(true, false), MailBox.getInstance());
         }
         // 配置邮件提醒Hud
-        MailTipsHud.setHudConfig(
-            hud.getString("new.id"),
-            hud.getString("new.img"),
-            hud.getInt("new.x"),
-            hud.getInt("new.y"),
-            hud.getInt("new.w"),
-            hud.getInt("new.h"),
-            hud.getInt("new.ww"),
-            hud.getInt("new.hh"),
-            hud.getInt("new.time")
-        );
+        MailTipsHud.setHudConfig(hud);
         // 配置BoxGui
         MailBox.getInstance().setOpenCmd(box.getBoolean("gui.openCmd"));
         String key = box.getString("gui.openKey");
@@ -412,76 +393,6 @@ public class VexViewConfig {
             send.getInt("text.item.y"),
             send.getDouble("text.item.size"),
             send.getString("text.item.text"),
-            send.getInt("field.topic.x"),
-            send.getInt("field.topic.y"),
-            send.getInt("field.topic.w"),
-            send.getInt("field.topic.h"),
-            send.getInt("field.topic.max"),
-            send.getInt("field.recipient.x"),
-            send.getInt("field.recipient.y"),
-            send.getInt("field.recipient.w"),
-            send.getInt("field.recipient.h"),
-            send.getInt("field.recipient.max"),
-            send.getInt("field.permission.x"),
-            send.getInt("field.permission.y"),
-            send.getInt("field.permission.w"),
-            send.getInt("field.permission.h"),
-            send.getInt("field.permission.max"),
-            send.getInt("field.startdate.x"),
-            send.getInt("field.startdate.y"),
-            send.getInt("field.startdate.w"),
-            send.getInt("field.startdate.h"),
-            send.getInt("field.startdate.max"),
-            send.getInt("field.deadline.x"),
-            send.getInt("field.deadline.y"),
-            send.getInt("field.deadline.w"),
-            send.getInt("field.deadline.h"),
-            send.getInt("field.deadline.max"),
-            send.getInt("field.times.x"),
-            send.getInt("field.times.y"),
-            send.getInt("field.times.w"),
-            send.getInt("field.times.h"),
-            send.getInt("field.times.max"),
-            send.getInt("field.key.x"),
-            send.getInt("field.key.y"),
-            send.getInt("field.key.w"),
-            send.getInt("field.key.h"),
-            send.getInt("field.key.max"),
-            send.getInt("field.template.x"),
-            send.getInt("field.template.y"),
-            send.getInt("field.template.w"),
-            send.getInt("field.template.h"),
-            send.getInt("field.template.max"),
-            send.getInt("field.text.x"),
-            send.getInt("field.text.y"),
-            send.getInt("field.text.w"),
-            send.getInt("field.text.h"),
-            send.getInt("field.text.max"),
-            send.getInt("field.sender.x"),
-            send.getInt("field.sender.y"),
-            send.getInt("field.sender.w"),
-            send.getInt("field.sender.h"),
-            send.getInt("field.sender.max"),
-            send.getInt("field.command.x"),
-            send.getInt("field.command.y"),
-            send.getInt("field.command.w"),
-            send.getInt("field.command.h"),
-            send.getInt("field.command.max"),
-            send.getInt("field.description.x"),
-            send.getInt("field.description.y"),
-            send.getInt("field.description.w"),
-            send.getInt("field.description.h"),
-            send.getInt("field.description.max"),
-            send.getInt("field.coin.x"),
-            send.getInt("field.coin.y"),
-            send.getInt("field.coin.w"),
-            send.getInt("field.coin.h"),
-            send.getInt("field.coin.max"),
-            send.getInt("field.point.x"),
-            send.getInt("field.point.y"),
-            send.getInt("field.point.w"),
-            send.getInt("field.point.h"),
-            send.getInt("field.point.max"),
             send.getInt("checkBox.onlyCDK.x"),
             send.getInt("checkBox.onlyCDK.y"),
             send.getInt("checkBox.onlyCDK.w"),
@@ -502,7 +413,8 @@ public class VexViewConfig {
             send.getInt("slot.w"),
             send.getInt("slot.h"),
             send.getIntegerList("slot.x"),
-            send.getIntegerList("slot.y")
+            send.getIntegerList("slot.y"),
+            send
         );
         // 配置物品修改GUI
         MailItemModifyGui.setItemModifyConfig(

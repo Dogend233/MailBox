@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 public interface MailTimes {
     public int getTimes();
     public void setTimes(int times);
+    public boolean ExpireValidate();
     public boolean TimesValidate();
     public boolean collectValidate(Player p);
     public boolean sendData();

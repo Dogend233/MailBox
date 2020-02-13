@@ -129,6 +129,7 @@ public class Message {
     public static String cdkeyOnly;
     public static String cdkeyCreate;
     public static String cdkeyExport;
+    public static String cdkeyReset;
     public static String cdkeyOnlyInputPrompt;
     
     public static String onlineNoPlayer;
@@ -149,6 +150,7 @@ public class Message {
     
     public static String itemItem;
     public static String itemSlotBan;
+    public static String itemItemClaim;
     public static String itemSlotNullInv;
     public static String itemSlotNullLocal;
     public static String itemItemNotEnough;
@@ -202,7 +204,8 @@ public class Message {
     public static String placeholderHasMail;
     public static String placeholderNoMail;
     
-    public static List<String> help;
+    public static List<String> helpPlayer;
+    public static List<String> helpAdmin;
     
     public static void setLanguage(String language){
         Bukkit.getConsoleSender().sendMessage(ConfigMessage.lang_setup.replace("%lang%", language));
@@ -330,6 +333,7 @@ public class Message {
         cdkeyOnly = lang.getString("cdkey.only");
         cdkeyCreate = lang.getString("cdkey.create");
         cdkeyExport = lang.getString("cdkey.export");
+        cdkeyReset = lang.getString("cdkey.reset","§a[邮箱]:已重置%player%兑换次数");
         cdkeyOnlyInputPrompt = lang.getString("cdkey.only-input-prompt");
         // online邮件
         onlineNoPlayer = lang.getString("online.no-player");
@@ -350,6 +354,7 @@ public class Message {
         // 物品
         itemItem = lang.getString("item.item");
         itemSlotBan = lang.getString("item.slot-ban");
+        itemItemClaim = lang.getString("item.item-claim");
         itemSlotNullInv = lang.getString("item.slot-null-inv");
         itemSlotNullLocal = lang.getString("item.slot-null-local");
         itemItemNotEnough = lang.getString("item.item-not-enough");
@@ -403,7 +408,8 @@ public class Message {
         placeholderHasMail = lang.getString("placeholder.has-mail");
         placeholderNoMail = lang.getString("placeholder.no-mail");
         // 帮助
-        help =  lang.getStringList("help");
+        helpPlayer =  lang.getStringList("help.player");
+        helpAdmin =  lang.getStringList("help.admin");
     }
     
     public static String getTypeName(String type) {

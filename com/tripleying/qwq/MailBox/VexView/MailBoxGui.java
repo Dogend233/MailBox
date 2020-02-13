@@ -233,7 +233,7 @@ public class MailBoxGui extends VexGui{
         // 一键领取按钮
         button_onekey = new VexButton(button_onekey_id,button_onekey_text,button_onekey_img_1,button_onekey_img_2,button_onekey_x,button_onekey_y,button_onekey_w,button_onekey_h,player -> {
             player.closeInventory();
-            player.performCommand("mb ok");
+            player.performCommand("mailbox ok");
         });
         if(!button_new_hover.isEmpty()) VexViewConfig.setHover(button_new, button_new_hover);
         if(!button_onekey_hover.isEmpty()) VexViewConfig.setHover(button_onekey, button_onekey_hover);
@@ -307,14 +307,25 @@ public class MailBoxGui extends VexGui{
     // 获取邮件列表
     private VexScrollingList getBoxList(Player p, String playertype){
         HashMap<String, ArrayList<Integer>> idMap = new HashMap();
-        int count = MailBoxAPI.getTrueTypeWhithoutSpecial().stream().filter((type) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+type))).map((type) -> {
-            MailBox.updateRelevantMailList(p, type);
-            return type;
-        }).map((type) -> {
-            ArrayList<Integer> id = MailBox.getRelevantMailList(p, type).get("as"+playertype);
-            idMap.put(type, id);
-            return id;
-        }).map((id) -> id.size()).reduce(Integer::sum).get();
+        int count;
+        if(MailBoxAPI.getTrueTypeWhithoutSpecial().stream().noneMatch(t -> MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+t) || p.hasPermission("mailbox.admin.see."+t))){
+            count = 0;
+        }else{
+            count = MailBoxAPI.getTrueTypeWhithoutSpecial().stream().filter((type) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+type) || p.hasPermission("mailbox.admin.see."+type))).map((type) -> {
+                MailBox.updateRelevantMailList(p, type);
+                return type;
+            }).map((type) -> {
+                ArrayList<Integer> id;
+                if(playertype.equals("Recipient") && p.hasPermission("mailbox.admin.see."+type)){
+                    id = new ArrayList();
+                    id.addAll(MailBox.getMailHashMap(type).keySet());
+                }else{
+                    id = MailBox.getRelevantMailList(p, type).get("as"+playertype);
+                }
+                idMap.put(type, id);
+                return id;
+            }).map((id) -> id.size()).reduce(Integer::sum).get();
+        }
         if(p.hasPermission("mailbox.admin.see.cdkey")) count += MailBox.getMailHashMap("cdkey").size();
         if(count==0) return null;
         int mh = count*list_sh+list_oh;
@@ -378,7 +389,7 @@ public class MailBoxGui extends VexGui{
         if(MailBoxAPI.hasPlayerPermission(p, "mailbox.gui.mailbox")){
             VexViewAPI.openGui(p, new MailBoxGui(p, playertype));
         }else{
-            p.performCommand("mb rb");
+            p.performCommand("mailbox rb");
         }
     }
     

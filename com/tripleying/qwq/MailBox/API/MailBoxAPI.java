@@ -1,5 +1,6 @@
 package com.tripleying.qwq.MailBox.API;
 
+import com.tripleying.qwq.LocaleLanguageAPI.LocaleLanguageAPI;
 import com.tripleying.qwq.MailBox.ConfigMessage;
 import com.tripleying.qwq.MailBox.Mail.*;
 import com.tripleying.qwq.MailBox.GlobalConfig;
@@ -55,9 +56,7 @@ public class MailBoxAPI {
      */
     public static void updateLastTime(){
         long newTime = System.currentTimeMillis();
-        if(newTime>secondDay){
-            MailBox.CDKEY_DAY.clear();
-        }
+        if(newTime>secondDay) MailBox.CDKEY_DAY.clear();
         secondDay = System.currentTimeMillis()/(1000*3600*24)*(1000*3600*24)+24*60*60*1000;
     }
     
@@ -218,7 +217,7 @@ public class MailBoxAPI {
                         if(((MailPlayer)v).getRecipient().contains(name)) recipientList.add(k);
                     }
                 });
-                deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(p));
+                deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(null));
                 break;
             case "system":
                 ArrayList<Integer> collectedSystem = SQLManager.get().getCollectedMailList(p, type);
@@ -252,7 +251,7 @@ public class MailBoxAPI {
                         }
                     }
                 });
-                deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(p));
+                deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(null));
                 break;
 
             case "times":
@@ -265,7 +264,7 @@ public class MailBoxAPI {
                         deleteList.add(k);
                     }
                 });
-                deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(p));
+                deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(null));
                 break;
             case "keytimes":
                 ArrayList<Integer> collectedKeyTimes = SQLManager.get().getCollectedMailList(p, type);
@@ -277,7 +276,7 @@ public class MailBoxAPI {
                         deleteList.add(k);
                     }
                 });
-                deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(p));
+                deleteList.forEach((i) -> MailBox.getMailHashMap(type).get(i).Delete(null));
                 break;
             case "cdkey":
                 ArrayList<Integer> collectedCdkey = SQLManager.get().getCollectedMailList(p, type);
@@ -915,15 +914,12 @@ public class MailBoxAPI {
     public static boolean isAllowSend(ItemStack is){
         if(is.hasItemMeta()){
             ItemMeta im = is.getItemMeta();
-            if(im.hasLore()){
-                List<String> lore = im.getLore();
-                if (!lore.stream().noneMatch((l) -> (l.equals(GlobalConfig.fileBanLore)))) {
-                    return false;
-                }
+            if(im.hasLore() && !im.getLore().isEmpty() && im.getLore().stream().noneMatch((l) -> (l.contains(GlobalConfig.fileBanLore)))){
+                return false;
             }
         }
         String id = is.getType().name();
-        return GlobalConfig.fileBanId.stream().noneMatch((i) -> (i.equals(id)));
+        return GlobalConfig.fileBanId.stream().noneMatch((i) -> (i.contains(id)));
     }
     
     /**
@@ -1006,30 +1002,7 @@ public class MailBoxAPI {
      * @return String
      */
     public static String getItemName(ItemStack is){
-        if(is.getItemMeta().hasDisplayName()){
-            return is.getItemMeta().getDisplayName();
-        }else if(!GlobalConfig.server_under_1_11 && is.getItemMeta().hasLocalizedName()){
-            return is.getItemMeta().getLocalizedName();
-        }else if(GlobalConfig.language.equals("zh_cn")){
-            String name = Data2cn.itemName(is);
-            if(name.equals(is.getType().toString())){
-                String nameNMS = Reflection.getItemName(is);
-                if(nameNMS.equals("")){
-                    return name;
-                }else{
-                    return Data2cn.en2cn(nameNMS);
-                }
-            }else{
-                return name;
-            }
-        }else{
-            String nameNMS = Reflection.getItemName(is);
-            if(nameNMS.equals("")){
-                return is.getType().toString();
-            }else{
-                return nameNMS;
-            }
-        }
+        return LocaleLanguageAPI.getItemName(is);
     }
     
     /**
@@ -1240,6 +1213,7 @@ public class MailBoxAPI {
         }
         int mail = SQLManager.get().existCdkey(cdkey);
         if(mail>0){
+            MailBox.updateRelevantMailList(p, "cdkey");
             if(!MailBox.getRelevantMailList(p, "cdkey").get("asRecipient").contains(mail)){
                 p.sendMessage(Message.exchangeRepeat);
             }else{
@@ -1295,6 +1269,14 @@ public class MailBoxAPI {
     }
     
     /**
+     * 重置玩家今日输入兑换码的次数
+     * @param name 玩家名
+     */
+    public static void cdkeyDayRemove(String name){
+        if(MailBox.CDKEY_DAY.containsKey(name)) MailBox.CDKEY_DAY.remove(name);
+    }
+    
+    /**
      * 删除本地已导出的兑换码
      * @param mail 邮件ID
      * @return boolean
@@ -1321,8 +1303,7 @@ public class MailBoxAPI {
                 PrintWriter pw;
                 try (InputStreamReader isr = new InputStreamReader(MailBox.getInstance().getResource(jar+filename), "UTF-8"); 
                     BufferedReader br = new BufferedReader(isr)) {
-                    if(GlobalConfig.server_under_1_9) osw = new OutputStreamWriter(new FileOutputStream(f), System.getProperty("file.encoding"));
-                    else osw = new OutputStreamWriter(new FileOutputStream(f), "UTF-8");
+                    osw = new OutputStreamWriter(new FileOutputStream(f), (MailBox.getCharset()));
                     bw = new BufferedWriter(osw);
                     pw = new PrintWriter(bw);
                     String temp;

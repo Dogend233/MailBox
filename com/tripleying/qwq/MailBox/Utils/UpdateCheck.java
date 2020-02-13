@@ -12,11 +12,12 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class UpdateCheck {
     
     // 从远程连接获取最新版本号
-    private static ArrayList<String> getVersion(String httpurl, boolean first){
+    private static ArrayList<String> getVersion(String httpurl){
         try{
             URL url = new URL(httpurl);
             URLConnection urlConnection = url.openConnection();
@@ -41,42 +42,27 @@ public class UpdateCheck {
             }
             return urlString;
         }catch(IOException e){
-            if(first){
-                // 尝试从备用链接获取最新版本号
-                return getVersion("https://dogend233.github.io/version.txt", false);
-            }else{
-                Bukkit.getConsoleSender().sendMessage(Message.updateError);
-            }
+            Bukkit.getConsoleSender().sendMessage(Message.updateError);
         }
         return null;
     }
     
     // 比较本插件版本号
-    public static void check(CommandSender sender){
-        ArrayList<String> info = getVersion("http://qwq.xn--o5raa.com/plugins/mailbox/version.php", true);
+    private static void check(CommandSender sender){
+        ArrayList<String> info = getVersion("http://qwq.xn--o5raa.com/plugins/mailbox/version.php");
         if(info!=null && !info.isEmpty()){
-            String[] nsl = info.get(0).split("\\.");
-            String[] osl = MailBoxAPI.getVersion().split("\\.");
-            for(int i=0;i<3;i++){
-                int n = Integer.parseInt(nsl[i]);
-                int o = Integer.parseInt(osl[i]);
-                if(o==n){
-                    if(i==2) sender.sendMessage(Message.updateNewest);
-                }else if(o>n){
-                    sender.sendMessage(Message.updateNewest);
-                    break;
-                }else{
-                    String msg = "";
-                    for(int j=Message.updateNew.size()-1;j>0;j++){
-                        msg += Message.updateNew.get(j)+ '\n';
-                    }
-                    msg += Message.updateNew.get(0);
-                    sender.sendMessage(msg.replace("%version%", info.get(0)).replace("%date%", info.get(1)).replace("%download%", MailBox.getInstance().getDescription().getWebsite()+"/download.php"));
-                    String[] in = info.get(2).split("#");
-                    for(int j=0;j<in.length;j++){
-                        sender.sendMessage("§b"+(j+1)+": "+in[j]);
-                    }
-                    break;
+            if(check(MailBoxAPI.getVersion(), info.get(0))){
+                sender.sendMessage(Message.updateNewest);
+            }else{
+                String msg = "";
+                for(int j=Message.updateNew.size()-1;j>0;j++){
+                    msg += Message.updateNew.get(j)+ '\n';
+                }
+                if(!Message.updateNew.isEmpty()) msg += Message.updateNew.get(0);
+                sender.sendMessage(msg.replace("%version%", info.get(0)).replace("%date%", info.get(1)).replace("%download%", MailBox.getInstance().getDescription().getWebsite()+"/download.php"));
+                String[] in = info.get(2).split("#");
+                for(int j=0;j<in.length;j++){
+                    sender.sendMessage("§b"+(j+1)+": "+in[j]);
                 }
             }
         }
@@ -84,16 +70,26 @@ public class UpdateCheck {
     
     // 比较两个字符串版本号
     public static boolean check(String now, String need){
-        String[] nowl = now.split("\\.");
-        String[] needl = need.split("\\.");
-        int c = nowl.length;
-        if(needl.length<c) c = needl.length;
-        for(int i=0;i<c;i++){
-            int w = Integer.parseInt(nowl[i]);
-            int d = Integer.parseInt(needl[i]);
-            if(w<d) return false;
+        int db = Integer.parseInt(need.substring(0, need.indexOf(".")));
+        int wb = Integer.parseInt(now.substring(0, now.indexOf(".")));
+        if(wb>db){
+            return true;
+        }else if(db>wb){
+            return false;
+        }else{
+            double ds = Double.parseDouble(need.substring(need.indexOf(".")+1));
+            double ws = Double.parseDouble(now.substring(now.indexOf(".")+1));
+            return ws>=ds;
         }
-        return true;
+    }
+    
+    public static void check(CommandSender sender, long tick){
+        new BukkitRunnable(){
+            @Override
+            public void run(){
+                check(sender);
+            }
+        }.runTaskLater(MailBox.getInstance(), tick);
     }
     
 }

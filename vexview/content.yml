@@ -52,62 +52,38 @@ button:
       img_2: '[local]MailBox/button_small_.png'
     #已领取邮件的设置
     collected:
-      #按钮文字
       text: §r已领取
-      #按钮提示文字
       hover:
-      #按钮背景图
       img_1: '[local]MailBox/button_small.png'
       img_2: '[local]MailBox/button_small_.png'
-    #x坐标
     x: 203
-    #y坐标
     y: 160
-    #显示宽度
     w: 30
-    #显示高度
     h: 18
   #删除
   delete:
-    #按钮ID
     id: MailContentButton_Delete
-    #按钮文字
     text: §r删除
-    #按钮提示文字
     hover:
     - §c删除这封邮件
-    #按钮背景图
     img_1: '[local]MailBox/button_small.png'
     img_2: '[local]MailBox/button_small_.png'
-    #x坐标
     x: 170
-    #y坐标
     y: 160
-    #显示宽度
     w: 30
-    #显示高度
     h: 18
   #发送
   send:
-    #按钮ID
     id: MailContentButton_Send
-    #按钮文字
     text: §r发送
-    #生成CDK文字
     cdk: §r生成
-    #按钮提示文字
     hover:
     - §a发送这封邮件
-    #按钮背景图
     img_1: '[local]MailBox/button_small.png'
     img_2: '[local]MailBox/button_small_.png'
-    #x坐标
     x: 203
-    #y坐标
     y: 160
-    #显示宽度
     w: 30
-    #显示高度
     h: 18
 #文字
 text:
@@ -124,103 +100,66 @@ text:
     w: 15
   #邮件发送时间
   date:
-    #x坐标
     x: 8
-    #y坐标
     y: 185
-    #文字大小（可以小数）
     size: 1
-    #前缀
     prefix: §b
-    #显示发送时间的邮件类型
     display:
     - date
     - player
   #邮件数量
   times:
-    #x坐标
     x: 175
-    #y坐标
     y: 125
-    #文字大小（可以小数）
     size: 1
-    #前缀
     prefix: '§b剩余数量: '
   #邮件口令
   key:
-    #x坐标
     x: 8
-    #y坐标
     y: 185
-    #文字大小（可以小数）
     size: 1
-    #前缀
     prefix: '§b口令: '
   #邮件截止时间
   deadline:
-    #x坐标
     x: 78
-    #y坐标
     y: 185
-    #文字大小（可以小数）
     size: 1
-    #前缀
     prefix: ' - §b'
   #发件人
   sender:
-    #x坐标
     x: 164
-    #y坐标
     y: 185
-    #文字大小（可以小数）
     size: 1
-    #前缀
     prefix: '§a来自: §6'
   #Vault的金币数值
   coin:
-    #x坐标
     x: 45
-    #y坐标
     y: 125
-    #文字大小（可以小数）
     size: 1
-    #前缀
     prefix: '§e'
     #后缀
     suffix: '§6 金币'
   #PlayerPoints的点券数值
   point:
-    #x坐标
     x: 45
-    #y坐标
     y: 135
-    #文字大小（可以小数）
     size: 1
-    #前缀
     prefix: '§a'
-    #后缀
     suffix: '§b 点券'
   #附件
   file:
-    #x坐标
     x: 7
-    #y坐标
     y: 125
-    #附件显示文字
+    #有附件显示文字
     text_yes: '§e附件: '
     #无附件显示文字
-    text_no: §6无附件
-    #文字大小（可以小数）
+    text_no: '§6无附件'
     size: 1
   #指令提示字
   cmd:
-    #x坐标
     x: 117
-    #y坐标
     y: 165
-    #显示文字
     text: '§a指令'
-    #文字大小（可以小数）
     size: 1
   #邮件内容滚动列表
   content:
@@ -260,27 +199,17 @@ image:
     h: 16
   #Vault的金币提示图
   coin:
-    #图片地址
     url: '[local]MailBox/img_coin.png'
-    #x坐标
     x: 35
-    #y坐标
     y: 125
-    #显示宽度
     w: 8
-    #显示高度
     h: 8
   #PlayerPoints的点券提示图
   point:
-    #图片地址
     url: '[local]MailBox/img_point.png'
-    #x坐标
     x: 35
-    #y坐标
     y: 135
-    #显示宽度
     w: 8
-    #显示高度
     h: 8
 #物品槽（实际大小18x，鼠标悬停时高亮部分为16x）
 slot:
@@ -318,4 +247,3 @@ slot:
   - 165
   - 165
   - 165
-  

@@ -17,6 +17,7 @@ import lk.vexview.gui.components.VexImage;
 import lk.vexview.gui.components.VexScrollingList;
 import lk.vexview.gui.components.VexSlot;
 import lk.vexview.gui.components.VexText;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -128,7 +129,7 @@ public class MailContentGui extends VexGui{
                 BUTTON_STRING.get("delete")[0],BUTTON_STRING.get("delete")[1],BUTTON_STRING.get("delete")[2],BUTTON_STRING.get("delete")[3],
                 BUTTON_INT.get("delete")[0],BUTTON_INT.get("delete")[1],BUTTON_INT.get("delete")[2],BUTTON_INT.get("delete")[3],player -> {
                     player.closeInventory();
-                    player.performCommand("mb "+bm.getType()+" delete "+bm.getId());
+                    player.performCommand("mailbox "+bm.getType()+" delete "+bm.getId());
                 });
         if(!BUTTON_HOVER.get("delete").isEmpty()) VexViewConfig.setHover(vbd, BUTTON_HOVER.get("delete"));
         // 发送按钮
@@ -149,7 +150,7 @@ public class MailContentGui extends VexGui{
                 BUTTON_STRING.get("collect")[0],BUTTON_STRING.get("collect")[1],BUTTON_STRING.get("collect")[2],BUTTON_STRING.get("collect")[3],
                 BUTTON_INT.get("collect")[0],BUTTON_INT.get("collect")[1],BUTTON_INT.get("collect")[2],BUTTON_INT.get("collect")[3],player -> {
                     player.closeInventory();
-                    player.performCommand("mb "+bm.getType()+" collect "+bm.getId());
+                    player.performCommand("mailbox "+bm.getType()+" collect "+bm.getId());
                 });
         if(!BUTTON_HOVER.get("collect").isEmpty()) VexViewConfig.setHover(vbc, BUTTON_HOVER.get("collect"));
         // 已领取按钮
@@ -390,6 +391,8 @@ public class MailContentGui extends VexGui{
         MailContentGui.slot_h = slot_h;
         MailContentGui.slot_x = slot_x;
         MailContentGui.slot_y = slot_y;
+        while(slot_x.size()<GlobalConfig.maxItem) slot_x.add(-1000);
+        while(slot_y.size()<GlobalConfig.maxItem) slot_y.add(0);
     }
     
     // 对文本邮件的操作
@@ -458,10 +461,10 @@ public class MailContentGui extends VexGui{
         // 发送人
         this.addComponent(new VexText(text_sender_x,text_sender_y,Arrays.asList(text_sender_prefix+bm.getSender()),text_sender_size));
         // 邮件内容
-        this.addComponent(divContent(bm.getContent()));
+        this.addComponent(divContent(GlobalConfig.enPlaceholderAPI ? PlaceholderAPI.setPlaceholders(p, bm.getContent()) : bm.getContent()));
         // 附件邮件
         if(bm instanceof BaseFileMail) {
-            writeFile(bm, p, mail);
+            writeFile(bm, p);
         }else{
             this.addComponent(text_file_no);
             if(isPreview){
@@ -475,7 +478,7 @@ public class MailContentGui extends VexGui{
                 if(bm instanceof MailCdkey){
                     if(p.hasPermission("mailbox.admin.create.cdkey")){
                         vbs.setName(BUTTON_STRING.get("cdk")[0]);
-                        vbs.setFunction(player -> player.performCommand("mb cdkey create "+bm.getId()));
+                        vbs.setFunction(player -> player.performCommand("mailbox cdkey create "+bm.getId()));
                         this.addComponent(vbs);
                     }
                 }else
@@ -488,7 +491,7 @@ public class MailContentGui extends VexGui{
     }
     
     // 对附件邮件的操作
-    private void writeFile(BaseMail bm, Player p, int mail){
+    private void writeFile(BaseMail bm, Player p){
         BaseFileMail fm = (BaseFileMail)bm;
         if(isPreview || (fm.readFile() && fm.hasFile())){
             // 附件文字
@@ -545,7 +548,7 @@ public class MailContentGui extends VexGui{
                 if(bm instanceof MailCdkey){
                     if(p.hasPermission("mailbox.admin.create.cdkey")){
                         vbs.setName(BUTTON_STRING.get("cdk")[0]);
-                        vbs.setFunction(player -> player.performCommand("mb cdkey create "+bm.getId()));
+                        vbs.setFunction(player -> player.performCommand("mailbox cdkey create "+bm.getId()));
                         this.addComponent(vbs);
                     }
                 }else{
@@ -581,7 +584,7 @@ public class MailContentGui extends VexGui{
         if(MailBoxAPI.hasPlayerPermission(p, "mailbox.gui.mailcontent")){
             VexViewAPI.openGui(p, new MailContentGui(p, bm, asSender));
         }else{
-            p.performCommand("mb "+bm.getType()+" see "+bm.getId());
+            p.performCommand("mailbox "+bm.getType()+" see "+bm.getId());
         }
     }
     

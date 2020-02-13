@@ -2,38 +2,20 @@ package com.tripleying.qwq.MailBox.VexView;
 
 import lk.vexview.api.VexViewAPI;
 import lk.vexview.hud.VexImageShow;
+import lk.vexview.hud.VexShow;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-public class MailTipsHud extends VexImageShow {
+public class MailTipsHud{
     
-    public static String id;
-    private static String img;
-    private static int x;
-    private static int y;
-    private static int w;
-    private static int h;
-    private static int ww;
-    private static int hh;
-    private static int time;
+    private static VexShow vs;
     
-    public MailTipsHud() {
-        super(id,img,x,y,w,h,ww,hh,time);
-    }
-    
-    public static void setHudConfig(String id, String img, int x, int y, int w, int h, int ww, int hh, int time){
-        MailTipsHud.id = id;
-        MailTipsHud.img = img;
-        MailTipsHud.x = x;
-        MailTipsHud.y = y;
-        MailTipsHud.w = w;
-        MailTipsHud.h = h;
-        MailTipsHud.ww = ww;
-        MailTipsHud.hh = hh;
-        MailTipsHud.time = time;
+    public static void setHudConfig(YamlConfiguration hud){
+        vs = new VexImageShow(hud.getString("new.id"),hud.getString("new.img"),hud.getInt("new.x"),hud.getInt("new.y"),1,hud.getInt("new.w"),hud.getInt("new.h"),hud.getInt("new.ww"),hud.getInt("new.hh"),hud.getInt("new.time"));
     }
     
     public static void setMailTipsHud(Player p){
-        VexViewAPI.sendHUD(p, new MailTipsHud());
+        VexViewAPI.sendHUD(p, vs);
     }
     
 }

@@ -67,18 +67,11 @@ button:
     h: 18
   #导出
   export:
-    #按钮ID
     id: MailCdkeyButton_Export
-    #按钮文字
     text: §r导出所有兑换码
-    #按钮背景图
     img_1: '[local]MailBox/image_mail.png'
     img_2: '[local]MailBox/image_mail_.png'
-    #x坐标
     x: -1
-    #y坐标
     y: 130
-    #显示宽度
     w: 70
-    #显示高度
     h: 18

@@ -3,7 +3,11 @@ package com.tripleying.qwq.MailBox.Mail;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.Utils.DateTime;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import org.bukkit.Bukkit;
 import org.bukkit.conversations.ConversationContext;
 import org.bukkit.entity.Player;
 
@@ -21,12 +25,31 @@ public class TimesMail extends BaseMail implements MailTimes {
     }
     
     @Override
+    public boolean ExpireValidate() {
+        try {
+            long deadline = new SimpleDateFormat("HH").parse(GlobalConfig.timesExpired).getTime();
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            long sendTime = df.parse(getDate()).getTime();
+            long now = df.parse(DateTime.get("ymdhms")).getTime();
+            return (sendTime+deadline)<=now;
+        } catch (ParseException ex) {
+            Bukkit.getLogger().info(ex.getLocalizedMessage());
+            return false; 
+        }
+    }
+    
+    @Override
     public boolean TimesValidate() {
         return times>0;
     }
     
     @Override
     public boolean collectValidate(Player p) {
+        if(ExpireValidate()){
+            p.sendMessage(Message.mailExpire.replace("%para%",""));
+            Delete(p);
+            return false;
+        }
         if(!TimesValidate()){
             p.sendMessage(Message.timesZero.replace("%para%", ""));
             Delete(p);

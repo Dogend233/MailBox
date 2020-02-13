@@ -839,6 +839,7 @@ class Coin extends ValidatingPrompt{
         if(str.equals(Message.newStop)) return true;
         try{
             coin = Double.parseDouble(str);
+            if(coin<0) coin=0;
             if(sender instanceof Player){
                 Player p = (Player)sender;
                 fm.setCoin(coin);
@@ -897,6 +898,7 @@ class Point extends ValidatingPrompt{
         if(str.equals(Message.newStop)) return true;
         try{
             point = Integer.parseInt(str);
+            if(point<0) point=0;
             if(sender instanceof Player){
                 Player p = (Player)sender;
                 fm.setPoint(point);

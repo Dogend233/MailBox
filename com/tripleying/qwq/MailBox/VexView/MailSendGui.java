@@ -11,13 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import lk.vexview.api.VexViewAPI;
 import lk.vexview.gui.VexInventoryGui;
-import lk.vexview.gui.components.VexButton;
-import lk.vexview.gui.components.VexCheckBox;
-import lk.vexview.gui.components.VexImage;
-import lk.vexview.gui.components.VexSlot;
-import lk.vexview.gui.components.VexText;
-import lk.vexview.gui.components.VexTextField;
+import lk.vexview.gui.components.*;
+import lk.vexview.gui.components.expand.VexColorfulTextField;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -112,18 +109,27 @@ public class MailSendGui extends VexInventoryGui{
         if(!button_preview_hover.isEmpty()) VexViewConfig.setHover(vbp, button_preview_hover);
         this.addComponent(vbp);
         this.addComponent(text_topic);
-        this.addComponent(getTextField(FIELD.get("topic")));
+        this.addComponent(createTextField(FIELD.get("topic")));
         this.addComponent(text_text);
-        this.addComponent(getTextField(FIELD.get("text")));
+        if(GlobalConfig.vexview_under_2_6_3){
+            this.addComponent(createTextField(FIELD.get("text")));
+        }else{
+            this.addComponent(createTextArea(FIELD.get("text")));
+        }
         if(perm_sender){
             this.addComponent(text_sender);
-            this.addComponent(getTextField(FIELD.get("sender"), sender));
+            this.addComponent(createTextField(FIELD.get("sender"), sender));
         }
         if(perm_cmd){
             this.addComponent(text_command);
-            this.addComponent(getTextField(FIELD.get("command")));
             this.addComponent(text_description);
-            this.addComponent(getTextField(FIELD.get("description")));
+            if(GlobalConfig.vexview_under_2_6_3){
+                this.addComponent(createTextField(FIELD.get("command")));
+                this.addComponent(createTextField(FIELD.get("description")));
+            }else{
+                this.addComponent(createTextArea(FIELD.get("command")));
+                this.addComponent(createTextArea(FIELD.get("description")));
+            }
         }
         if(perm_item!=0) this.addComponent(text_item);
         for(int i=0;i<perm_item;i++){
@@ -133,45 +139,49 @@ public class MailSendGui extends VexInventoryGui{
         switch (type) {
             case "player" :
                 this.addComponent(text_recipient);
-                this.addComponent(getTextField(FIELD.get("recipient")));
+                if(GlobalConfig.vexview_under_2_6_3){
+                    this.addComponent(createTextField(FIELD.get("recipient")));
+                }else{
+                    this.addComponent(createTextArea(FIELD.get("recipient")));
+                }
                 break;
             case "permission":
                 this.addComponent(text_permission);
-                this.addComponent(getTextField(FIELD.get("permission")));
+                this.addComponent(createTextField(FIELD.get("permission")));
                 break;
             case "date":
                 this.addComponent(text_startdate);
-                this.addComponent(getTextField(FIELD.get("startdate"),"0"));
+                this.addComponent(createTextField(FIELD.get("startdate"),"0"));
                 this.addComponent(text_deadline);
-                this.addComponent(getTextField(FIELD.get("deadline"),"0"));
+                this.addComponent(createTextField(FIELD.get("deadline"),"0"));
                 break;
             case "keytimes":
                 this.addComponent(text_key);
-                this.addComponent(getTextField(FIELD.get("key")));
+                this.addComponent(createTextField(FIELD.get("key")));
             case "times":
                 this.addComponent(text_times);
-                this.addComponent(getTextField(FIELD.get("times"),"1"));
+                this.addComponent(createTextField(FIELD.get("times"),"1"));
                 break;
             case "cdkey":
                 this.addComponent(text_onlyCDK);
-                this.addComponent(getCheckBox(checkBox_onlyCDK,image_checkBox_onlyCDK));
+                this.addComponent(createCheckBox(checkBox_onlyCDK,image_checkBox_onlyCDK));
                 break;
             case "template":
                 this.addComponent(text_template);
-                this.addComponent(getTextField(FIELD.get("template")));
+                this.addComponent(createTextField(FIELD.get("template")));
                 break;
         }
         if(enVault && perm_coin){
             bal_coin = MailBoxAPI.getEconomyBalance(p);
             this.addComponent(image_coin);
-            VexTextField vtf = getTextField(FIELD.get("coin"),"0");
+            VexTextField vtf = createTextField(FIELD.get("coin"),"0");
             VexViewConfig.setHover(vtf, Arrays.asList(Message.moneyBalance+"："+bal_coin));
             this.addComponent(vtf);
         }
         if(enPlayerPoints && perm_point){
             bal_point = MailBoxAPI.getPoints(p);
             this.addComponent(image_point);
-            VexTextField vtf = getTextField(FIELD.get("point"),"0");
+            VexTextField vtf = createTextField(FIELD.get("point"),"0");
             VexViewConfig.setHover(vtf, Arrays.asList(Message.moneyBalance+"："+bal_point));
             this.addComponent(vtf);
         }
@@ -263,76 +273,6 @@ public class MailSendGui extends VexInventoryGui{
         int text_item_y,
         double text_item_size,
         String text_item_text,
-        int field_topic_x,
-        int field_topic_y,
-        int field_topic_w,
-        int field_topic_h,
-        int field_topic_max,
-        int field_recipient_x,
-        int field_recipient_y,
-        int field_recipient_w,
-        int field_recipient_h,
-        int field_recipient_max,
-        int field_permission_x,
-        int field_permission_y,
-        int field_permission_w,
-        int field_permission_h,
-        int field_permission_max,
-        int field_startdate_x,
-        int field_startdate_y,
-        int field_startdate_w,
-        int field_startdate_h,
-        int field_startdate_max,
-        int field_deadline_x,
-        int field_deadline_y,
-        int field_deadline_w,
-        int field_deadline_h,
-        int field_deadline_max,
-        int field_times_x,
-        int field_times_y,
-        int field_times_w,
-        int field_times_h,
-        int field_times_max,
-        int field_key_x,
-        int field_key_y,
-        int field_key_w,
-        int field_key_h,
-        int field_key_max,
-        int field_template_x,
-        int field_template_y,
-        int field_template_w,
-        int field_template_h,
-        int field_template_max,
-        int field_text_x,
-        int field_text_y,
-        int field_text_w,
-        int field_text_h,
-        int field_text_max,
-        int field_sender_x,
-        int field_sender_y,
-        int field_sender_w,
-        int field_sender_h,
-        int field_sender_max,
-        int field_command_x,
-        int field_command_y,
-        int field_command_w,
-        int field_command_h,
-        int field_command_max,
-        int field_description_x,
-        int field_description_y,
-        int field_description_w,
-        int field_description_h,
-        int field_description_max,
-        int field_coin_x,
-        int field_coin_y,
-        int field_coin_w,
-        int field_coin_h,
-        int field_coin_max,
-        int field_point_x,
-        int field_point_y,
-        int field_point_w,
-        int field_point_h,
-        int field_point_max,
         int checkBox_onlyCDK_x,
         int checkBox_onlyCDK_y,
         int checkBox_onlyCDK_w,
@@ -353,7 +293,8 @@ public class MailSendGui extends VexInventoryGui{
         int slot_w,
         int slot_h,
         List<Integer> slot_x,
-        List<Integer> slot_y
+        List<Integer> slot_y,
+        YamlConfiguration send
     ){
         // GUI
         MailSendGui.gui_img = gui_img;
@@ -390,20 +331,20 @@ public class MailSendGui extends VexInventoryGui{
         text_item = new VexText(text_item_x,text_item_y,Arrays.asList(text_item_text),text_item_size);
         // 文本框
         FIELD.clear();
-        FIELD.put("topic", new int[]{field_topic_x,field_topic_y,field_topic_w,field_topic_h,field_topic_max,1});
-        FIELD.put("recipient", new int[]{field_recipient_x,field_recipient_y,field_recipient_w,field_recipient_h,field_recipient_max,2});
-        FIELD.put("permission", new int[]{field_permission_x,field_permission_y,field_permission_w,field_permission_h,field_permission_max,3});
-        FIELD.put("text", new int[]{field_text_x,field_text_y,field_text_w,field_text_h,field_text_max,4});
-        FIELD.put("command", new int[]{field_command_x,field_command_y,field_command_w,field_command_h,field_command_max,5});
-        FIELD.put("description", new int[]{field_description_x,field_description_y,field_description_w,field_description_h,field_description_max,6});
-        FIELD.put("coin", new int[]{field_coin_x,field_coin_y,field_coin_w,field_coin_h,field_coin_max,7});
-        FIELD.put("point", new int[]{field_point_x,field_point_y,field_point_w,field_point_h,field_point_max,8});
-        FIELD.put("startdate", new int[]{field_startdate_x,field_startdate_y,field_startdate_w,field_startdate_h,field_startdate_max,9});
-        FIELD.put("deadline", new int[]{field_deadline_x,field_deadline_y,field_deadline_w,field_deadline_h,field_deadline_max,10});
-        FIELD.put("template", new int[]{field_template_x,field_template_y,field_template_w,field_template_h,field_template_max,11});
-        FIELD.put("times", new int[]{field_times_x,field_times_y,field_times_w,field_times_h,field_times_max,12});
-        FIELD.put("sender", new int[]{field_sender_x,field_sender_y,field_sender_w,field_sender_h,field_sender_max,13});
-        FIELD.put("key", new int[]{field_key_x,field_key_y,field_key_w,field_key_h,field_key_max,14});
+        FIELD.put("topic", new int[]{send.getInt("field.topic.x"),send.getInt("field.topic.y"),send.getInt("field.topic.w"),send.getInt("field.topic.h"),send.getInt("field.topic.max"),1,send.getInt("field.topic.main",0xFF000000),send.getInt("field.topic.side",0xFFFFFFFF)});
+        FIELD.put("recipient", new int[]{send.getInt("field.recipient.x"),send.getInt("field.recipient.y"),send.getInt("field.recipient.w"),send.getInt("field.recipient.h"),send.getInt("field.recipient.max"),2,send.getInt("field.recipient.main",0xFF000000),send.getInt("field.recipient.side",0xFFFFFFFF)});
+        FIELD.put("permission",new int[]{send.getInt("field.permission.x"),send.getInt("field.permission.y"),send.getInt("field.permission.w"),send.getInt("field.permission.h"),send.getInt("field.permission.max"),3,send.getInt("field.permission.main",0xFF000000),send.getInt("field.permission.side",0xFFFFFFFF)});
+        FIELD.put("text", new int[]{send.getInt("field.text.x"),send.getInt("field.text.y"),send.getInt("field.text.w"),send.getInt("field.text.h"),send.getInt("field.text.max"),4,send.getInt("field.text.main",0xFF000000),send.getInt("field.text.side",0xFFFFFFFF)});
+        FIELD.put("command", new int[]{send.getInt("field.command.x"),send.getInt("field.command.y"),send.getInt("field.command.w"),send.getInt("field.command.h"),send.getInt("field.command.max"),5,send.getInt("field.command.main",0xFF000000),send.getInt("field.command.side",0xFFFFFFFF)});
+        FIELD.put("description",new int[]{send.getInt("field.description.x"),send.getInt("field.description.y"),send.getInt("field.description.w"),send.getInt("field.description.h"),send.getInt("field.description.max"),6,send.getInt("field.description.main",0xFF000000),send.getInt("field.description.side",0xFFFFFFFF)});
+        FIELD.put("coin",new int[]{send.getInt("field.coin.x"),send.getInt("field.coin.y"),send.getInt("field.coin.w"),send.getInt("field.coin.h"),send.getInt("field.coin.max"),7,send.getInt("field.coin.main",0xFF000000),send.getInt("field.coin.side",0xFFFFFFFF)});
+        FIELD.put("point",new int[]{send.getInt("field.point.x"),send.getInt("field.point.y"),send.getInt("field.point.w"),send.getInt("field.point.h"),send.getInt("field.point.max"),8,send.getInt("field.point.main",0xFF000000),send.getInt("field.point.side",0xFFFFFFFF)});
+        FIELD.put("startdate",new int[]{send.getInt("field.startdate.x"),send.getInt("field.startdate.y"),send.getInt("field.startdate.w"),send.getInt("field.startdate.h"),send.getInt("field.startdate.max"),9,send.getInt("field.startdate.main",0xFF000000),send.getInt("field.startdate.side",0xFFFFFFFF)});
+        FIELD.put("deadline", new int[]{send.getInt("field.deadline.x"),send.getInt("field.deadline.y"),send.getInt("field.deadline.w"),send.getInt("field.deadline.h"),send.getInt("field.deadline.max"),10,send.getInt("field.deadline.main",0xFF000000),send.getInt("field.deadline.side",0xFFFFFFFF)});
+        FIELD.put("template",new int[]{send.getInt("field.template.x"),send.getInt("field.template.y"),send.getInt("field.template.w"),send.getInt("field.template.h"),send.getInt("field.template.max"),11,send.getInt("field.template.main",0xFF000000),send.getInt("field.template.side",0xFFFFFFFF)});
+        FIELD.put("times", new int[]{send.getInt("field.times.x"),send.getInt("field.times.y"),send.getInt("field.times.w"),send.getInt("field.times.h"),send.getInt("field.times.max"),12,send.getInt("field.times.main",0xFF000000),send.getInt("field.times.side",0xFFFFFFFF)});
+        FIELD.put("sender",new int[]{send.getInt("field.sender.x"),send.getInt("field.sender.y"),send.getInt("field.sender.w"),send.getInt("field.sender.h"),send.getInt("field.sender.max"),13,send.getInt("field.sender.main",0xFF000000),send.getInt("field.sender.side",0xFFFFFFFF)});
+        FIELD.put("key", new int[]{send.getInt("field.key.x"),send.getInt("field.key.y"),send.getInt("field.key.w"),send.getInt("field.key.h"),send.getInt("field.key.max"),14,send.getInt("field.key.main",0xFF000000),send.getInt("field.key.side",0xFFFFFFFF)});
         // 勾选框
         checkBox_onlyCDK = new int[]{0,checkBox_onlyCDK_x,checkBox_onlyCDK_y,checkBox_onlyCDK_w,checkBox_onlyCDK_h};
         // 勾选框图片
@@ -418,6 +359,8 @@ public class MailSendGui extends VexInventoryGui{
         int x_offset = ((slot_w-18)/2)-1; 
         int y_offset = ((slot_h-18)/2)-1;
         SLOT_IMAGE.clear();
+        while(slot_x.size()<GlobalConfig.maxItem) slot_x.add(-1000);
+        while(slot_y.size()<GlobalConfig.maxItem) slot_y.add(0);
         for(int i=0;i<GlobalConfig.maxItem;i++){
             int x = slot_x.get(i);
             int y = slot_y.get(i);
@@ -426,15 +369,19 @@ public class MailSendGui extends VexInventoryGui{
     }
     
     // 获取文本框
-    private VexTextField getTextField(int[] f){
-        return new VexTextField(f[0],f[1],f[2],f[3],f[4],f[5]);
+    private static VexTextField createTextField(int[] f){
+        return new VexColorfulTextField(f[0],f[1],f[2],f[3],f[4],f[5],f[7],f[6]);
     }
-    private VexTextField getTextField(int[] f, String v){
-        return new VexTextField(f[0],f[1],f[2],f[3],f[4],f[5],v);
+    private static VexTextField createTextField(int[] f, String v){
+        return new VexColorfulTextField(f[0],f[1],f[2],f[3],f[4],f[5],f[7],f[6],v);
+    }
+    
+    public static VexComponents createTextArea(int[] f){
+        return VexView2_6.createTextArea(f);
     }
     
     // 获取勾选框
-    private VexCheckBox getCheckBox(int[] i, String[] s){
+    private static VexCheckBox createCheckBox(int[] i, String[] s){
         return new VexCheckBox(i[0],s[0],s[1],i[1],i[2],i[3],i[4],false);
         
     }
@@ -442,13 +389,32 @@ public class MailSendGui extends VexInventoryGui{
     // 预览邮件
     private void previewMail(Player p){
         topic = getTextField(FIELD.get("topic")[5]).getTypedText();
-        text = getTextField(FIELD.get("text")[5]).getTypedText();
+        if(GlobalConfig.vexview_under_2_6_3){
+            text = getTextField(FIELD.get("text")[5]).getTypedText();
+            if(!p.hasPermission("mailbox.admin.send.percent")) text = text.replace("%", "");
+        }else{
+            text = "";
+            List<String> textlist = getTextArea(FIELD.get("text")[5]).getTypedText();
+            boolean percent = p.hasPermission("mailbox.admin.send.percent");
+            if(!textlist.isEmpty()){
+                textlist.stream().filter((r) -> (r.trim().length()>0)).forEachOrdered((r) -> {
+                    r = r.trim();
+                    if(!percent) r = r.replace("%", "");
+                    if(r.length()>0){
+                        text += " "+r;
+                    }
+                });
+            }
+            if(text.length()>0) text = text.substring(1);
+            if(text.length()>255) text = text.substring(0, 255);
+        }
         if(perm_sender) sender = getTextField(FIELD.get("sender")[5]).getTypedText();
         if(enVault && perm_coin){
             String t = getTextField(FIELD.get("coin")[5]).getTypedText();
             if(t!=null && !t.equals("")){
                 try{
                     co = Double.parseDouble(t);
+                    if(co<0) co=0;
                 }catch(NumberFormatException e){
                     p.sendMessage(Message.globalNumberError);
                     return;
@@ -467,6 +433,7 @@ public class MailSendGui extends VexInventoryGui{
             if(t!=null && !t.equals("")){
                 try{
                     po = Integer.parseInt(t);
+                    if(po<0) po=0;
                 }catch(NumberFormatException e){
                     p.sendMessage(Message.globalNumberError);
                     return;
@@ -482,9 +449,19 @@ public class MailSendGui extends VexInventoryGui{
         }
         switch (type) {
             case "player":
-                String[] recipient = divide(getTextField(FIELD.get("recipient")[5]).getTypedText(), "recipient");
-                rl.clear();
-                if(recipient!=null) rl.addAll(Arrays.asList(recipient));
+                if(GlobalConfig.vexview_under_2_6_3){
+                    String[] recipient = divide(getTextField(FIELD.get("recipient")[5]).getTypedText(), "recipient");
+                    rl.clear();
+                    if(recipient!=null) rl.addAll(Arrays.asList(recipient));
+                }else{
+                    List<String> recipient = getTextArea(FIELD.get("recipient")[5]).getTypedText();
+                    rl.clear();
+                    if(!recipient.isEmpty()){
+                        recipient.stream().filter((r) -> (r.trim().length()>0)).forEachOrdered((r) -> {
+                            rl.add(r.trim());
+                        });
+                    }
+                }
                 break;
             case "permission":
                 perm = getTextField(FIELD.get("permission")[5]).getTypedText();
@@ -512,25 +489,47 @@ public class MailSendGui extends VexInventoryGui{
         }
         if(valid()){
             if(perm_cmd){
-                String[] command = divide(getTextField(FIELD.get("command")[5]).getTypedText(), "command");
-                String[] description = divide(getTextField(FIELD.get("description")[5]).getTypedText(), "description");
-                cl.clear();
-                if(command!=null) cl.addAll(Arrays.asList(command));
-                cd.clear();
-                if(description!=null) cd.addAll(Arrays.asList(description));
+                if(GlobalConfig.vexview_under_2_6_3){
+                    String[] command = divide(getTextField(FIELD.get("command")[5]).getTypedText(), "command");
+                    String[] description = divide(getTextField(FIELD.get("description")[5]).getTypedText(), "description");
+                    cl.clear();
+                    if(command!=null) cl.addAll(Arrays.asList(command));
+                    cd.clear();
+                    if(description!=null) cd.addAll(Arrays.asList(description));
+                }else{
+                    List<String> command = getTextArea(FIELD.get("command")[5]).getTypedText();
+                    List<String> description = getTextArea(FIELD.get("description")[5]).getTypedText();
+                    cl.clear();
+                    cd.clear();
+                    if(!command.isEmpty()){
+                        command.stream().filter((r) -> (r.trim().length()>0)).forEachOrdered((r) -> {
+                            r = r.trim();
+                            if(r.startsWith("/")) r = r.substring(1);
+                            cl.add(r);
+                        });
+                    }
+                    if(!description.isEmpty()){
+                        description.stream().filter((r) -> (r.trim().length()>0)).forEachOrdered((r) -> {
+                            r = r.trim();
+                            if(r.length()>0){
+                                cd.add(r);
+                            }
+                        });
+                    }
+                }
             }
             if(perm_item!=0){
                 al = getItem(p);
             }
             if(al.isEmpty() && cl.isEmpty() && co==0 && po==0){
-                BaseMail bm = MailBoxAPI.createBaseMail(type, 0, sender, rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), startdate, deadline, times, key.replaceAll("&", "§"), only, template);
+                BaseMail bm = MailBoxAPI.createBaseMail(type, 0, sender, rl, perm, topic.replace("&", "§"), text.replace("&", "§"), startdate, deadline, times, key.replace("&", "§"), only, template);
                 try{
                     MailContentGui.openMailContentGui(p, bm, false);
                 }catch(Exception e){
                     p.sendMessage(PreviewError);
                 }
             }else{
-                BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, 0, sender, rl, perm, topic.replaceAll("&", "§"), text.replaceAll("&", "§"), startdate, deadline, times, key.replaceAll("&", "§"), only, template, "0", al, cl, cd, co, po);
+                BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, 0, sender, rl, perm, topic.replace("&", "§"), text.replace("&", "§"), startdate, deadline, times, key.replace("&", "§"), only, template, "0", al, cl, cd, co, po);
                 try{
                     MailContentGui.openMailContentGui(p, fm, false);
                 }catch(Exception e){

@@ -1,6 +1,5 @@
 package com.tripleying.qwq.MailBox.Utils;
 
-import com.tripleying.qwq.MailBox.Mail.BaseFileMail;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Mail.BaseMail;
@@ -14,7 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Properties;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import java.util.Arrays;
@@ -23,6 +21,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class SQLManager {
+    private boolean isMySQL;
     private String ip;
     private String databaseName;
     private String userName;
@@ -55,6 +54,7 @@ public class SQLManager {
     //启用SQLite
     public void enableSQLite(String databaseName, String prefix)
     {
+        isMySQL = false;
         setConfig(databaseName, prefix);
         connectSQLite();
         try {
@@ -91,10 +91,7 @@ public class SQLManager {
         try {
             // 1.11以下手动加载数据库连接类
             if(GlobalConfig.server_under_1_11) Class.forName("org.sqlite.JDBC");
-            // 覆盖时间格式
-            Properties pro = new Properties();
-            pro.put("date_string_format", "yyyy-MM-dd HH:mm:ss"); 
-            connection = DriverManager.getConnection("jdbc:sqlite:plugins/MailBox/" + databaseName + ".db", pro);
+            connection = DriverManager.getConnection("jdbc:sqlite:plugins/MailBox/" + databaseName + ".db");
             Bukkit.getConsoleSender().sendMessage(Message.sqlSuccess.replace("%sql%", "SQLite"));
         } catch (SQLException | ClassNotFoundException e) {
             Bukkit.getConsoleSender().sendMessage(Message.sqlError.replace("%sql%", "SQLite"));
@@ -105,6 +102,7 @@ public class SQLManager {
     //启用MySQL
     public void enableMySQL(String ipurl, String dbName, String user, String password, int Port, String prefix)
     {
+        isMySQL = true;
         setConfig(ipurl, dbName, user, password, Port, prefix);
         connectMySQL();
         try {
@@ -440,12 +438,19 @@ public class SQLManager {
             while (rs.next())
             {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                int mail = rs.getInt("mail");
+                String sender = rs.getString("sender");
                 List<String> recipient = null;
                 String permission = null;
+                String topic = rs.getString("topic");
+                String content = rs.getString("text");
+                String time = isMySQL ? dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime()))
+                                        :rs.getString("sendtime");
                 String deadline = null;
                 int times = 0;
                 String key = null;
                 boolean only = false;
+                String filename = rs.getString("filename");
                 switch (type) {
                     case "cdkey" :
                         only = Boolean.parseBoolean(rs.getString("only"));
@@ -464,29 +469,18 @@ public class SQLManager {
                         permission = rs.getString("permission");
                         break;
                     case "date":
-                        deadline = dateFormat.format(new Date(rs.getTimestamp("deadline").getTime()));
+                        deadline = isMySQL ? dateFormat.format(new Date(rs.getTimestamp("deadline").getTime()))
+                                            :rs.getString("deadline");
                         if(deadline.equals(DateTime.getDefault())) deadline = null;
                         break;
                 }
-                if(rs.getString("filename").equals("0")){
-                    BaseMail bm = MailBoxAPI.createBaseMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline, times, key, only, null);
-                    if(bm.ExpireValidate()) {
-                        if(MailBoxAPI.setDelete(type, bm.getId())){
-                            Bukkit.getConsoleSender().sendMessage(Message.mailExpire.replace("%para%", bm.getTypeName()+"-"+bm.getId()));
-                            continue;
-                        }
-                    }
-                    hm.put(rs.getInt("mail"), bm);
-                }else{
-                    BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, rs.getInt("mail"), rs.getString("sender"), recipient, permission, rs.getString("topic"), rs.getString("text"), dateFormat.format(new Date(rs.getTimestamp("sendtime").getTime())), deadline, times, key, only, rs.getString("filename"));
-                    if(fm.ExpireValidate()) {
-                        if(fm.DeleteFile() & MailBoxAPI.setDelete(type, fm.getId())){
-                            Bukkit.getConsoleSender().sendMessage(Message.mailExpire.replace("%para%", fm.getTypeName()+"-"+fm.getId()));
-                            continue;
-                        }
-                    }
-                    hm.put(rs.getInt("mail"), fm);
+                BaseMail bm = filename.equals("0") ? MailBoxAPI.createBaseMail(type, mail, sender, recipient, permission, topic, content, time, deadline, times, key, only, null)
+                                                    :MailBoxAPI.createBaseFileMail(type, mail, sender, recipient, permission, topic, content, time, deadline, times, key, only, filename);
+                if(bm.ExpireValidate() && MailBoxAPI.setDelete(type, mail)){
+                    Bukkit.getConsoleSender().sendMessage(Message.mailExpire.replace("%para%", bm.getTypeName()+"-"+mail));
+                    continue;
                 }
+                hm.put(mail, bm);
             }
         } catch (SQLException e) {
             Bukkit.getConsoleSender().sendMessage(Message.mailListError.replace("%type%", typeName));
@@ -633,9 +627,7 @@ public class SQLManager {
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 String file = rs.getString("filename");
-                if(!file.equals("0")){
-                    L.add(file);
-                }
+                if(!file.equals("0")) L.add(file);
             }
             return L;
         } catch (SQLException e) {
@@ -668,11 +660,7 @@ public class SQLManager {
             ps = connection.prepareStatement(sql);
             ps.setString(1, cdkey);
             ResultSet rs = ps.executeQuery();
-            if(rs.next()){
-                return rs.getInt("mail");
-            }else{
-                return 0;
-            }
+            return rs.next() ? rs.getInt("mail") : 0;
         }catch(SQLException e){
             Bukkit.getLogger().info(e.getLocalizedMessage());
             return 0;
@@ -704,9 +692,7 @@ public class SQLManager {
             ps = connection.prepareStatement(sql);
             ps.setInt(1, mail);
             ResultSet rs = ps.executeQuery();
-            while(rs.next()){
-                cdk.add(rs.getString("cdkey"));
-            }
+            while(rs.next()) cdk.add(rs.getString("cdkey"));
         }catch(SQLException e){
             Bukkit.getLogger().info(e.getLocalizedMessage());
         }
@@ -722,12 +708,13 @@ public class SQLManager {
             ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
-                if(h.containsKey(rs.getInt("mail"))){
-                    h.get(rs.getInt("mail")).add(rs.getString("cdkey"));
+                int mail = rs.getInt("mail");
+                if(h.containsKey(mail)){
+                    h.get(mail).add(rs.getString("cdkey"));
                 }else{
                     List<String> l = new ArrayList();
                     l.add(rs.getString("cdkey"));
-                    h.put(rs.getInt("mail"), l);
+                    h.put(mail, l);
                 }
             }
         }catch(SQLException e){

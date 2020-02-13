@@ -20,8 +20,7 @@ public class JoinAndQuit implements Listener {
     
     public JoinAndQuit(boolean enVexView, boolean enHud){
         this.enVexView = enVexView;
-        this.enHud = enHud;
-        if(enHud) Bukkit.getConsoleSender().sendMessage(ConfigMessage.hud_box);
+        if(this.enHud = enHud) Bukkit.getConsoleSender().sendMessage(ConfigMessage.hud_box);
     }
     
     // 玩家进入事件
@@ -46,8 +45,9 @@ public class JoinAndQuit implements Listener {
     // 玩家退出事件
     @EventHandler
     public void onPlayerQuitEvent(PlayerQuitEvent evt){
+        Player p = evt.getPlayer();
         // 将玩家移出邮件列表
-        MailBox.removeRelevantMailList(evt.getPlayer());
+        MailBox.removeRelevantMailList(p);
     }
     
 }

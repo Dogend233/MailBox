@@ -16,25 +16,16 @@ gui:
   h: 158
 #按钮
 button:
-    #id
+    #按钮id
     id:
-      #system
       system: MailSelectButton_System
-      #player
       player: MailSelectButton_Player
-      #permission
       permission: MailSelectButton_Permission
-      #date
       date: MailSelectButton_Date
-      #times
       times: MailSelectButton_Times
-      #keytimes
       keytimes: MailSelectButton_KeyTimes
-      #cdkey
       cdkey: MailSelectButton_Cdkey
-      #online
       online: MailSelectButton_Online
-      #template
       template: MailSelectButton_Template
     #图片
     img_1: '[local]MailBox/button_small.png'
