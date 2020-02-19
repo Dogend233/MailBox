@@ -1,6 +1,7 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.entity.Player;
@@ -22,7 +23,7 @@ public class SystemFileMail extends BaseFileMail implements MailSystem {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("system", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, "", false, getFileName());
+        return MailUtil.setSend("system", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, "", false, getFileName());
     }
 
     @Override

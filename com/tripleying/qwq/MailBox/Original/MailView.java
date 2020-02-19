@@ -13,8 +13,9 @@ import com.tripleying.qwq.MailBox.Mail.MailTemplate;
 import com.tripleying.qwq.MailBox.Mail.MailTimes;
 import com.tripleying.qwq.MailBox.MailBox;
 import com.tripleying.qwq.MailBox.Message;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
-import com.tripleying.qwq.MailBox.Utils.Reflection;
+import com.tripleying.qwq.MailBox.Utils.ItemUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
+import com.tripleying.qwq.MailBox.Utils.ReflectionUtil;
 import java.util.ArrayList;
 import java.util.List;
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -92,20 +93,20 @@ public class MailView {
                     if(p.hasPermission("mailbox.admin.create.cdkey")){
                         if(!lbc.isEmpty()) lbc.add(new TextComponent("  "));
                         TextComponent tc = new TextComponent(Message.cdkeyCreate);
-                        tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" create "+bm.getId()));
+                        tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mailbox "+bm.getType()+" create "+bm.getId()));
                         lbc.add(tc);
                     }
                     if(p.hasPermission("mailbox.admin.export.cdkey")){
                         if(!lbc.isEmpty()) lbc.add(new TextComponent("  "));
                         TextComponent tc = new TextComponent("  "+Message.cdkeyExport);
-                        tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" export "+bm.getId()));
+                        tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mailbox "+bm.getType()+" export "+bm.getId()));
                         lbc.add(tc);
                     }
                 }
                 if(collectable(bm,p)){
                     if(!lbc.isEmpty()) lbc.add(new TextComponent("  "));
                     TextComponent tc = new TextComponent("  "+Message.commandCollect);
-                    tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" collect "+bm.getId()));
+                    tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mailbox "+bm.getType()+" collect "+bm.getId()));
                     lbc.add(tc);
                 }
             }else{
@@ -118,7 +119,7 @@ public class MailView {
         if(deletable(bm, p)) {
             if(!lbc.isEmpty()) lbc.add(new TextComponent("  "));
             TextComponent tc = new TextComponent("  "+Message.commandDelete);
-            tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mb "+bm.getType()+" delete "+bm.getId()));
+            tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mailbox "+bm.getType()+" delete "+bm.getId()));
             lbc.add(tc);
         }
         if(!lbc.isEmpty()){
@@ -323,13 +324,15 @@ public class MailView {
     public static void viewItem(ArrayList<ItemStack> isl, Player p){
         List<BaseComponent> lbc = new ArrayList();
         lbc.add(new TextComponent("§e"+Message.itemItem+":§a"));
-        for(ItemStack is:isl){
-            HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM,  new BaseComponent[]{new TextComponent(Reflection.Item2Json(is))});
-            TextComponent component = new TextComponent(" §r"+MailBoxAPI.getItemName(is)+"§8x§r"+is.getAmount());
+        isl.stream().map((is) -> {
+            HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM,  new BaseComponent[]{new TextComponent(ReflectionUtil.Item2Json(is))});
+            TextComponent component = new TextComponent(" §r"+ItemUtil.getName(is)+"§8x§r"+is.getAmount());
             component.setHoverEvent(event);
+            return component;
+        }).forEachOrdered((component) -> {
             lbc.add(new TextComponent("  "));
             lbc.add(component);
-        }
+        });
         BaseComponent[] bc = new BaseComponent[lbc.size()];
         lbc.toArray(bc);
         p.spigot().sendMessage(bc);
@@ -337,7 +340,7 @@ public class MailView {
     public static void viewItem(ArrayList<ItemStack> isl, CommandSender s, ConversationContext cc){
         StringBuilder sb = new StringBuilder("  §e"+Message.itemItem+":  §a");
         isl.forEach((is) -> {
-            sb.append(MailBoxAPI.getItemName(is)).append("§8x§r").append(is.getAmount()).append(" ");
+            sb.append(ItemUtil.getName(is)).append("§8x§r").append(is.getAmount()).append(" ");
         });
         if(cc==null){
             s.sendMessage(sb.toString());
@@ -405,7 +408,7 @@ public class MailView {
     public static void viewSenderAndTime(BaseMail bm, CommandSender s, Conversable who){
         StringBuilder str = new StringBuilder("§6"+Message.globalFrom+": §a"+bm.getSender()+" - §b");
         if(bm.getDate()==null || bm.getDate().equals("0")){
-            str.append(DateTime.get("ymdhms"));
+            str.append(TimeUtil.get("ymdhms"));
         }else{
             str.append(bm.getDate());
         }

@@ -7,7 +7,11 @@ import com.tripleying.qwq.MailBox.MailBox;
 import com.tripleying.qwq.MailBox.Message;
 import static com.tripleying.qwq.MailBox.Original.MailNew.color;
 import static com.tripleying.qwq.MailBox.Original.MailNew.sendable;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
+import com.tripleying.qwq.MailBox.Utils.ItemUtil;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
+import com.tripleying.qwq.MailBox.Utils.PlayerPointsUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
+import com.tripleying.qwq.MailBox.Utils.VaultUtil;
 import com.tripleying.qwq.MailBox.VexView.MailContentGui;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,8 +112,8 @@ public class MailNew {
                 case "player":
                     if(sender.hasPermission("mailbox.admin.send."+type) || MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.player")){
                         Player p = (Player)sender;
-                        int out = MailBoxAPI.playerAsSenderAllow(p);
-                        int outed = MailBoxAPI.playerAsSender(p);
+                        int out = MailUtil.playerAsSenderAllow(p);
+                        int outed = MailUtil.asSenderNumber(p, "player");
                         if(outed>=out){
                             if(cc==null){
                                 sender.sendMessage(Message.playerMailOutMax.replace("%type%",Message.getTypeName("player")));
@@ -140,7 +144,7 @@ public class MailNew {
     }
     public static int itemable(CommandSender sender){
         if(sender instanceof Player){
-            return MailBoxAPI.playerSendItemAllow((Player)sender);
+            return ItemUtil.allowPlayerSend((Player)sender);
         }else if(sender instanceof ConsoleCommandSender){
             return GlobalConfig.maxItem;
         }else{
@@ -265,9 +269,9 @@ class TypeSelect extends ValidatingPrompt{
             return new Preview(bm, sender);
         }
         if(sender instanceof Player){
-            return new Topic(MailBoxAPI.createBaseMail(type,0,sender.getName(),null,null,null,null,null,null,0,null,false,null), sender, false);
+            return new Topic(MailUtil.createBaseMail(type,0,sender.getName(),null,null,null,null,null,null,0,null,false,null), sender, false);
         }else{
-            return new Topic(MailBoxAPI.createBaseMail(type,0,null,null,null,null,null,null,null,0,null,false,null), sender, false);
+            return new Topic(MailUtil.createBaseMail(type,0,null,null,null,null,null,null,null,0,null,false,null), sender, false);
         }
     }
 }
@@ -537,11 +541,11 @@ class DateStart extends ValidatingPrompt{
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
         if(str.equals(Message.newStop) || str.equals("0")) return true;
-        List<Integer> t = DateTime.toDate(str, sender, cc);
+        List<Integer> t = TimeUtil.toDate(str, sender, cc);
         switch (t.size()) {
             case 3:
             case 6:
-                date = DateTime.toDate(t, sender, cc);
+                date = TimeUtil.toDate(t, sender, cc);
                 return date != null;
             default:
                 cc.getForWhom().sendRawMessage(Message.dateFormat);
@@ -581,11 +585,11 @@ class DateDeadline extends ValidatingPrompt{
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
         if(str.equals(Message.newStop) || str.equals("0")) return true;
-        List<Integer> t = DateTime.toDate(str, sender, cc);
+        List<Integer> t = TimeUtil.toDate(str, sender, cc);
         switch (t.size()) {
             case 3:
             case 6:
-                date = DateTime.toDate(t, sender, cc);
+                date = TimeUtil.toDate(t, sender, cc);
                 return date != null;
             default:
                 cc.getForWhom().sendRawMessage(Message.dateFormat);
@@ -828,7 +832,7 @@ class Coin extends ValidatingPrompt{
         this.fm = fm;
         this.sender = sender;
         this.change = change;
-        if(sender instanceof Player) this.bal = MailBoxAPI.getEconomyBalance((Player)sender);
+        if(sender instanceof Player) this.bal = VaultUtil.getEconomyBalance((Player)sender);
     }
     @Override
     public String getPromptText(ConversationContext cc) {
@@ -887,7 +891,7 @@ class Point extends ValidatingPrompt{
         this.fm = fm;
         this.sender = sender;
         this.change = change;
-        if(sender instanceof Player) this.bal = MailBoxAPI.getPoints((Player)sender);
+        if(sender instanceof Player) this.bal = PlayerPointsUtil.getPoints((Player)sender);
     }
     @Override
     public String getPromptText(ConversationContext cc) {
@@ -985,7 +989,7 @@ class Item extends ValidatingPrompt{
                     cc.getForWhom().sendRawMessage(Message.itemSlotNullInv.replace("%slot%", Integer.toString(i)));
                     return false;
                 }else{
-                    if(skip || MailBoxAPI.isAllowSend(is)){
+                    if(skip || ItemUtil.isAllowSend(is)){
                         ial.add(is);
                     }else{
                         cc.getForWhom().sendRawMessage(Message.itemSlotBan.replace("%slot%", Integer.toString(i)));
@@ -1003,7 +1007,7 @@ class Item extends ValidatingPrompt{
             }
             ArrayList<ItemStack> ial = new ArrayList();
             for(String s:il){
-                ItemStack is = MailBoxAPI.readItem(s);
+                ItemStack is = ItemUtil.importItem(s);
                 if(is==null){
                     cc.getForWhom().sendRawMessage((Message.itemSlotNullLocal.replace("%item%", s)));
                     return false;

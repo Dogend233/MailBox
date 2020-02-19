@@ -11,7 +11,7 @@ public class MailTipsHud{
     private static VexShow vs;
     
     public static void setHudConfig(YamlConfiguration hud){
-        vs = new VexImageShow(hud.getString("new.id"),hud.getString("new.img"),hud.getInt("new.x"),hud.getInt("new.y"),1,hud.getInt("new.w"),hud.getInt("new.h"),hud.getInt("new.ww"),hud.getInt("new.hh"),hud.getInt("new.time"));
+        vs = new VexImageShow(hud.getString("new.id"),hud.getString("new.img"),hud.getInt("new.x"),hud.getInt("new.y"),1,hud.getInt("new.ww"),hud.getInt("new.hh"),hud.getInt("new.w"),hud.getInt("new.h"),hud.getInt("new.time"));
     }
     
     public static void setMailTipsHud(Player p){

@@ -1,4 +1,4 @@
-package com.tripleying.qwq.MailBox.Utils;
+package com.tripleying.qwq.MailBox.SQL;
 
 public enum SQLCommand {
     

@@ -3,7 +3,9 @@ package com.tripleying.qwq.MailBox.Mail;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Message;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
+import com.tripleying.qwq.MailBox.Utils.ItemUtil;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,7 +38,7 @@ public class PlayerFileMail extends BaseFileMail implements MailPlayer {
             long deadline = new SimpleDateFormat("dd").parse(GlobalConfig.playerExpired).getTime();
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             long sendTime = df.parse(getDate()).getTime();
-            long now = df.parse(DateTime.get("ymdhms")).getTime();
+            long now = df.parse(TimeUtil.get("ymdhms")).getTime();
             return (sendTime+deadline)<=now;
         } catch (ParseException ex) {
             Bukkit.getLogger().info(ex.getLocalizedMessage());
@@ -60,8 +62,8 @@ public class PlayerFileMail extends BaseFileMail implements MailPlayer {
     
     @Override
     public boolean sendValidate(Player p, ConversationContext cc){
-        int out = MailBoxAPI.playerAsSenderAllow(p);
-        int outed = MailBoxAPI.playerAsSender(p);
+        int out = MailUtil.playerAsSenderAllow(p);
+        int outed = MailUtil.asSenderNumber(p, "player");
         if((out-outed)<=0){
             p.sendMessage(Message.playerMailOutMax.replace("%type%",Message.getTypeName("player")));
             return false;
@@ -83,14 +85,14 @@ public class PlayerFileMail extends BaseFileMail implements MailPlayer {
                     if(sb.append(" ").append(name).length()<=255){
                         l.add(name);
                     }else{
-                        MailBoxAPI.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(p, cc);
+                        MailUtil.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(p, cc);
                         sb.delete(0, sb.length());
                         l.clear();
                         sb.append(" ").append(name);
                         l.add(name);
                     }
                 }
-                if(!l.isEmpty()) MailBoxAPI.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(p, cc);
+                if(!l.isEmpty()) MailUtil.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(p, cc);
                 return true;
             }else{
                 p.sendMessage(Message.playerRecipientExceedMax);
@@ -106,9 +108,9 @@ public class PlayerFileMail extends BaseFileMail implements MailPlayer {
         for(int i=0;i<isl.size();i++){
             if(!p.getInventory().containsAtLeast(isl.get(i), isl.get(i).getAmount()*s)) {
                 if(cc==null){
-                    p.sendMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
+                    p.sendMessage(Message.itemItemNotEnough.replace("%item%", ItemUtil.getName(isl.get(i))));
                 }else{
-                    cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
+                    cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", ItemUtil.getName(isl.get(i))));
                 }
                 return false;
             }
@@ -151,7 +153,7 @@ public class PlayerFileMail extends BaseFileMail implements MailPlayer {
             }
             if(count!=0){
                 success = false;
-                error += " "+MailBoxAPI.getItemName(is1)+"x"+count;
+                error += " "+ItemUtil.getName(is1)+"x"+count;
             }
         }
         if(success){
@@ -195,7 +197,7 @@ public class PlayerFileMail extends BaseFileMail implements MailPlayer {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("player", getId(), getSender(), getRecipientString(), "", getTopic(), getContent(), getDate(), "", 0, "", false, getFileName());
+        return MailUtil.setSend("player", getId(), getSender(), getRecipientString(), "", getTopic(), getContent(), getDate(), "", 0, "", false, getFileName());
     }
 
     @Override

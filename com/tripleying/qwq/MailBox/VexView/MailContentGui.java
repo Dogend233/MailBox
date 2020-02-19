@@ -5,7 +5,8 @@ import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
 import com.tripleying.qwq.MailBox.Message;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -159,7 +160,7 @@ public class MailContentGui extends VexGui{
                 BUTTON_INT.get("collected")[0],BUTTON_INT.get("collected")[1],BUTTON_INT.get("collected")[2],BUTTON_INT.get("collected")[3]);
         if(!BUTTON_HOVER.get("collected").isEmpty()) VexViewConfig.setHover(vbcd, BUTTON_HOVER.get("collected"));
         // 获取玩家是否可以领取这封邮件
-        if(MailBoxAPI.getTrueTypeWhithoutSpecial().contains(bm.getType())) collecte = MailBox.getRelevantMailList(p, bm.getType()).get("asRecipient").contains(bm.getId());
+        if(MailUtil.getTrueTypeWhithoutSpecial().contains(bm.getType())) collecte = MailBox.getRelevantMailList(p, bm.getType()).get("asRecipient").contains(bm.getId());
         else collecte = false;
         writeMail(bm, p);
     }
@@ -449,7 +450,7 @@ public class MailContentGui extends VexGui{
         // 发送时间
         if(text_date_display.contains(type)){
             String date = bm.getDate();
-            if(date==null || date.equals("0")) date = DateTime.get("ymdhms");
+            if(date==null || date.equals("0")) date = TimeUtil.get("ymdhms");
             this.addComponent(new VexText(text_date_x,text_date_y,Arrays.asList(text_date_prefix+date),text_date_size));
         }
         // 截止时间

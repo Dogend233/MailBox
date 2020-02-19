@@ -1,21 +1,16 @@
-package com.tripleying.qwq.MailBox.API.Listener;
+package com.tripleying.qwq.MailBox.API.Event;
 
-import com.tripleying.qwq.MailBox.Mail.BaseFileMail;
 import com.tripleying.qwq.MailBox.Mail.BaseMail;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
  * 邮件删除事件
  * @author Dogend
  */
-public class MailDeleteEvent extends Event {
+public class MailDeleteEvent extends MailEvent {
     
-    private static final HandlerList HANDLERS = new HandlerList();
-    private final boolean file;
-    private final BaseMail bmail;
     private final Player player;
     private final CommandSender sender;
     
@@ -25,8 +20,7 @@ public class MailDeleteEvent extends Event {
      * @param p 玩家
      */
     public MailDeleteEvent(BaseMail bm, Player p){
-        this.bmail = bm;
-        file = bm instanceof BaseFileMail;
+        super(bm);
         this.player = p;
         this.sender = null;
     }
@@ -37,28 +31,11 @@ public class MailDeleteEvent extends Event {
      * @param sender 指令执行者
      */
     public MailDeleteEvent(BaseMail bm, CommandSender sender){
-        this.bmail = bm;
-        file = bm instanceof BaseFileMail;
+        super(bm);
         this.sender = sender;
         this.player = null;
     }
-    
-    /**
-     * 邮件是否含有附件
-     * @return boolean
-     */
-    public boolean hasFile(){
-        return file;
-    }
-    
-    /**
-     * 获取邮件
-     * @return 基础邮件
-     */
-    public BaseMail getMail(){
-        return bmail;
-    }
-    
+
     /**
      * 获取删除邮件的玩家
      * @return 玩家
@@ -77,15 +54,6 @@ public class MailDeleteEvent extends Event {
         }else{
             return player.getName();
         }
-    }
-    
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLERS;
-    }
-    
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
     }
     
 }

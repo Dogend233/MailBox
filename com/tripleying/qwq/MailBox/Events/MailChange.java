@@ -1,11 +1,14 @@
 package com.tripleying.qwq.MailBox.Events;
 
+import com.tripleying.qwq.MailBox.API.Event.MailSendEvent;
+import com.tripleying.qwq.MailBox.API.Event.MailCollectEvent;
+import com.tripleying.qwq.MailBox.API.Event.MailDeleteEvent;
 import com.tripleying.qwq.MailBox.Mail.*;
-import com.tripleying.qwq.MailBox.API.Listener.*;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
 import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.io.IOException;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -46,33 +49,33 @@ public class MailChange implements Listener {
         switch (type){
             case "system":
                 Bukkit.getOnlinePlayers().stream().filter((p) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.system"))).forEachOrdered((p) -> {
-                    MailBoxAPI.sendTips(p, msg.replace("%player", p.getName()),"");
+                    MailUtil.sendTips(p, msg.replace("%player", p.getName()),"");
                 }); break;
             case "permission":
                 Bukkit.getOnlinePlayers().forEach((p) -> {
                     String perm = ((MailPermission)bm).getPermission();
                     if (MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.permission") && p.hasPermission(perm)) {
-                        MailBoxAPI.sendTips(p, msg.replace("%player", p.getName()),"");
+                        MailUtil.sendTips(p, msg.replace("%player", p.getName()),"");
                     }
                 }); break;
             case "date":
                 if(bm.isStart()){
                     Bukkit.getOnlinePlayers().stream().filter((p) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.date"))).forEachOrdered((p) -> {
-                        MailBoxAPI.sendTips(p, msg.replace("%player", p.getName()),"");
+                        MailUtil.sendTips(p, msg.replace("%player", p.getName()),"");
                     });
                 }   break;
             case "keytimes":
             case "times":
                 if(((MailTimes)bm).getTimes()>0){
                     Bukkit.getOnlinePlayers().stream().filter((p) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.times"))).forEachOrdered((p) -> {
-                        if(bm instanceof MailKeyTimes) MailBoxAPI.sendTips(p, msg.replace("%player", p.getName()), Message.tipsKey.replace("%key%", ((MailKeyTimes) bm).getKey()));
-                        else MailBoxAPI.sendTips(p, msg.replace("%player", p.getName()),"");
+                        if(bm instanceof MailKeyTimes) MailUtil.sendTips(p, msg.replace("%player", p.getName()), ((MailKeyTimes)bm).getKey());
+                        else MailUtil.sendTips(p, msg.replace("%player", p.getName()),"");
                     });
                 }   break;
             case "player":
                 List<String> pl = ((MailPlayer)bm).getRecipient();
                 Bukkit.getOnlinePlayers().stream().filter((p) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.player") && pl.contains(p.getName()))).forEachOrdered((p) -> {
-                    MailBoxAPI.sendTips(p, msg.replace("%player", p.getName()),"");
+                    MailUtil.sendTips(p, msg.replace("%player", p.getName()),"");
                 }); break;
         }
     }

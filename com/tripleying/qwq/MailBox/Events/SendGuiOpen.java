@@ -25,7 +25,7 @@ public class SendGuiOpen implements Listener {
                 BaseMail bm = ((MailSendGui)ovg.getVexGui()).getMail();
                 if(bm==null) return;
                 ovg.setTextFieldContent(MailSendGui.FIELD.get("topic")[5], bm.getTopic());
-                if(GlobalConfig.vexview_under_2_6_3){
+                if(GlobalConfig.vexview_under_2_6_8){
                     ovg.setTextFieldContent(MailSendGui.FIELD.get("text")[5], bm.getContent());
                 }else{
                     String cont = bm.getContent();
@@ -38,7 +38,7 @@ public class SendGuiOpen implements Listener {
                 if(p.hasPermission("mailbox.admin.send.sender")) ovg.setTextFieldContent(MailSendGui.FIELD.get("sender")[5], bm.getSender());
                 switch (bm.getType()) {
                     case "player" :
-                        if(GlobalConfig.vexview_under_2_6_3){
+                        if(GlobalConfig.vexview_under_2_6_8){
                             ovg.setTextFieldContent(MailSendGui.FIELD.get("recipient")[5], ((MailPlayer)bm).getRecipientString());
                         }else{
                             List<String> reci = ((MailPlayer)bm).getRecipient();
@@ -66,7 +66,7 @@ public class SendGuiOpen implements Listener {
                 }
                 if(bm instanceof BaseFileMail){
                     if(p.hasPermission("mailbox.admin.send.command")){
-                        if(GlobalConfig.vexview_under_2_6_3){
+                        if(GlobalConfig.vexview_under_2_6_8){
                             ovg.setTextFieldContent(MailSendGui.FIELD.get("command")[5], ((BaseFileMail)bm).getCommandListString());
                             ovg.setTextFieldContent(MailSendGui.FIELD.get("description")[5], ((BaseFileMail)bm).getCommandDescriptionString());
                         }else{

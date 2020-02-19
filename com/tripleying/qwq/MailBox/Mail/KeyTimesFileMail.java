@@ -1,6 +1,7 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.inventory.ItemStack;
@@ -30,7 +31,7 @@ public class KeyTimesFileMail extends TimesFileMail implements MailKeyTimes {
     
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("keytimes", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", getTimes(), key, false, getFileName());
+        return MailUtil.setSend("keytimes", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", getTimes(), key, false, getFileName());
     }
     
     @Override

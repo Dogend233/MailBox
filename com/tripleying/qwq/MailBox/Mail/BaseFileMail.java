@@ -1,11 +1,11 @@
 package com.tripleying.qwq.MailBox.Mail;
 
-import com.tripleying.qwq.MailBox.API.Listener.*;
+import com.tripleying.qwq.MailBox.API.Event.MailSendEvent;
+import com.tripleying.qwq.MailBox.API.Event.MailCollectEvent;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Message;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
-import com.tripleying.qwq.MailBox.Utils.Reflection;
+import com.tripleying.qwq.MailBox.Utils.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +67,7 @@ public class BaseFileMail extends BaseMail {
             return false;
         }
         // 设置玩家领取邮件
-        if(MailBoxAPI.setCollect(getType(), getId(), p.getName())){
+        if(MailUtil.setCollect(getType(), getId(), p.getName())){
             // 发送邮件附件
             if(hasItem) giveItem(p);
             // 执行邮件指令
@@ -107,7 +107,7 @@ public class BaseFileMail extends BaseMail {
                 generateDate();
                 try {
                     // 生成一个文件名
-                    fileName = MailBoxAPI.generateFilename(getType());
+                    fileName = MailFileUtil.generateFilename(getType());
                 }catch (Exception ex) {
                     if(cc==null){
                         p.sendMessage(Message.mailFileNameError);
@@ -169,10 +169,10 @@ public class BaseFileMail extends BaseMail {
                     return false;
                 }
             }else{
-                if(!getType().equals("date") || getDate().equals("0")) setDate(DateTime.get("ymdhms"));
+                if(!getType().equals("date") || getDate().equals("0")) setDate(TimeUtil.get("ymdhms"));
                 try {
                     // 生成一个文件名
-                    fileName = MailBoxAPI.generateFilename(getType());
+                    fileName = MailFileUtil.generateFilename(getType());
                 }catch (Exception ex) {
                     if(cc==null){
                         send.sendMessage(Message.mailFileNameError);
@@ -220,7 +220,7 @@ public class BaseFileMail extends BaseMail {
     }
     // 删除这封邮件的附件
     public boolean DeleteFile(){
-        return (MailBoxAPI.setDeleteFileSQL(fileName, getType()) | MailBoxAPI.setDeleteFile(fileName, getType()));
+        return (MailFileUtil.setDeleteFileSQL(fileName, getType()) | MailFileUtil.setDeleteFile(fileName, getType()));
     }
 
     // 执行指令
@@ -288,9 +288,9 @@ public class BaseFileMail extends BaseMail {
         bc[0] = new TextComponent(Message.itemItemClaim);
         ItemStack[] isa = new ItemStack[itemList.size()];
         for(int i = 0 ;i<itemList.size();i++){
-            isa[i] = MailBoxAPI.randomLore(itemList.get(i));
-            HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM,  new BaseComponent[]{new TextComponent(Reflection.Item2Json(isa[i]))});
-            TextComponent component = new TextComponent(" §r"+MailBoxAPI.getItemName(isa[i])+"§8x§r"+isa[i].getAmount());
+            isa[i] = itemList.get(i);
+            HoverEvent event = new HoverEvent(HoverEvent.Action.SHOW_ITEM,  new BaseComponent[]{new TextComponent(ReflectionUtil.Item2Json(isa[i]))});
+            TextComponent component = new TextComponent(" §r"+ItemUtil.getName(isa[i])+"§8x§r"+isa[i].getAmount());
             component.setHoverEvent(event);
             bc[i+1] = component;
         }
@@ -327,9 +327,9 @@ public class BaseFileMail extends BaseMail {
         for(int i=0;i<isl.size();i++){
             if(!p.getInventory().containsAtLeast(isl.get(i), isl.get(i).getAmount())) {
                 if(cc==null){
-                    p.sendMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
+                    p.sendMessage(Message.itemItemNotEnough.replace("%item%", ItemUtil.getName(isl.get(i))));
                 }else{
-                    cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
+                    cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", ItemUtil.getName(isl.get(i))));
                 }
                 return false;
             }
@@ -371,7 +371,7 @@ public class BaseFileMail extends BaseMail {
             }
             if(count!=0){
                 success = false;
-                error += " "+MailBoxAPI.getItemName(is1)+"x"+count;
+                error += " "+ItemUtil.getName(is1)+"x"+count;
             }
         }
         if(success){
@@ -396,7 +396,7 @@ public class BaseFileMail extends BaseMail {
     }
     
     public boolean giveCoin(Player p, double coin){
-        return MailBoxAPI.addEconomy(p, coin);
+        return VaultUtil.addEconomy(p, coin);
     }
     
     @Override
@@ -409,7 +409,7 @@ public class BaseFileMail extends BaseMail {
     }
     
     public boolean givePoint(Player p, int point){
-        return MailBoxAPI.addPoints(p, point);
+        return PlayerPointsUtil.addPoints(p, point);
     }
     
     @Override
@@ -475,13 +475,13 @@ public class BaseFileMail extends BaseMail {
     
     public List<String> getItemNameList(){
         List<String> l = new ArrayList();
-        if(hasItem) itemList.forEach(i -> l.add(MailBoxAPI.getItemName(i)));
+        if(hasItem) itemList.forEach(i -> l.add(ItemUtil.getName(i)));
         return l;
     }
     
     public String getItemNameString(){
         String str = "";
-        str = itemList.stream().map((n) -> " "+MailBoxAPI.getItemName(n)).reduce(str, String::concat);
+        str = itemList.stream().map((n) -> " "+ItemUtil.getName(n)).reduce(str, String::concat);
         if(str.length()>0) str = str.substring(1);
         return str;
     }
@@ -527,24 +527,24 @@ public class BaseFileMail extends BaseMail {
     // 获取附件信息
     public final boolean readFile(){
         if(GlobalConfig.fileSQL){
-            return MailBoxAPI.getMailFilesSQL(this);
+            return MailFileUtil.getMailFilesSQL(this);
         }else{
-            return MailBoxAPI.getMailFilesLocal(this);
+            return MailFileUtil.getMailFilesLocal(this);
         }
     }
     
     // 保存附件
     public boolean saveFile(){
         if(GlobalConfig.fileSQL){
-            return MailBoxAPI.saveMailFilesSQL(this);
+            return MailFileUtil.saveMailFilesSQL(this);
         }else{
-            return MailBoxAPI.saveMailFilesLocal(this);
+            return MailFileUtil.saveMailFilesLocal(this);
         }
     }
     
     @Override
     public BaseFileMail setType(String type){
-        return MailBoxAPI.createBaseFileMail(type, getId(),getSender(), null, null, getTopic(),getContent(),getDate(), null, 0, null, false, null, fileName, itemList, commandList, commandDescription, coin, point);
+        return MailUtil.createBaseFileMail(type, getId(),getSender(), null, null, getTopic(),getContent(),getDate(), null, 0, null, false, null, fileName, itemList, commandList, commandDescription, coin, point);
     }
     
     @Override

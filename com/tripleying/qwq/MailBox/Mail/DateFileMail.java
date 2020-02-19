@@ -2,7 +2,8 @@ package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.Message;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class DateFileMail extends BaseFileMail implements MailDate {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("date", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), deadline, 0, "", false, getFileName());
+        return MailUtil.setSend("date", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), deadline, 0, "", false, getFileName());
     }
 
     @Override
@@ -57,7 +58,7 @@ public class DateFileMail extends BaseFileMail implements MailDate {
         try {
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             long deadlineTime = df.parse(getDeadline()).getTime();
-            long now = df.parse(DateTime.get("ymdhms")).getTime();
+            long now = df.parse(TimeUtil.get("ymdhms")).getTime();
             return deadlineTime<=now;
         } catch (ParseException ex) {
             Bukkit.getLogger().info(ex.getLocalizedMessage());
@@ -68,7 +69,7 @@ public class DateFileMail extends BaseFileMail implements MailDate {
     // 生成时间
     @Override
     public void generateDate(){
-        if(getDate().equals("0")) setDate(DateTime.get("ymdhms"));
+        if(getDate().equals("0")) setDate(TimeUtil.get("ymdhms"));
     }
 
     @Override
@@ -91,7 +92,7 @@ public class DateFileMail extends BaseFileMail implements MailDate {
         try {
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             long start = df.parse(getDate()).getTime();
-            long now = df.parse(DateTime.get("ymdhms")).getTime();
+            long now = df.parse(TimeUtil.get("ymdhms")).getTime();
             return start<now;
         } catch (ParseException ex) {
             Bukkit.getLogger().info(ex.getLocalizedMessage());

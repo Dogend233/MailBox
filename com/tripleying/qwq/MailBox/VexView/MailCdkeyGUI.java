@@ -34,7 +34,7 @@ public class MailCdkeyGUI extends VexGui {
         this.addComponent(new VexTextField(field_exchange[0],field_exchange[1],field_exchange[2],field_exchange[3],field_exchange[4],field_exchange[5]));
         this.addComponent(new VexButton(button_exchange[0],button_exchange[1],button_exchange[2],button_exchange[3],Integer.parseInt(button_exchange[4]),Integer.parseInt(button_exchange[5]),Integer.parseInt(button_exchange[6]),Integer.parseInt(button_exchange[7]),player -> {
             player.closeInventory();
-            MailBoxAPI.exchangeCdkey(player, getTextField(field_exchange[5]).getTypedText());
+            player.performCommand("mailbox cdk "+getTextField(field_exchange[5]).getTypedText());
         }));
         if(p.hasPermission("mailbox.admin.export.cdkey")){
             this.addComponent(new VexButton(button_export[0],button_export[1],button_export[2],button_export[3],Integer.parseInt(button_export[4]),Integer.parseInt(button_export[5]),Integer.parseInt(button_export[6]),Integer.parseInt(button_export[7]),player -> {

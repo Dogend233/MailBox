@@ -4,7 +4,11 @@ import com.tripleying.qwq.MailBox.Mail.*;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Message;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
+import com.tripleying.qwq.MailBox.Utils.ItemUtil;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
+import com.tripleying.qwq.MailBox.Utils.PlayerPointsUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
+import com.tripleying.qwq.MailBox.Utils.VaultUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -103,7 +107,7 @@ public class MailSendGui extends VexInventoryGui{
         perm_cmd = p.hasPermission("mailbox.admin.send.command");
         perm_coin = MailBoxAPI.hasPlayerPermission(p, "mailbox.send.money.coin");
         perm_point = MailBoxAPI.hasPlayerPermission(p, "mailbox.send.money.point");
-        perm_item = MailBoxAPI.playerSendItemAllow(p);
+        perm_item = ItemUtil.allowPlayerSend(p);
         this.addComponent(button_return);
         VexButton vbp = new VexButton(button_preview[0],button_preview[1],button_preview[2],button_preview[3],Integer.parseInt(button_preview[4]),Integer.parseInt(button_preview[5]),Integer.parseInt(button_preview[6]),Integer.parseInt(button_preview[7]),player -> previewMail(player));
         if(!button_preview_hover.isEmpty()) VexViewConfig.setHover(vbp, button_preview_hover);
@@ -111,7 +115,7 @@ public class MailSendGui extends VexInventoryGui{
         this.addComponent(text_topic);
         this.addComponent(createTextField(FIELD.get("topic")));
         this.addComponent(text_text);
-        if(GlobalConfig.vexview_under_2_6_3){
+        if(GlobalConfig.vexview_under_2_6_8){
             this.addComponent(createTextField(FIELD.get("text")));
         }else{
             this.addComponent(createTextArea(FIELD.get("text")));
@@ -123,7 +127,7 @@ public class MailSendGui extends VexInventoryGui{
         if(perm_cmd){
             this.addComponent(text_command);
             this.addComponent(text_description);
-            if(GlobalConfig.vexview_under_2_6_3){
+            if(GlobalConfig.vexview_under_2_6_8){
                 this.addComponent(createTextField(FIELD.get("command")));
                 this.addComponent(createTextField(FIELD.get("description")));
             }else{
@@ -139,7 +143,7 @@ public class MailSendGui extends VexInventoryGui{
         switch (type) {
             case "player" :
                 this.addComponent(text_recipient);
-                if(GlobalConfig.vexview_under_2_6_3){
+                if(GlobalConfig.vexview_under_2_6_8){
                     this.addComponent(createTextField(FIELD.get("recipient")));
                 }else{
                     this.addComponent(createTextArea(FIELD.get("recipient")));
@@ -172,14 +176,14 @@ public class MailSendGui extends VexInventoryGui{
                 break;
         }
         if(enVault && perm_coin){
-            bal_coin = MailBoxAPI.getEconomyBalance(p);
+            bal_coin = VaultUtil.getEconomyBalance(p);
             this.addComponent(image_coin);
             VexTextField vtf = createTextField(FIELD.get("coin"),"0");
             VexViewConfig.setHover(vtf, Arrays.asList(Message.moneyBalance+"："+bal_coin));
             this.addComponent(vtf);
         }
         if(enPlayerPoints && perm_point){
-            bal_point = MailBoxAPI.getPoints(p);
+            bal_point = PlayerPointsUtil.getPoints(p);
             this.addComponent(image_point);
             VexTextField vtf = createTextField(FIELD.get("point"),"0");
             VexViewConfig.setHover(vtf, Arrays.asList(Message.moneyBalance+"："+bal_point));
@@ -370,10 +374,18 @@ public class MailSendGui extends VexInventoryGui{
     
     // 获取文本框
     private static VexTextField createTextField(int[] f){
-        return new VexColorfulTextField(f[0],f[1],f[2],f[3],f[4],f[5],f[7],f[6]);
+        if(GlobalConfig.vexview_under_2_6_8){
+            return new VexColorfulTextField(f[0],f[1],f[2],f[3],f[4],f[5],f[7],f[6]);
+        }else{
+            return new VexColorfulTextField(f[0],f[1],f[2],f[3],f[4],f[5],f[6],f[7]);
+        }
     }
     private static VexTextField createTextField(int[] f, String v){
-        return new VexColorfulTextField(f[0],f[1],f[2],f[3],f[4],f[5],f[7],f[6],v);
+        if(GlobalConfig.vexview_under_2_6_8){
+            return new VexColorfulTextField(f[0],f[1],f[2],f[3],f[4],f[5],f[7],f[6],v);
+        }else{
+            return new VexColorfulTextField(f[0],f[1],f[2],f[3],f[4],f[5],f[6],f[7],v);
+        }
     }
     
     public static VexComponents createTextArea(int[] f){
@@ -389,7 +401,7 @@ public class MailSendGui extends VexInventoryGui{
     // 预览邮件
     private void previewMail(Player p){
         topic = getTextField(FIELD.get("topic")[5]).getTypedText();
-        if(GlobalConfig.vexview_under_2_6_3){
+        if(GlobalConfig.vexview_under_2_6_8){
             text = getTextField(FIELD.get("text")[5]).getTypedText();
             if(!p.hasPermission("mailbox.admin.send.percent")) text = text.replace("%", "");
         }else{
@@ -420,7 +432,7 @@ public class MailSendGui extends VexInventoryGui{
                     return;
                 }
                 if(co>bal_coin && !p.hasPermission("mailbox.admin.send.check.coin")){
-                    p.sendMessage(Message.moneyBalanceNotEnough.replace("%money%", Message.moneyVault).replace("%max%", Double.toString(MailBoxAPI.getEconomyBalance(p))));
+                    p.sendMessage(Message.moneyBalanceNotEnough.replace("%money%", Message.moneyVault).replace("%max%", Double.toString(VaultUtil.getEconomyBalance(p))));
                     return;
                 }else if(co>GlobalConfig.vaultMax && !p.hasPermission("mailbox.admin.send.check.coin")){
                     p.sendMessage(Message.globalExceedMax.replace("%para%", Message.moneyVault).replace("%max%", Double.toString(GlobalConfig.vaultMax)));
@@ -439,7 +451,7 @@ public class MailSendGui extends VexInventoryGui{
                     return;
                 }
                 if(po>bal_point && !p.hasPermission("mailbox.admin.send.check.point")){
-                    p.sendMessage(Message.moneyBalanceNotEnough.replace("%money%", Message.moneyPlayerpoints).replace("%max%", Double.toString(MailBoxAPI.getPoints(p))));
+                    p.sendMessage(Message.moneyBalanceNotEnough.replace("%money%", Message.moneyPlayerpoints).replace("%max%", Double.toString(PlayerPointsUtil.getPoints(p))));
                     return;
                 }else if(po>GlobalConfig.playerPointsMax && !p.hasPermission("mailbox.admin.send.check.coin")){
                     p.sendMessage(Message.globalExceedMax.replace("%para%", Message.moneyPlayerpoints).replace("%max%", Integer.toString(GlobalConfig.playerPointsMax)));
@@ -449,7 +461,7 @@ public class MailSendGui extends VexInventoryGui{
         }
         switch (type) {
             case "player":
-                if(GlobalConfig.vexview_under_2_6_3){
+                if(GlobalConfig.vexview_under_2_6_8){
                     String[] recipient = divide(getTextField(FIELD.get("recipient")[5]).getTypedText(), "recipient");
                     rl.clear();
                     if(recipient!=null) rl.addAll(Arrays.asList(recipient));
@@ -489,7 +501,7 @@ public class MailSendGui extends VexInventoryGui{
         }
         if(valid()){
             if(perm_cmd){
-                if(GlobalConfig.vexview_under_2_6_3){
+                if(GlobalConfig.vexview_under_2_6_8){
                     String[] command = divide(getTextField(FIELD.get("command")[5]).getTypedText(), "command");
                     String[] description = divide(getTextField(FIELD.get("description")[5]).getTypedText(), "description");
                     cl.clear();
@@ -522,14 +534,14 @@ public class MailSendGui extends VexInventoryGui{
                 al = getItem(p);
             }
             if(al.isEmpty() && cl.isEmpty() && co==0 && po==0){
-                BaseMail bm = MailBoxAPI.createBaseMail(type, 0, sender, rl, perm, topic.replace("&", "§"), text.replace("&", "§"), startdate, deadline, times, key.replace("&", "§"), only, template);
+                BaseMail bm = MailUtil.createBaseMail(type, 0, sender, rl, perm, topic.replace("&", "§"), text.replace("&", "§"), startdate, deadline, times, key.replace("&", "§"), only, template);
                 try{
                     MailContentGui.openMailContentGui(p, bm, false);
                 }catch(Exception e){
                     p.sendMessage(PreviewError);
                 }
             }else{
-                BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, 0, sender, rl, perm, topic.replace("&", "§"), text.replace("&", "§"), startdate, deadline, times, key.replace("&", "§"), only, template, "0", al, cl, cd, co, po);
+                BaseFileMail fm = MailUtil.createBaseFileMail(type, 0, sender, rl, perm, topic.replace("&", "§"), text.replace("&", "§"), startdate, deadline, times, key.replace("&", "§"), only, template, "0", al, cl, cd, co, po);
                 try{
                     MailContentGui.openMailContentGui(p, fm, false);
                 }catch(Exception e){
@@ -587,11 +599,11 @@ public class MailSendGui extends VexInventoryGui{
                             return false;
                         }
                         if(!startdate.equals("0")){
-                            List<Integer> l = DateTime.toDate(startdate, p, null);
+                            List<Integer> l = TimeUtil.toDate(startdate, p, null);
                             switch (l.size()) {
                                 case 3:
                                 case 6:
-                                    String date = DateTime.toDate(l, p, null);
+                                    String date = TimeUtil.toDate(l, p, null);
                                     if(date==null){
                                         return false;
                                     }else{
@@ -610,11 +622,11 @@ public class MailSendGui extends VexInventoryGui{
                         if(deadline.equals("0")){
                             return true;
                         }
-                        List<Integer> l = DateTime.toDate(deadline, p, null);
+                        List<Integer> l = TimeUtil.toDate(deadline, p, null);
                         switch (l.size()) {
                             case 3:
                             case 6:
-                                String date = DateTime.toDate(l, p, null);
+                                String date = TimeUtil.toDate(l, p, null);
                                 if(date==null){
                                     return false;
                                 }else{
@@ -698,7 +710,7 @@ public class MailSendGui extends VexInventoryGui{
         for(int i=0;i<perm_item;i++){
             ItemStack t = getSlotById(i).getItem();
             if(t!=null && t.getType()!=Material.AIR){
-                if(skip || MailBoxAPI.isAllowSend(t)){
+                if(skip || ItemUtil.isAllowSend(t)){
                     isl.add(t);
                 }else{
                     p.sendMessage(ItemBan.replace("%num%", Integer.toString(i+1)));
@@ -715,8 +727,8 @@ public class MailSendGui extends VexInventoryGui{
     // 打开发送邮件GUI
     public static void openMailSendGui(Player p, String type) {
         if(type.equals("player")){
-            int out = MailBoxAPI.playerAsSenderAllow(p);
-            int outed = MailBoxAPI.playerAsSender(p);
+            int out = MailUtil.playerAsSenderAllow(p);
+            int outed = MailUtil.asSenderNumber(p, type);
             if((out-outed)<=0){
                 p.sendMessage(Message.playerMailOutMax.replace("%type%",Message.getTypeName("player")));
                 return;
@@ -727,8 +739,8 @@ public class MailSendGui extends VexInventoryGui{
     
     public static void openMailSendGui(Player p, BaseMail bm){
         if(bm.getType().equals("player")){
-            int out = MailBoxAPI.playerAsSenderAllow(p);
-            int outed = MailBoxAPI.playerAsSender(p);
+            int out = MailUtil.playerAsSenderAllow(p);
+            int outed = MailUtil.asSenderNumber(p, "player");
             if((out-outed)<=0){
                 p.sendMessage(Message.playerMailOutMax.replace("%type%",Message.getTypeName("player")));
                 return;

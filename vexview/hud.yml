@@ -4,29 +4,31 @@ hud:
   enable: true
   #HUD的ID
   id: MailBoxHud
-  #背景图
+  #HUD图片
   img: '[local]MailBox/hud_mail.png'
   #x坐标
   x: -45
   #y坐标
-  y: 100
+  y: 120
   #显示宽度
-  ww: 39
+  w: 39
   #显示高度
-  hh: 43
-  #原图宽度
-  w: 78
-  #原图高度
-  h: 86
+  h: 43
+  #原图宽度（VV2.6及以上不填）
+  ww: 78
+  #原图高度（VV2.6及以上不填）
+  hh: 86
 #新邮件提醒HUD
 new: 
   id: NewMailHud
   img: '[local]MailBox/hud_new.png'
   x: -25
-  y: 118
-  ww: 22
-  hh: 21
-  w: 44
-  h: 42
+  y: 138
+  w: 22
+  h: 21
+  #原图宽度
+  ww: 44
+  #原图高度
+  hh: 42
   #显示时间(秒)
   time: 5

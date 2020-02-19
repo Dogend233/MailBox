@@ -25,7 +25,7 @@ global:
 tips:
   new: '§e%sender%§a发送了一封§b%type%'
   join: '§c你有待领取的邮件'
-  key: '§b口令： §r%key%'
+  key: '§b口令： §r%key% §a§n§l[点击快速输入口令]'
 list:
   in-box: '收件箱'
   out-box: '发件箱'

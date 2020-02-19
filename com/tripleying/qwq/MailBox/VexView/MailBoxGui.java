@@ -6,6 +6,7 @@ import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
 import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -308,10 +309,10 @@ public class MailBoxGui extends VexGui{
     private VexScrollingList getBoxList(Player p, String playertype){
         HashMap<String, ArrayList<Integer>> idMap = new HashMap();
         int count;
-        if(MailBoxAPI.getTrueTypeWhithoutSpecial().stream().noneMatch(t -> MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+t) || p.hasPermission("mailbox.admin.see."+t))){
+        if(MailUtil.getTrueTypeWhithoutSpecial().stream().noneMatch(t -> MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+t) || p.hasPermission("mailbox.admin.see."+t))){
             count = 0;
         }else{
-            count = MailBoxAPI.getTrueTypeWhithoutSpecial().stream().filter((type) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+type) || p.hasPermission("mailbox.admin.see."+type))).map((type) -> {
+            count = MailUtil.getTrueTypeWhithoutSpecial().stream().filter((type) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.see."+type) || p.hasPermission("mailbox.admin.see."+type))).map((type) -> {
                 MailBox.updateRelevantMailList(p, type);
                 return type;
             }).map((type) -> {
@@ -332,7 +333,7 @@ public class MailBoxGui extends VexGui{
         if(mh<list_mh) mh=list_mh;
         VexScrollingList vsl = new VexScrollingList(list_x,list_y,list_w,list_h,mh);
         int i=0;
-        for(String type:MailBoxAPI.getTrueTypeWhithoutSpecial()){
+        for(String type:MailUtil.getTrueTypeWhithoutSpecial()){
             if(idMap.containsKey(type)){
                 for(int mid:idMap.get(type)){
                     vsl = writeMail(MailBox.getMailHashMap(type).get(mid),vsl,i++);

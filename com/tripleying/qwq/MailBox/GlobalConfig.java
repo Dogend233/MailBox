@@ -1,9 +1,9 @@
 package com.tripleying.qwq.MailBox;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import java.io.IOException;
+import com.tripleying.qwq.MailBox.Utils.FileUtil;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -11,19 +11,23 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class GlobalConfig {
+    
+    private static final List<String> DEFAULT_LANGUAGE = Arrays.asList("zh_cn");
+    
     public static boolean server_over_1_12 = false;
     public static boolean server_under_1_11 = false;
     public static boolean server_under_1_10 = false;
     public static boolean server_under_1_9 = false;
     public static boolean server_under_1_8 = false;
-    public static boolean vexview_under_2_6_3;
+    public static boolean vexview_under_2_6_8;
     public static boolean vexview_under_2_6;
     public static boolean vexview_over_2_5;
     public static boolean vexview_under_2_5;
-    public static boolean enVexView;
-    public static boolean enPlaceholderAPI;
     public static boolean enVault;
     public static boolean enPlayerPoints;
+    public static boolean enVexView;
+    public static boolean enPlaceholderAPI;
+    public static boolean enLocaleLanguageAPI;
     
     public static String language;
     public static boolean fileSQL;
@@ -33,8 +37,6 @@ public class GlobalConfig {
     public static int maxItem;
     public static String fileBanLore;
     public static List<String> fileBanId;
-     public static HashMap<String, int[]> fileRandomLoreChange = new HashMap();
-    public static HashMap<String, List<String>> fileRandomLoreSelect = new HashMap();
     public static int topicMax;
     public static int contentMax;
     public static String playerExpired;
@@ -55,15 +57,10 @@ public class GlobalConfig {
         // 语言
         ccs.sendMessage(ConfigMessage.lang_check);
         String lang = config.getString("language","zh_cn");
-        try {
-            if(MailBoxAPI.existFiles("/Message/"+lang) || MailBoxAPI.getDefaultLanguage().contains(lang)){
-                language = lang;
-            }else{
-                ccs.sendMessage(ConfigMessage.lang_not_exist);
-                language = "zh_cn";
-            }
-        } catch (IOException ex) {
-            ccs.sendMessage(ConfigMessage.lang_error);
+        if(FileUtil.existFile("Message/"+lang+".yml") || DEFAULT_LANGUAGE.contains(lang)){
+            language = lang;
+        }else{
+            ccs.sendMessage(ConfigMessage.lang_not_exist.replace("%lang%", lang));
             language = "zh_cn";
         }
         Message.setLanguage(language);
@@ -80,19 +77,6 @@ public class GlobalConfig {
         maxItem = config.getInt("mailbox.file.maxItem",9);
         fileBanLore = config.getString("mailbox.file.ban.lore","§e- 无法作为邮件");
         fileBanId = formatMaterial(config.getStringList("mailbox.file.ban.id"));
-        fileRandomLoreChange.clear();
-        config.getStringList("mailbox.file.random.lore.change").forEach(v -> {
-            int t = v.indexOf("->");
-            fileRandomLoreChange.put(v.substring(0, t), String2int(v.substring(t+2).split("~")));
-        });
-        ccs.sendMessage(ConfigMessage.random_lore_int);
-        if(!fileRandomLoreChange.isEmpty()) fileRandomLoreChange.forEach((k,v) -> ccs.sendMessage("§6-----§r"+k+"§r → ["+v[0]+","+v[1]+"]"));
-        fileRandomLoreSelect.clear();
-        config.getConfigurationSection("mailbox.file.random.lore.select").getKeys(false).forEach((section) -> {
-            fileRandomLoreSelect.put(config.getString("mailbox.file.random.lore.select."+section+".lore"), config.getStringList("mailbox.file.random.lore.select."+section+".list"));
-        });
-        ccs.sendMessage(ConfigMessage.random_lore_select);
-        if(!fileRandomLoreSelect.isEmpty()) fileRandomLoreSelect.forEach((k,v) -> ccs.sendMessage("§6-----§r"+k));
         // 邮件
         topicMax = config.getInt("mailbox.topic_max",30);
         contentMax = config.getInt("mailbox.content_max",255);
@@ -127,14 +111,6 @@ public class GlobalConfig {
             material.add(id);
         });
         return material;
-    }
-    
-    private static int[] String2int(String[] s){
-        int[] i = new int[s.length];
-        for(int j=0;j<s.length;j++){
-            i[j] = Integer.parseInt(s[j]);
-        }
-        return i;
     }
     
 }

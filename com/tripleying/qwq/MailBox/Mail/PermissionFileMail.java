@@ -2,6 +2,7 @@ package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.entity.Player;
@@ -32,7 +33,7 @@ public class PermissionFileMail extends BaseFileMail implements MailPermission {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("permission", getId(), getSender(), "", permission, getTopic(), getContent(), getDate(), "", 0, "", false, getFileName());
+        return MailUtil.setSend("permission", getId(), getSender(), "", permission, getTopic(), getContent(), getDate(), "", 0, "", false, getFileName());
     }
 
     @Override

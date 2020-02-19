@@ -1,9 +1,11 @@
-package com.tripleying.qwq.MailBox.Utils;
+package com.tripleying.qwq.MailBox.SQL;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Mail.BaseMail;
 import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -368,7 +370,7 @@ public class SQLManager {
                     break;
                 case "date":
                     if(deadline.equals("0")){
-                        deadline = DateTime.getDefault();
+                        deadline = TimeUtil.getDefault();
                     }
                     ps.setString(6, deadline);
                     break;
@@ -471,12 +473,12 @@ public class SQLManager {
                     case "date":
                         deadline = isMySQL ? dateFormat.format(new Date(rs.getTimestamp("deadline").getTime()))
                                             :rs.getString("deadline");
-                        if(deadline.equals(DateTime.getDefault())) deadline = null;
+                        if(deadline.equals(TimeUtil.getDefault())) deadline = null;
                         break;
                 }
-                BaseMail bm = filename.equals("0") ? MailBoxAPI.createBaseMail(type, mail, sender, recipient, permission, topic, content, time, deadline, times, key, only, null)
-                                                    :MailBoxAPI.createBaseFileMail(type, mail, sender, recipient, permission, topic, content, time, deadline, times, key, only, filename);
-                if(bm.ExpireValidate() && MailBoxAPI.setDelete(type, mail)){
+                BaseMail bm = filename.equals("0") ? MailUtil.createBaseMail(type, mail, sender, recipient, permission, topic, content, time, deadline, times, key, only, null)
+                                                    :MailUtil.createBaseFileMail(type, mail, sender, recipient, permission, topic, content, time, deadline, times, key, only, filename);
+                if(bm.ExpireValidate() && MailUtil.setDelete(type, mail)){
                     Bukkit.getConsoleSender().sendMessage(Message.mailExpire.replace("%para%", bm.getTypeName()+"-"+mail));
                     continue;
                 }

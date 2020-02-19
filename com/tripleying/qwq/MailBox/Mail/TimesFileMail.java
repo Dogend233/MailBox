@@ -3,7 +3,9 @@ package com.tripleying.qwq.MailBox.Mail;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Message;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
+import com.tripleying.qwq.MailBox.Utils.ItemUtil;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,7 +43,7 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
             long deadline = new SimpleDateFormat("HH").parse(GlobalConfig.timesExpired).getTime();
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             long sendTime = df.parse(getDate()).getTime();
-            long now = df.parse(DateTime.get("ymdhms")).getTime();
+            long now = df.parse(TimeUtil.get("ymdhms")).getTime();
             return (sendTime+deadline)<=now;
         } catch (ParseException ex) {
             Bukkit.getLogger().info(ex.getLocalizedMessage());
@@ -71,7 +73,7 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("times", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", times, "", false, getFileName());
+        return MailUtil.setSend("times", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", times, "", false, getFileName());
     }
 
     @Override
@@ -84,9 +86,9 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
         for(int i=0;i<isl.size();i++){
             if(!p.getInventory().containsAtLeast(isl.get(i), isl.get(i).getAmount()*times)) {
                 if(cc==null){
-                    p.sendMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
+                    p.sendMessage(Message.itemItemNotEnough.replace("%item%", ItemUtil.getName(isl.get(i))));
                 }else{
-                    cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", MailBoxAPI.getItemName(isl.get(i))));
+                    cc.getForWhom().sendRawMessage(Message.itemItemNotEnough.replace("%item%", ItemUtil.getName(isl.get(i))));
                 }
                 return false;
             }
@@ -128,7 +130,7 @@ public class TimesFileMail extends BaseFileMail implements MailTimes {
             }
             if(count!=0){
                 success = false;
-                error += " "+MailBoxAPI.getItemName(is1)+"x"+count;
+                error += " "+ItemUtil.getName(is1)+"x"+count;
             }
         }
         if(success){

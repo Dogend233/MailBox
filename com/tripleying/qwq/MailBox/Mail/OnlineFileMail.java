@@ -2,6 +2,7 @@ package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -33,14 +34,14 @@ public class OnlineFileMail extends BaseFileMail implements MailOnline {
             if(sb.append(" ").append(name).length()<=255){
                 l.add(name);
             }else{
-                if(!MailBoxAPI.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(send, cc)) return false;
+                if(!MailUtil.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(send, cc)) return false;
                 sb.delete(0, sb.length());
                 l.clear();
                 sb.append(" ").append(name);
                 l.add(name);
             }
         }
-        if(!l.isEmpty()) return MailBoxAPI.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(send, cc);
+        if(!l.isEmpty()) return MailUtil.createBaseFileMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "", "0",getItemList(),getCommandList(),getCommandDescription(),getCoin(),getPoint()).Send(send, cc);
         else return true;
     }
     

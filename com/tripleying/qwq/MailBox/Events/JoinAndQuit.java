@@ -1,9 +1,9 @@
 package com.tripleying.qwq.MailBox.Events;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.ConfigMessage;
 import com.tripleying.qwq.MailBox.MailBox;
 import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import com.tripleying.qwq.MailBox.VexView.MailBoxHud;
 import lk.vexview.api.VexViewAPI;
 import org.bukkit.Bukkit;
@@ -29,17 +29,17 @@ public class JoinAndQuit implements Listener {
         Player player = evt.getPlayer();
         // 获取可领取邮件列表
         MailBox.updateRelevantMailList(player, "all");
+        for(String type:MailUtil.getTrueTypeWhithoutSpecial()){
+            MailBox.updateRelevantMailList(player, type);
+            if(!MailBox.getRelevantMailList(player, type).get("asRecipient").isEmpty()){
+                MailUtil.sendTips(player, Message.tipsJoin.replace("%player", player.getName()),"");
+                return;
+            }
+        }
         // 移除HUD
         if(enVexView) VexViewAPI.removeHUD(player, MailBoxHud.id);
         // 设置HUD
         if(enVexView && enHud) MailBoxHud.setMailBoxHud(player);
-        for(String type:MailBoxAPI.getTrueTypeWhithoutSpecial()){
-            MailBox.updateRelevantMailList(player, type);
-            if(!MailBox.getRelevantMailList(player, type).get("asRecipient").isEmpty()){
-                MailBoxAPI.sendTips(player, Message.tipsJoin.replace("%player", player.getName()),"");
-                return;
-            }
-        }
     }
     
     // 玩家退出事件

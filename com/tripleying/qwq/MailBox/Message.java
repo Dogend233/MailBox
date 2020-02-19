@@ -1,6 +1,7 @@
 package com.tripleying.qwq.MailBox;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.Utils.FileUtil;
 import java.util.HashMap;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -209,10 +210,9 @@ public class Message {
     
     public static void setLanguage(String language){
         Bukkit.getConsoleSender().sendMessage(ConfigMessage.lang_setup.replace("%lang%", language));
-        YamlConfiguration lang = MailBoxAPI.configGet("plugins/MailBox/Message", language+".yml", "message/");
+        YamlConfiguration lang = FileUtil.getConfig("Message", language+".yml", "message");
         // 全局
-        DISPLAY.clear();
-        MailBoxAPI.getAllType().forEach((type) -> DISPLAY.put(type, lang.getString("global."+type)));
+        MailBoxAPI.getAllType().forEach(type -> updateTypeName(type, lang.getString("global."+type)));
         globalTopic = lang.getString("global.topic");
         globalContent = lang.getString("global.content");
         globalSender = lang.getString("global.sender");
@@ -230,7 +230,7 @@ public class Message {
         // 提示
         tipsNew = lang.getString("tips.new");
         tipsJoin = lang.getString("tips.join");
-        tipsKey = lang.getString("tips.key");
+        tipsKey = lang.getString("tips.key","§b口令： §r%key% §a§n§l[点击快速输入口令]");
         // 列表
         listInBox = lang.getString("list.in-box");
         listOutBox = lang.getString("list.out-box");
@@ -414,6 +414,14 @@ public class Message {
     
     public static String getTypeName(String type) {
         return DISPLAY.get(type);
+    }
+    
+    public static void updateTypeName(String type, String display) {
+        if(DISPLAY.containsKey(type)){
+            DISPLAY.replace(type, display);
+        }else{
+            DISPLAY.put(type, display);
+        }
     }
     
 }

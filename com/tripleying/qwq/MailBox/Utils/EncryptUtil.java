@@ -4,9 +4,14 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class MD5 {
+/**
+ * 加密工具
+ * @author Dogend
+ */
+public class EncryptUtil {
     
-    public static String Hex(String str){
+    // MD5
+    public static String MD5(String str){
         try {
             MessageDigest m = MessageDigest.getInstance("MD5");
             m.update(str.getBytes("UTF8"));

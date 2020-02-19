@@ -1,6 +1,6 @@
 package com.tripleying.qwq.MailBox.Mail;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.Utils.TemplateUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.command.CommandSender;
@@ -20,7 +20,7 @@ public class TemplateFileMail extends BaseFileMail implements MailTemplate {
     
     @Override
     public boolean Send(CommandSender send, ConversationContext cc) {
-        return MailBoxAPI.saveTemplateMail((MailTemplate)this);
+        return TemplateUtil.saveTemplateMail((MailTemplate)this);
     }
 
     @Override

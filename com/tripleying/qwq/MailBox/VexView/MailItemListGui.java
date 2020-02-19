@@ -1,12 +1,13 @@
 package com.tripleying.qwq.MailBox.VexView;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.Utils.ItemUtil;
 import java.util.List;
 import lk.vexview.api.VexViewAPI;
 import lk.vexview.gui.VexGui;
 import lk.vexview.gui.components.VexButton;
 import lk.vexview.gui.components.VexScrollingList;
 import lk.vexview.gui.components.VexSlot;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -42,60 +43,37 @@ public class MailItemListGui extends VexGui{
         this.addComponent(getItemList(il));
     }
     
-    public static void setItemListConfig(
-        String gui_img,
-        int gui_x,
-        int gui_y,
-        int gui_w,
-        int gui_h,
-        int gui_ww,
-        int gui_hh,
-        int list_x,
-        int list_y,
-        int list_w,
-        int list_h,
-        int list_mh,
-        int list_sh,
-        int list_oh,
-        String slot_img,
-        int slot_w,
-        int slot_h,
-        int slot_c,
-        int slot_fx,
-        int slot_fy,
-        int slot_x_offset,
-        int slot_y_offset
-    ){
+    public static void setItemListConfig(YamlConfiguration itemList){
         // GUI
-        MailItemListGui.gui_img = gui_img;
-        MailItemListGui.gui_x = gui_x;
-        MailItemListGui.gui_y = gui_y;
-        MailItemListGui.gui_w = gui_w;
-        MailItemListGui.gui_h = gui_h;
-        MailItemListGui.gui_ww = gui_ww;
-        MailItemListGui.gui_hh = gui_hh;
+        gui_img = itemList.getString("gui.img");
+        gui_x = itemList.getInt("gui.x");
+        gui_y = itemList.getInt("gui.y");
+        gui_w = itemList.getInt("gui.w");
+        gui_h = itemList.getInt("gui.h");
+        gui_ww = itemList.getInt("gui.ww");
+        gui_hh = itemList.getInt("gui.hh");
         // 滚动列表
-        MailItemListGui.list_x = list_x;
-        MailItemListGui.list_y = list_y;
-        MailItemListGui.list_w = list_w;
-        MailItemListGui.list_h = list_h;
-        MailItemListGui.list_mh = list_mh;
-        MailItemListGui.list_sh = list_sh;
-        MailItemListGui.list_oh = list_oh;
+        list_x = itemList.getInt("list.x");
+        list_y = itemList.getInt("list.y");
+        list_w = itemList.getInt("list.w");
+        list_h = itemList.getInt("list.h");
+        list_mh = itemList.getInt("list.mh");
+        list_sh = itemList.getInt("list.sh");
+        list_oh = itemList.getInt("list.oh");
         // 物品槽
         x_offset = ((slot_w-18)/2)-1; 
         y_offset = ((slot_h-18)/2)-1;
-        MailItemListGui.slot_img = slot_img;
-        MailItemListGui.slot_w = slot_w;
-        MailItemListGui.slot_h = slot_h;
-        MailItemListGui.slot_c = slot_c;
-        MailItemListGui.slot_fx = slot_fx;
-        MailItemListGui.slot_fy = slot_fy;
-        MailItemListGui.slot_x_offset = slot_x_offset;
-        MailItemListGui.slot_y_offset = slot_y_offset;
+        slot_img = itemList.getString("slot.img");
+        slot_w = itemList.getInt("slot.w");
+        slot_h = itemList.getInt("slot.h");
+        slot_c = itemList.getInt("slot.c");
+        slot_fx = itemList.getInt("slot.fx");
+        slot_fy = itemList.getInt("slot.fy");
+        slot_x_offset = itemList.getInt("slot.ox");
+        slot_y_offset = itemList.getInt("slot.oy");
     }
     
-    // 获取Lore列表
+    // 获取物品列表
     private VexScrollingList getItemList(List<String> ItemList){
         int h = ItemList.size()/slot_c;
         if(ItemList.size()%slot_c!=0) h++;
@@ -104,14 +82,14 @@ public class MailItemListGui extends VexGui{
         VexScrollingList vsl = new VexScrollingList(list_x,list_y,list_w,list_h,mh);
         int count = 0;
         for(String name:ItemList){
-            ItemStack is = MailBoxAPI.readItem(name.substring(0, name.length()-4));
+            ItemStack is = ItemUtil.importItem(name.substring(0, name.length()-4));
             ItemStack isc = is.clone();
             isc.setAmount(1);
             int xc = count%slot_c;
             int yc = count/slot_c;
             vsl.addComponent(new VexSlot(count++,xc*slot_x_offset+slot_fx,yc*slot_y_offset+list_y+slot_fy,isc));
             vsl.addComponent(new VexButton("MailBoxItemButton_"+count,"",slot_img,slot_img,xc*slot_x_offset+slot_fx+x_offset,yc*slot_y_offset+slot_fy-y_offset,slot_w,slot_h,player -> {
-                MailItemModifyGui.openItemModifyGui(player, is);
+                if(player.hasPermission("mailbox.admin.item")) player.getInventory().addItem(is);
             }));
         }
         return vsl;

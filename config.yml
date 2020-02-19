@@ -35,6 +35,7 @@ softDepend:
   VexView: true
   PlayerPoints: true
   PlaceholderAPI: true
+  LocaleLanguageAPI: true
 #插件配置
 #Plugin configuration
 mailbox:
@@ -108,42 +109,6 @@ mailbox:
       id:
       - 'minecraft:stone'
       - 'GOLD_CHESTPLATE'
-    #物品被领取时随机进行的操作
-    #Random operation when items are collected
-    random:
-      #Lore
-      lore:
-        #将指定字符转成数字
-        #Converts a specified character to a number
-        change:
-        #示例: 将'%1~10%'换成1-10的随机整数
-        #Example: change '%1~10%' to a random integer of 1-10
-        - '%1-10%->1~10'
-        #示例: 将'§e随机'换成8-27的随机整数
-        #Example: change '§e随机' to a random integer of 8-27
-        - '§e随机->8~27'
-        #从指定列表里随机选择一个Lore添加
-        #Randomly select a lore from the specified list to add
-        select:
-          #示例方案, 请手动添加更多
-          #Sample scheme, please add more manually
-          aaa:
-            #判断的Lore全称
-            #Lore full name of judgment
-            lore: '§b示例随机'
-            #添加的Lore列表
-            #Randomly added lore list
-            list:
-            - '§a第1个随机的Lore'
-            - '§b第2个随机的Lore'
-            - '§c第3个随机的Lore'
-          #示例方案2
-          #Example scheme 2
-          bcde:
-            lore: '§b更改数字示例随机'
-            list:
-            - '§c+§e随机 攻击力'
-            - '§b+%1-10% 智商'
   #Vault经济插件
   #Vault Plugin
   vault:

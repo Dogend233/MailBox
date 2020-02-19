@@ -1,5 +1,6 @@
 package com.tripleying.qwq.MailBox.Utils;
 
+import com.tripleying.qwq.MailBox.MailBox;
 import com.tripleying.qwq.MailBox.Message;
 import java.util.Date; 
 import java.text.SimpleDateFormat; 
@@ -9,12 +10,35 @@ import java.util.List;
 import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.ConversationContext;
 
-public class DateTime {
+/**
+ * 时间工具
+ * @author Dogend
+ */
+public class TimeUtil {
+    
+    // 上次操作时间
+    private static long lastTime;
+    
+    // 设置上次操作时间
+    public static void setLastTime(long l){
+        lastTime = l;
+    }
+    
+    // 更新上次操作时间
+    public static void updateLastTime(){
+        long newTime = System.currentTimeMillis();
+        if(newTime>lastTime) MailBox.CDKEY_DAY.clear();
+        lastTime = System.currentTimeMillis()/(1000*3600*24)*(1000*3600*24)+24*60*60*1000;
+    }
+    
+    // 获取当前时间
     public static String get(String type){
         long l = System.currentTimeMillis();
         switch (type) {
+            // 毫秒
             case "ms":
                 return l+"";
+            // 秒
             case "s":
                 int length = (l+"").length();
                 if (length > 3) {
@@ -22,6 +46,7 @@ public class DateTime {
                 } else {
                     return l+"";
                 }
+            // 年月日时分秒
             case "ymdhms":
                 Date date = new Date(l);
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -32,10 +57,12 @@ public class DateTime {
         return null;
     }
     
+    // 获取一个默认的时间字符串
     public static String getDefault(){
         return "2000-01-01 00:00:00";
     }
     
+    // 将收到的字符串转化为时间List
     public static List<Integer> toDate(String str, CommandSender sender, ConversationContext cc){
         String[] s;
         if(str.contains("-")) s = str.split("-");
@@ -56,6 +83,7 @@ public class DateTime {
         }
     }
     
+    // 将收到的时间List转化为字符串
     public static String toDate(List<Integer> t, CommandSender sender, ConversationContext cc){
         int yyyy = t.get(0);
         int MM = t.get(1);

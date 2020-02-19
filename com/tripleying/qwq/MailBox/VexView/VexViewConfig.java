@@ -1,13 +1,15 @@
 package com.tripleying.qwq.MailBox.VexView;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.ConfigMessage;
 import com.tripleying.qwq.MailBox.Events.DoubleKeyPress;
 import com.tripleying.qwq.MailBox.Events.JoinAndQuit;
 import com.tripleying.qwq.MailBox.Events.SingleKeyPress;
 import com.tripleying.qwq.MailBox.Events.SendGuiOpen;
 import com.tripleying.qwq.MailBox.MailBox;
+import com.tripleying.qwq.MailBox.Utils.FileUtil;
+import com.tripleying.qwq.MailBox.Utils.ReflectionUtil;
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import lk.vexview.gui.components.HoverTextComponent;
 import lk.vexview.gui.components.VexHoverText;
@@ -16,24 +18,32 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class VexViewConfig {
         
-    private static final String DATA_FOLDER = "plugins/MailBox/VexView";
-    private static final String JAR_FOLDER = "vexview/";
+    private static final String DIR = "VexView";
+    private static final String JAR = "vexview";
+    private static final HashMap<String, String> KEY = new HashMap();
     
     // 配置VexView
     public static void VexViewConfigSet(){
         Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview);
+        // 加载按键列表
+        if(KEY.isEmpty()) ReflectionUtil.getVexViewKeys(KEY);
+        // 注册SendGUI打开事件监听器
         Bukkit.getPluginManager().registerEvents(new SendGuiOpen(), MailBox.getInstance());
-        VexViewConfig config = new VexViewConfig();
-        config.ConfigExist();
-        config.ConfigLoad();
+        // VexView文件夹
+        File f = FileUtil.getFile(DIR);
+        if(!f.exists()){
+            Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", DIR));
+            f.mkdir();
+        }
+        // 加载配置
+        ConfigLoad();
     }
     
-    public void ConfigSet(YamlConfiguration hud, 
+    public static void ConfigSet(YamlConfiguration hud, 
             YamlConfiguration box, 
             YamlConfiguration content, 
             YamlConfiguration select, 
             YamlConfiguration send, 
-            YamlConfiguration item_modify, 
             YamlConfiguration item_list, 
             YamlConfiguration cdkey){
         // 配置常驻Hud
@@ -54,10 +64,10 @@ public class VexViewConfig {
                 String key1 = key.substring(0, l);
                 String key2 = key.substring(l+1);
                 Bukkit.getPluginManager().registerEvents(new DoubleKeyPress(Integer.parseInt(key1), Integer.parseInt(key2)), MailBox.getInstance());
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.double_box);
+                Bukkit.getConsoleSender().sendMessage(ConfigMessage.double_box.replace("%key1%", getKey(key1)).replace("%key2%", getKey(key2)));
             }else{
                 Bukkit.getPluginManager().registerEvents(new SingleKeyPress(Integer.parseInt(key)), MailBox.getInstance());
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.single_box);
+                Bukkit.getConsoleSender().sendMessage(ConfigMessage.single_box.replace("%key%", getKey(key)));
             }
         }
         MailBoxGui.setBoxConfig(
@@ -179,10 +189,10 @@ public class VexViewConfig {
             content.getStringList("button.collect.collect.hover"),
             content.getString("button.collect.collect.img_1"),
             content.getString("button.collect.collect.img_2"),
-            content.getString("button.collected.collected.text"),
-            content.getStringList("button.collected.collected.hover"),
-            content.getString("button.collected.collected.img_1"),
-            content.getString("button.collected.collected.img_2"),
+            content.getString("button.collect.collected.text"),
+            content.getStringList("button.collect.collected.hover"),
+            content.getString("button.collect.collected.img_1"),
+            content.getString("button.collect.collected.img_2"),
             content.getInt("button.collect.x"),
             content.getInt("button.collect.y"),
             content.getInt("button.collect.w"),
@@ -416,169 +426,34 @@ public class VexViewConfig {
             send.getIntegerList("slot.y"),
             send
         );
-        // 配置物品修改GUI
-        MailItemModifyGui.setItemModifyConfig(
-            item_modify.getString("gui.img"),
-            item_modify.getInt("gui.x"),
-            item_modify.getInt("gui.y"),
-            item_modify.getInt("gui.w"),
-            item_modify.getInt("gui.h"),
-            item_modify.getInt("gui.ww"),
-            item_modify.getInt("gui.hh"),
-            item_modify.getString("button.confirm.id"),
-            item_modify.getString("button.confirm.text"),
-            item_modify.getString("button.confirm.img_1"),
-            item_modify.getString("button.confirm.img_2"),
-            item_modify.getInt("button.confirm.x"),
-            item_modify.getInt("button.confirm.y"),
-            item_modify.getInt("button.confirm.w"),
-            item_modify.getInt("button.confirm.h"),
-            item_modify.getString("button.name.id"),
-            item_modify.getString("button.name.text"),
-            item_modify.getString("button.name.img_1"),
-            item_modify.getString("button.name.img_2"),
-            item_modify.getInt("button.name.x"),
-            item_modify.getInt("button.name.y"),
-            item_modify.getInt("button.name.w"),
-            item_modify.getInt("button.name.h"),
-            item_modify.getString("button.export.id"),
-            item_modify.getString("button.export.text"),
-            item_modify.getString("button.export.img_1"),
-            item_modify.getString("button.export.img_2"),
-            item_modify.getInt("button.export.x"),
-            item_modify.getInt("button.export.y"),
-            item_modify.getInt("button.export.w"),
-            item_modify.getInt("button.export.h"),
-            item_modify.getString("button.import.id"),
-            item_modify.getString("button.import.text"),
-            item_modify.getString("button.import.img_1"),
-            item_modify.getString("button.import.img_2"),
-            item_modify.getInt("button.import.x"),
-            item_modify.getInt("button.import.y"),
-            item_modify.getInt("button.import.w"),
-            item_modify.getInt("button.import.h"),
-            item_modify.getString("button.list.id"),
-            item_modify.getString("button.list.text"),
-            item_modify.getString("button.list.img_1"),
-            item_modify.getString("button.list.img_2"),
-            item_modify.getInt("button.list.x"),
-            item_modify.getInt("button.list.y"),
-            item_modify.getInt("button.list.w"),
-            item_modify.getInt("button.list.h"),
-            item_modify.getString("button.close.id"),
-            item_modify.getString("button.close.text"),
-            item_modify.getString("button.close.img_1"),
-            item_modify.getString("button.close.img_2"),
-            item_modify.getInt("button.close.x"),
-            item_modify.getInt("button.close.y"),
-            item_modify.getInt("button.close.w"),
-            item_modify.getInt("button.close.h"),
-            item_modify.getString("slot.img"),
-            item_modify.getInt("slot.w"),
-            item_modify.getInt("slot.h"),
-            item_modify.getInt("slot.x"),
-            item_modify.getInt("slot.y"),
-            item_modify.getString("field.text.name"),
-            item_modify.getString("field.text.lore"),
-            item_modify.getString("field.text.export"),
-            item_modify.getString("field.text.import"),
-            item_modify.getInt("field.x"),
-            item_modify.getInt("field.y"),
-            item_modify.getInt("field.w"),
-            item_modify.getInt("field.h"),
-            item_modify.getInt("list.x"),
-            item_modify.getInt("list.y"),
-            item_modify.getInt("list.w"),
-            item_modify.getInt("list.h"),
-            item_modify.getInt("list.mh"),
-            item_modify.getInt("list.sh"),
-            item_modify.getInt("list.oh"),
-            item_modify.getInt("lore.oy"),
-            item_modify.getInt("lore.text.x"),
-            item_modify.getInt("lore.text.fy"),
-            item_modify.getDouble("lore.text.size"),
-            item_modify.getString("lore.button.add.id"),
-            item_modify.getString("lore.button.add.text"),
-            item_modify.getStringList("lore.button.add.hover"),
-            item_modify.getString("lore.button.add.img_1"),
-            item_modify.getString("lore.button.add.img_2"),
-            item_modify.getInt("lore.button.add.x"),
-            item_modify.getInt("lore.button.add.fy"),
-            item_modify.getInt("lore.button.add.w"),
-            item_modify.getInt("lore.button.add.h"),
-            item_modify.getString("lore.button.change.id"),
-            item_modify.getString("lore.button.change.text"),
-            item_modify.getStringList("lore.button.change.hover"),
-            item_modify.getString("lore.button.change.img_1"),
-            item_modify.getString("lore.button.change.img_2"),
-            item_modify.getInt("lore.button.change.x"),
-            item_modify.getInt("lore.button.change.fy"),
-            item_modify.getInt("lore.button.change.w"),
-            item_modify.getInt("lore.button.change.h"),
-            item_modify.getString("lore.button.delete.id"),
-            item_modify.getString("lore.button.delete.text"),
-            item_modify.getStringList("lore.button.delete.hover"),
-            item_modify.getString("lore.button.delete.img_1"),
-            item_modify.getString("lore.button.delete.img_2"),
-            item_modify.getInt("lore.button.delete.x"),
-            item_modify.getInt("lore.button.delete.fy"),
-            item_modify.getInt("lore.button.delete.w"),
-            item_modify.getInt("lore.button.delete.h")
-        );
         // 配置物品列表GUI
-        MailItemListGui.setItemListConfig(
-            item_list.getString("gui.img"),
-            item_list.getInt("gui.x"),
-            item_list.getInt("gui.y"),
-            item_list.getInt("gui.w"),
-            item_list.getInt("gui.h"),
-            item_list.getInt("gui.ww"),
-            item_list.getInt("gui.hh"),
-            item_list.getInt("list.x"),
-            item_list.getInt("list.y"),
-            item_list.getInt("list.w"),
-            item_list.getInt("list.h"),
-            item_list.getInt("list.mh"),
-            item_list.getInt("list.sh"),
-            item_list.getInt("list.oh"),
-            item_list.getString("slot.img"),
-            item_list.getInt("slot.w"),
-            item_list.getInt("slot.h"),
-            item_list.getInt("slot.c"),
-            item_list.getInt("slot.fx"),
-            item_list.getInt("slot.fy"),
-            item_list.getInt("slot.ox"),
-            item_list.getInt("slot.oy")
-        );
+        MailItemListGui.setItemListConfig(item_list);
         // 配置CdkeyGUI
         MailCdkeyGUI.setCdkeyConfig(cdkey);
     }
     
-    // 判断VexView文件夹是否存在
-    private void ConfigExist(){
-        File f = new File(DATA_FOLDER);
-        if(!f.exists()){
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", "VexView"));
-            f.mkdir();
-        }
-    }
-    
     // 加载配置
-    private void ConfigLoad(){
-        ConfigSet(
-            MailBoxAPI.configGet(DATA_FOLDER, "hud.yml", JAR_FOLDER), 
-            MailBoxAPI.configGet(DATA_FOLDER, "box.yml", JAR_FOLDER), 
-            MailBoxAPI.configGet(DATA_FOLDER, "content.yml", JAR_FOLDER), 
-            MailBoxAPI.configGet(DATA_FOLDER, "select.yml", JAR_FOLDER), 
-            MailBoxAPI.configGet(DATA_FOLDER, "send.yml", JAR_FOLDER), 
-            MailBoxAPI.configGet(DATA_FOLDER, "item_modify.yml", JAR_FOLDER), 
-            MailBoxAPI.configGet(DATA_FOLDER, "item_list.yml", JAR_FOLDER), 
-            MailBoxAPI.configGet(DATA_FOLDER, "cdkey.yml", JAR_FOLDER)
+    private static void ConfigLoad(){
+        ConfigSet(FileUtil.getConfig(DIR, "hud.yml", JAR), 
+            FileUtil.getConfig(DIR, "box.yml", JAR), 
+            FileUtil.getConfig(DIR, "content.yml", JAR), 
+            FileUtil.getConfig(DIR, "select.yml", JAR), 
+            FileUtil.getConfig(DIR, "send.yml", JAR), 
+            FileUtil.getConfig(DIR, "item_list.yml", JAR), 
+            FileUtil.getConfig(DIR, "cdkey.yml", JAR)
         );
     }
     
     public static void setHover(HoverTextComponent v, List<String> t){
         v.setHover(new VexHoverText(t));
+    }
+    
+    private static String getKey(String key){
+        if(KEY.containsKey(key)){
+            return KEY.get(key);
+        }else{
+            return "";
+        }
     }
 
 }

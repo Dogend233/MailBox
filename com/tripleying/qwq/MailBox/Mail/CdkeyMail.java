@@ -1,8 +1,9 @@
 package com.tripleying.qwq.MailBox.Mail;
 
-import com.tripleying.qwq.MailBox.API.Listener.MailCollectEvent;
-import com.tripleying.qwq.MailBox.API.Listener.MailSendEvent;
+import com.tripleying.qwq.MailBox.API.Event.MailCollectEvent;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.Utils.CdkeyUtil;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -21,7 +22,7 @@ public class CdkeyMail extends BaseMail implements MailCdkey {
     
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("cdkey", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, "", only, "0");
+        return MailUtil.setSend("cdkey", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", 0, "", only, "0");
     }
 
     @Override
@@ -43,18 +44,15 @@ public class CdkeyMail extends BaseMail implements MailCdkey {
     public int generateCdkey(int i) {
         if(only){
             try {
-                if(MailBoxAPI.sendCdkey(MailBoxAPI.generateCdkey(),getId())) return 1;
-                else return 0;
-            } catch (Exception ex) {
-                Logger.getLogger(CdkeyMail.class.getName()).log(Level.SEVERE, null, ex);
-                return 0;
-            }
+                if(CdkeyUtil.sendCdkey(CdkeyUtil.generateCdkey(),getId())) return 1;
+            } catch (Exception ex) {}
+            return 0;
         }else{
             int count = 0;
             int ID = getId();
             for(int j=0;j<i;j++){
                 try {
-                    if(MailBoxAPI.sendCdkey(MailBoxAPI.generateCdkey(),ID)) count++;
+                    if(CdkeyUtil.sendCdkey(CdkeyUtil.generateCdkey(),ID)) count++;
                 } catch (Exception ex) {
                     Logger.getLogger(CdkeyMail.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -65,8 +63,8 @@ public class CdkeyMail extends BaseMail implements MailCdkey {
     
     @Override
     public boolean Collect(Player p){
-        if(MailBoxAPI.createBaseMail("player", 0, getSender(), Arrays.asList(p.getName()), "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(Bukkit.getConsoleSender(), null)){
-            MailBoxAPI.setCollect(getType(), getId(), p.getName());
+        if(MailUtil.createBaseMail("player", 0, getSender(), Arrays.asList(p.getName()), "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(Bukkit.getConsoleSender(), null)){
+            MailUtil.setCollect(getType(), getId(), p.getName());
             MailCollectEvent mse = new MailCollectEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mse);
             return true;
@@ -76,7 +74,7 @@ public class CdkeyMail extends BaseMail implements MailCdkey {
     
     @Override
     public void DeleteLocalCdkey(){
-        MailBoxAPI.deleteLocalCdkey(getId());
+        CdkeyUtil.deleteLocalCdkey(getId());
     }
     
     @Override

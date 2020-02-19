@@ -2,6 +2,7 @@ package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -32,14 +33,14 @@ public class OnlineMail extends BaseMail implements MailOnline {
             if(sb.append(" ").append(name).length()<=255){
                 l.add(name);
             }else{
-                if(!MailBoxAPI.createBaseMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(send, cc)) return false;
+                if(!MailUtil.createBaseMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(send, cc)) return false;
                 sb.delete(0, sb.length());
                 l.clear();
                 sb.append(" ").append(name);
                 l.add(name);
             }
         }
-        if(!l.isEmpty()) return MailBoxAPI.createBaseMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(send, cc);
+        if(!l.isEmpty()) return MailUtil.createBaseMail("player", 0, getSender(), l, "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(send, cc);
         else return true;
     }
     

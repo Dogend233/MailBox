@@ -1,6 +1,7 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 
 public class KeyTimesMail extends TimesMail implements MailKeyTimes {
@@ -24,7 +25,7 @@ public class KeyTimesMail extends TimesMail implements MailKeyTimes {
     
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("keytimes", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", getTimes(), key, false, "0");
+        return MailUtil.setSend("keytimes", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", getTimes(), key, false, "0");
     }
     
     @Override

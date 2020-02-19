@@ -14,7 +14,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class UpdateCheck {
+/**
+ * 版本工具
+ * @author Dogend
+ */
+public class VersionUtil {
     
     // 从远程连接获取最新版本号
     private static ArrayList<String> getVersion(String httpurl){
@@ -83,6 +87,7 @@ public class UpdateCheck {
         }
     }
     
+    // 更新检查
     public static void check(CommandSender sender, long tick){
         new BukkitRunnable(){
             @Override

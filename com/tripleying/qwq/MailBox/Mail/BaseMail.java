@@ -1,10 +1,14 @@
 package com.tripleying.qwq.MailBox.Mail;
 
-import com.tripleying.qwq.MailBox.API.Listener.*;
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
+import com.tripleying.qwq.MailBox.API.Event.MailSendEvent;
+import com.tripleying.qwq.MailBox.API.Event.MailCollectEvent;
+import com.tripleying.qwq.MailBox.API.Event.MailDeleteEvent;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Message;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
+import com.tripleying.qwq.MailBox.Utils.PlayerPointsUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
+import com.tripleying.qwq.MailBox.Utils.VaultUtil;
 import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -73,7 +77,7 @@ public class BaseMail {
     
     // 生成时间
     public void generateDate(){
-        date = DateTime.get("ymdhms");
+        date = TimeUtil.get("ymdhms");
     }
     
     // 让玩家领取这封邮件
@@ -84,7 +88,7 @@ public class BaseMail {
     
     // 让玩家阅读这封邮件
     public boolean Read(Player p){
-        if(MailBoxAPI.setCollect(type, id, p.getName())){
+        if(MailUtil.setCollect(type, id, p.getName())){
             MailCollectEvent mce = new MailCollectEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mce);
             return true;
@@ -162,7 +166,7 @@ public class BaseMail {
     
     // 删除这封邮件的数据库数据
     public boolean DeleteData(Player p){
-        if(MailBoxAPI.setDelete(type, id)){
+        if(MailUtil.setDelete(type, id)){
             if(p!=null) p.sendMessage(Message.mailDeleteSuccess);
             MailDeleteEvent mde = new MailDeleteEvent(this, p);
             Bukkit.getServer().getPluginManager().callEvent(mde);
@@ -177,7 +181,7 @@ public class BaseMail {
     public boolean enoughMoney(Player p,double needCoin,int needPoint, ConversationContext cc){
         // 判断玩家coin够不够
         if(GlobalConfig.enVault && !p.hasPermission("mailbox.admin.send.check.coin") && GlobalConfig.vaultExpand!=0){
-            if(MailBoxAPI.getEconomyBalance(p)<needCoin){
+            if(VaultUtil.getEconomyBalance(p)<needCoin){
                 if(cc==null){
                     p.sendMessage(Message.mailExpandError.replace("%type%", Message.moneyVault).replace("%count%", Double.toString(needCoin)));
                 }else{
@@ -188,7 +192,7 @@ public class BaseMail {
         }
         // 判断玩家point够不够
         if(GlobalConfig.enPlayerPoints && !p.hasPermission("mailbox.admin.send.check.point") && GlobalConfig.playerPointsExpand!=0){
-            if(MailBoxAPI.getPoints(p)<needPoint){
+            if(PlayerPointsUtil.getPoints(p)<needPoint){
                 if(cc==null){
                     p.sendMessage(Message.mailExpandError.replace("%type%", Message.moneyPlayerpoints).replace("%count%", Integer.toString(needPoint)));
                 }else{
@@ -209,7 +213,7 @@ public class BaseMail {
     }
     
     public BaseMail setType(String type){
-        return MailBoxAPI.createBaseMail(type, id, sender, null, null, topic, content, date, null, 0, null, false, null);
+        return MailUtil.createBaseMail(type, id, sender, null, null, topic, content, date, null, 0, null, false, null);
     }
     
     public final String getType(){
@@ -249,11 +253,11 @@ public class BaseMail {
     }
     
     public final boolean removeCoin(Player p, double coin){
-        return MailBoxAPI.reduceEconomy(p, coin);
+        return VaultUtil.reduceEconomy(p, coin);
     }
     
     public final boolean removePoint(Player p, int point){
-        return MailBoxAPI.reducePoints(p, point);
+        return PlayerPointsUtil.reducePoints(p, point);
     }
     
     public double getExpandCoin(){

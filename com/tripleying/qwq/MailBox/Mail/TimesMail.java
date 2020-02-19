@@ -3,7 +3,8 @@ package com.tripleying.qwq.MailBox.Mail;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Message;
-import com.tripleying.qwq.MailBox.Utils.DateTime;
+import com.tripleying.qwq.MailBox.Utils.MailUtil;
+import com.tripleying.qwq.MailBox.Utils.TimeUtil;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,10 +31,9 @@ public class TimesMail extends BaseMail implements MailTimes {
             long deadline = new SimpleDateFormat("HH").parse(GlobalConfig.timesExpired).getTime();
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             long sendTime = df.parse(getDate()).getTime();
-            long now = df.parse(DateTime.get("ymdhms")).getTime();
+            long now = df.parse(TimeUtil.get("ymdhms")).getTime();
             return (sendTime+deadline)<=now;
         } catch (ParseException ex) {
-            Bukkit.getLogger().info(ex.getLocalizedMessage());
             return false; 
         }
     }
@@ -60,7 +60,7 @@ public class TimesMail extends BaseMail implements MailTimes {
 
     @Override
     public boolean sendData() {
-        return MailBoxAPI.setSend("times", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", times, "", false, "0");
+        return MailUtil.setSend("times", getId(), getSender(), "", "", getTopic(), getContent(), getDate(), "", times, "", false, "0");
     }
 
     @Override
