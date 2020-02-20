@@ -64,8 +64,6 @@ public class MailBox extends JavaPlugin {
     public static final HashMap<String, Integer> CDKEY_DAY = new HashMap();
     private static final HashMap<Integer, BaseMail> CDKEY_LIST = new HashMap();
     private static final HashMap<String, HashMap<String, ArrayList<Integer>>> CDKEY_RELEVANT = new HashMap();
-    
-    private static final HashMap<String, HashMap<Integer, BaseMail>> TRUE_MAIN_LIST = new HashMap();
       
     @Override
     public void onEnable(){
@@ -895,11 +893,13 @@ public class MailBox extends JavaPlugin {
                 }else{
                     sender.sendMessage(Message.globalNoPermission);
                 }
-            }else if(args[1].equals("clean") && (type.equals("player") || type.equals("date"))){
+            }else if(args[1].equals("clean") && (type.equals("player") || type.equals("date") || type.equals("times") || type.equals("keytimes"))){
                 if(sender.hasPermission("mailbox.admin.clean."+type)){
                     StringBuilder t = new StringBuilder("");
                     if((type.equals("player"))) PLAYER_LIST.forEach((Integer k, BaseMail v) -> { if(v.ExpireValidate()) if(v.Delete(null)) t.append("1"); });
                     if((type.equals("date"))) DATE_LIST.forEach((Integer k, BaseMail v) -> { if(v.ExpireValidate()) if(v.Delete(null)) t.append("1"); });
+                    if((type.equals("times"))) TIMES_LIST.forEach((Integer k, BaseMail v) -> { if(v.ExpireValidate()) if(v.Delete(null)) t.append("1"); });
+                    if((type.equals("keytimes"))) KEYTIMES_LIST.forEach((Integer k, BaseMail v) -> { if(v.ExpireValidate()) if(v.Delete(null)) t.append("1"); });
                     sender.sendMessage(Message.commandMailClean.replace("%type%", Message.getTypeName(type)).replace("%count%", Integer.toString(t.length())));
                 }else{
                     sender.sendMessage(Message.globalNoPermission);

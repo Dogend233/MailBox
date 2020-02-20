@@ -74,17 +74,26 @@ public class VersionUtil {
     
     // 比较两个字符串版本号
     public static boolean check(String now, String need){
-        int db = Integer.parseInt(need.substring(0, need.indexOf(".")));
-        int wb = Integer.parseInt(now.substring(0, now.indexOf(".")));
-        if(wb>db){
-            return true;
-        }else if(db>wb){
-            return false;
-        }else{
-            double ds = Double.parseDouble(need.substring(need.indexOf(".")+1));
-            double ws = Double.parseDouble(now.substring(now.indexOf(".")+1));
-            return ws>=ds;
+        int[] nowarr = String2Integer(now.split("\\."));
+        int[] needarr = String2Integer(need.split("\\."));
+        int nowl = nowarr.length;
+        int needl = needarr.length;
+        for(int i=0;i<(nowl>needl?nowl:needl);i++){
+            int nowi = i<nowl?nowarr[i]:0;
+            int needi = i<needl?needarr[i]:0;
+            if(nowi<needi) return false;
         }
+        return true;
+    }
+    
+    // 将字符串数组转为int数组
+    public static int[] String2Integer(String[] str){
+        int l = str.length;
+        int[] in = new int[l];
+        for(int i=0;i<l;i++){
+            in[i] = Integer.parseInt(str[i]);
+        }
+        return in;
     }
     
     // 更新检查

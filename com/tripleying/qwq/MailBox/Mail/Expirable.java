@@ -1,5 +1,5 @@
 package com.tripleying.qwq.MailBox.Mail;
 
-public interface canExpire {
+public interface Expirable {
     public boolean ExpireValidate();
 }
