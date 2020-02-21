@@ -11,7 +11,7 @@ A plugin of Minecraft
 - LocaleLanguageAPI: http://qwq.xn--o5raa.com/plugins/localelanguageapi
 
 ##### SoftDepend:
-- VexView(v2.4-v2.6): https://www.vexview.net/resources/vexview-gui-minecraft-1-7-10-1-16.2/
+- VexView(v2.4-v2.6.10): https://www.vexview.net/resources/vexview-gui-minecraft-1-7-10-1-16.2/
 - PlaceholderAPI: https://www.spigotmc.org/resources/placeholderapi.6245/
 - Vault: https://www.spigotmc.org/resources/vault.34315/
 - PlayerPoints: https://dev.bukkit.org/projects/playerpoints
