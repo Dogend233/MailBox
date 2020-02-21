@@ -59,15 +59,16 @@ public class VersionUtil {
                 sender.sendMessage(Message.updateNewest);
             }else{
                 String msg = "";
-                for(int j=Message.updateNew.size()-1;j>0;j++){
-                    msg += Message.updateNew.get(j)+ '\n';
+                int l = Message.updateNew.size();
+                for(int j=0;j<l;j++){
+                    msg += Message.updateNew.get(j)+'\n';
                 }
-                if(!Message.updateNew.isEmpty()) msg += Message.updateNew.get(0);
-                sender.sendMessage(msg.replace("%version%", info.get(0)).replace("%date%", info.get(1)).replace("%download%", MailBox.getInstance().getDescription().getWebsite()+"/download.php"));
+                msg = msg.replace("%version%", info.get(0)).replace("%date%", info.get(1)).replace("%download%", MailBox.getInstance().getDescription().getWebsite()+"/download.php");
                 String[] in = info.get(2).split("#");
                 for(int j=0;j<in.length;j++){
-                    sender.sendMessage("§b"+(j+1)+": "+in[j]);
+                    msg += "§b"+(j+1)+": "+in[j]+'\n';
                 }
+                sender.sendMessage(msg);
             }
         }
     }

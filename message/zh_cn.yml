@@ -73,9 +73,9 @@ sql:
 update:
   new: 
   - '§b-----[MailBox更新检测]:检测到新版本-----'
-  - '§b-----最新版本: %version% - %date%'
-  - '§b-----下载地址: %download%'
-  - '§b-----更新内容:'
+  - '§b---最新版本: %version% - %date%'
+  - '§b---下载地址: %download%'
+  - '§b---更新内容:'
   newest: '§a-----[MailBox更新检测]:您的版本已是最新！'
   error: '§c-----[MailBox更新检测]:获取最新版本信息失败'
 exchange:

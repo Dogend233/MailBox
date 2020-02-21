@@ -61,13 +61,13 @@ public class FileUtil {
     
     // 获取配置文件(不存在则自动创建)
     public static YamlConfiguration getConfig(String dir, String filename, String jar){
-        File f = getFile(dir+"/"+filename);
+        File f = getFile(dir.equals("")?filename:(dir+"/"+filename));
         if(!f.exists()){
             try {
                 OutputStreamWriter osw;
                 BufferedWriter bw;
                 PrintWriter pw;
-                try (InputStreamReader isr = getInputStreamReader(jar+"/"+filename); 
+                try (InputStreamReader isr = getInputStreamReader(jar.equals("")?filename:(jar+"/"+filename)); 
                     BufferedReader br = new BufferedReader(isr)) {
                     osw = new OutputStreamWriter(new FileOutputStream(f), encoding);
                     bw = new BufferedWriter(osw);
