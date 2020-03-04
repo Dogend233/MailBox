@@ -1,8 +1,8 @@
 package com.tripleying.qwq.MailBox.Mail;
 
-import org.bukkit.entity.Player;
-
+/**
+ * system邮件
+ */
 public interface MailSystem {
-    public boolean sendData();
-    public boolean collectValidate(Player p);
+    
 }

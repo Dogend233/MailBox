@@ -1,10 +1,10 @@
 package com.tripleying.qwq.MailBox.Utils;
 
 import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
-import java.util.Date; 
+import com.tripleying.qwq.MailBox.OuterMessage;
 import java.text.SimpleDateFormat; 
 import java.util.ArrayList;
+import java.util.Date; 
 import java.util.Calendar;
 import java.util.List;
 import org.bukkit.command.CommandSender;
@@ -12,26 +12,36 @@ import org.bukkit.conversations.ConversationContext;
 
 /**
  * 时间工具
- * @author Dogend
  */
 public class TimeUtil {
     
-    // 上次操作时间
+    /**
+     * 上次操作时间
+     */
     private static long lastTime;
     
-    // 设置上次操作时间
+    /**
+     * 设置上次操作时间
+     * @param l 时间
+     */
     public static void setLastTime(long l){
         lastTime = l;
     }
-    
-    // 更新上次操作时间
+
+    /**
+     *更新上次操作时间
+     */
     public static void updateLastTime(){
         long newTime = System.currentTimeMillis();
         if(newTime>lastTime) MailBox.CDKEY_DAY.clear();
         lastTime = System.currentTimeMillis()/(1000*3600*24)*(1000*3600*24)+24*60*60*1000;
     }
-    
-    // 获取当前时间
+
+    /**
+     * 获取当前时间
+     * @param type 类型
+     * @return 时间字符串
+     */
     public static String get(String type){
         long l = System.currentTimeMillis();
         switch (type) {
@@ -56,13 +66,22 @@ public class TimeUtil {
         }
         return null;
     }
-    
-    // 获取一个默认的时间字符串
+
+    /**
+     * 获取一个默认的时间字符串
+     * @return 时间字符串
+     */
     public static String getDefault(){
         return "2000-01-01 00:00:00";
     }
-    
-    // 将收到的字符串转化为时间List
+
+    /**
+     * 将收到的字符串转化为时间列表
+     * @param str 字符串
+     * @param sender 指令发送者
+     * @param cc 会话
+     * @return 时间列表
+     */
     public static List<Integer> toDate(String str, CommandSender sender, ConversationContext cc){
         String[] s;
         if(str.contains("-")) s = str.split("-");
@@ -77,13 +96,19 @@ public class TimeUtil {
             }
             return t;
         }catch(NumberFormatException e){
-            if(cc==null) sender.sendMessage(Message.globalNumberError);
-            else cc.getForWhom().sendRawMessage(Message.globalNumberError);
+            if(cc==null) sender.sendMessage(OuterMessage.globalNumberError);
+            else cc.getForWhom().sendRawMessage(OuterMessage.globalNumberError);
             return new ArrayList();
         }
     }
-    
-    // 将收到的时间List转化为字符串
+
+    /**
+     * 将收到的时间列表转化为字符串
+     * @param t 时间列表
+     * @param sender 指令发送者
+     * @param cc 会话
+     * @return 时间字符串
+     */
     public static String toDate(List<Integer> t, CommandSender sender, ConversationContext cc){
         int yyyy = t.get(0);
         int MM = t.get(1);
@@ -123,29 +148,29 @@ public class TimeUtil {
                                     str.append(ss);
                                     return str.toString();
                                 }else{
-                                    if(cc==null) sender.sendMessage(Message.datess);
-                                    else cc.getForWhom().sendRawMessage(Message.datess);
+                                    if(cc==null) sender.sendMessage(OuterMessage.datess);
+                                    else cc.getForWhom().sendRawMessage(OuterMessage.datess);
                                 }
                             }else{
-                                if(cc==null) sender.sendMessage(Message.datemm);
-                                else cc.getForWhom().sendRawMessage(Message.datemm);
+                                if(cc==null) sender.sendMessage(OuterMessage.datemm);
+                                else cc.getForWhom().sendRawMessage(OuterMessage.datemm);
                             }
                         }else{
-                            if(cc==null) sender.sendMessage(Message.dateHH);
-                            else cc.getForWhom().sendRawMessage(Message.dateHH);
+                            if(cc==null) sender.sendMessage(OuterMessage.dateHH);
+                            else cc.getForWhom().sendRawMessage(OuterMessage.dateHH);
                         }
                     }
                 }else{
-                    if(cc==null) sender.sendMessage(Message.datedd.replace("%max%", Integer.toString(dayMax)));
-                    else cc.getForWhom().sendRawMessage(Message.datedd.replace("%max%", Integer.toString(dayMax)));
+                    if(cc==null) sender.sendMessage(OuterMessage.datedd.replace("%max%", Integer.toString(dayMax)));
+                    else cc.getForWhom().sendRawMessage(OuterMessage.datedd.replace("%max%", Integer.toString(dayMax)));
                 }
             }else{
-                if(cc==null) sender.sendMessage(Message.dateMM);
-                else cc.getForWhom().sendRawMessage(Message.dateMM);
+                if(cc==null) sender.sendMessage(OuterMessage.dateMM);
+                else cc.getForWhom().sendRawMessage(OuterMessage.dateMM);
             }
         }else{
-            if(cc==null) sender.sendMessage(Message.dateyyyy);
-            else cc.getForWhom().sendRawMessage(Message.dateyyyy);
+            if(cc==null) sender.sendMessage(OuterMessage.dateyyyy);
+            else cc.getForWhom().sendRawMessage(OuterMessage.dateyyyy);
         }
         return null;
     }

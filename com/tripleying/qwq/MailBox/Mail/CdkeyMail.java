@@ -1,18 +1,20 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.Event.MailCollectEvent;
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.Utils.CdkeyUtil;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.conversations.ConversationContext;
 import org.bukkit.entity.Player;
 
 public class CdkeyMail extends BaseMail implements MailCdkey {
     
+    /**
+     * 邮件是否只能有一个兑换码
+     * 当邮件只有一个兑换码时
+     * 领取邮件后自动删除此邮件
+     */
     private boolean only;
     
     public CdkeyMail(int id, String sender, String topic, String content, String date, boolean only) {
@@ -41,27 +43,6 @@ public class CdkeyMail extends BaseMail implements MailCdkey {
     }
     
     @Override
-    public int generateCdkey(int i) {
-        if(only){
-            try {
-                if(CdkeyUtil.sendCdkey(CdkeyUtil.generateCdkey(),getId())) return 1;
-            } catch (Exception ex) {}
-            return 0;
-        }else{
-            int count = 0;
-            int ID = getId();
-            for(int j=0;j<i;j++){
-                try {
-                    if(CdkeyUtil.sendCdkey(CdkeyUtil.generateCdkey(),ID)) count++;
-                } catch (Exception ex) {
-                    Logger.getLogger(CdkeyMail.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            return count;
-        }
-    }
-    
-    @Override
     public boolean Collect(Player p){
         if(MailUtil.createBaseMail("player", 0, getSender(), Arrays.asList(p.getName()), "", getTopic(), getContent(), getDate(), "", 0, "", false, "").Send(Bukkit.getConsoleSender(), null)){
             MailUtil.setCollect(getType(), getId(), p.getName());
@@ -73,14 +54,19 @@ public class CdkeyMail extends BaseMail implements MailCdkey {
     }
     
     @Override
-    public void DeleteLocalCdkey(){
-        CdkeyUtil.deleteLocalCdkey(getId());
-    }
-    
-    @Override
     public boolean Delete(Player p){
         DeleteLocalCdkey();
         return DeleteData(p);
+    }
+
+    @Override
+    public boolean collectValidate(Player p) {
+        return true;
+    }
+
+    @Override
+    public boolean sendValidate(Player p, ConversationContext cc) {
+        return true;
     }
     
 }

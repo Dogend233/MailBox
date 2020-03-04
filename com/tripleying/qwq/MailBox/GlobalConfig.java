@@ -1,6 +1,5 @@
 package com.tripleying.qwq.MailBox;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.Utils.FileUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +9,9 @@ import org.bukkit.Sound;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 
+/**
+ * 全局配置
+ */
 public class GlobalConfig {
     
     private static final List<String> DEFAULT_LANGUAGE = Arrays.asList("zh_cn");
@@ -44,6 +46,7 @@ public class GlobalConfig {
     public static int playerOut;
     public static String timesExpired;
     public static int timesCount;
+    public static List<String> keytimesKeyPrefixBan;
     public static int cdkeyDay;
     public static double vaultMax;
     public static double vaultExpand;
@@ -55,15 +58,15 @@ public class GlobalConfig {
     public static void setGlobalConfig(FileConfiguration config){
         ConsoleCommandSender ccs = Bukkit.getConsoleSender();
         // 语言
-        ccs.sendMessage(ConfigMessage.lang_check);
+        ccs.sendMessage(InnerMessage.lang_check);
         String lang = config.getString("language","zh_cn");
         if(FileUtil.existFile("Message/"+lang+".yml") || DEFAULT_LANGUAGE.contains(lang)){
             language = lang;
         }else{
-            ccs.sendMessage(ConfigMessage.lang_not_exist.replace("%lang%", lang));
+            ccs.sendMessage(InnerMessage.lang_not_exist.replace("%lang%", lang));
             language = "zh_cn";
         }
-        Message.setLanguage(language);
+        OuterMessage.setLanguage(language);
         fileSQL = config.getBoolean("database.fileSQL",false);
         tips = config.getStringList("mailbox.newMailTips");
         // 提示声音
@@ -86,17 +89,19 @@ public class GlobalConfig {
         playerOut = config.getInt("mailbox.player.out",10);
         // times邮件
         timesExpired  = config.getString("mailbox.times.expire","24");
-        timesCount = config.getInt("mailbox.times.count",20);//单封times邮件最大数量
+        timesCount = config.getInt("mailbox.times.count",20);
+        // keytimes邮件
+        keytimesKeyPrefixBan = config.getStringList("mailbox.keytimes.key_prefix_ban");
         // cdkey邮件
-        cdkeyDay = config.getInt("mailbox.cdkey_day",5);// 玩家每日可输入兑换码的次数
+        cdkeyDay = config.getInt("mailbox.cdkey_day",5);
         // [Vault]设置
-        vaultMax = config.getDouble("mailbox.vault.max",5000);// 单次邮件发送最大值
-        vaultExpand = config.getDouble("mailbox.vault.expand",10);// 发送邮件时所消耗的金钱
-        vaultItem = config.getDouble("mailbox.vault.item",50);// 每多一个附件物品增加的金钱消耗
+        vaultMax = config.getDouble("mailbox.vault.max",5000);
+        vaultExpand = config.getDouble("mailbox.vault.expand",10);
+        vaultItem = config.getDouble("mailbox.vault.item",50);
         // [PlayerPoints]设置
-        playerPointsMax = config.getInt("mailbox.player_points.max",500);// 单次邮件发送最大值
-        playerPointsExpand = config.getInt("mailbox.player_points.expand",0);// 发送邮件时所消耗的点券
-        playerPointsItem = config.getInt("mailbox.player_points.item",0);// 每多一个附件物品增加的点券消耗
+        playerPointsMax = config.getInt("mailbox.player_points.max",500);
+        playerPointsExpand = config.getInt("mailbox.player_points.expand",0);
+        playerPointsItem = config.getInt("mailbox.player_points.item",0);
     }
     
     private static List<String> formatMaterial(List<String> idList){

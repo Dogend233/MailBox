@@ -3,7 +3,7 @@ package com.tripleying.qwq.MailBox.Utils;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Mail.*;
 import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.SQL.SQLManager;
 import com.tripleying.qwq.MailBox.VexView.MailTipsHud;
 import java.util.ArrayList;
@@ -18,28 +18,44 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * 邮件工具
- * @author Dogend
  */
 public class MailUtil {
     
-    // 真实邮件列表(有数据表)
+    /**
+     * 真实邮件列表(有数据表)
+     */
     private static final String[] TRUE_MAIL_TYPE = {"keytimes","times","date","system","permission","player","cdkey"};
-    // 特殊邮件列表(领取时转化为其他邮件)
-    private static final String[] SPECIAL_MAIL_TYPE = {"cdkey"};
-    // 虚拟邮件列表(发送时转化为其他邮件)
-    private static final String[] VIRTUAL_MAIL_TYPE = {"template","online"};
     
-    // 获取真实邮件类型
+    /**
+     * 特殊邮件列表(领取时转化为其他邮件)
+     */
+    private static final String[] SPECIAL_MAIL_TYPE = {"cdkey"};
+    
+    /**
+     * 虚拟邮件列表(发送时转化为其他邮件)
+     */
+    private static final String[] VIRTUAL_MAIL_TYPE = {"template","online"};
+
+    /**
+     * 获取真实邮件类型
+     * @return 邮件类型列表
+     */
     public static List<String> getTrueType(){
         return Arrays.asList(TRUE_MAIL_TYPE);
     }
     
-    // 获取虚拟邮件类型
+    /**
+     * 获取虚拟邮件类型
+     * @return 邮件类型列表
+     */
     public static List<String> getVirtualType(){
         return Arrays.asList(VIRTUAL_MAIL_TYPE);
     }
     
-    // 获取除特殊邮件类型外的真实邮件类型
+    /**
+     * 获取除特殊邮件类型外的真实邮件类型
+     * @return 邮件类型列表
+     */
     public static List<String> getTrueTypeWhithoutSpecial(){
         List<String> all = new ArrayList();
         all.addAll(Arrays.asList(TRUE_MAIL_TYPE));
@@ -48,8 +64,11 @@ public class MailUtil {
         });
         return all;
     }
-    
-    // 获取除特殊邮件类型外的虚拟邮件类型
+
+    /**
+     * 获取除特殊邮件类型外的虚拟邮件类型
+     * @return 邮件类型列表
+     */
     public static List<String> getVirtualTypeWhithoutSpecial(){
         List<String> all = new ArrayList();
         all.addAll(Arrays.asList(VIRTUAL_MAIL_TYPE));
@@ -59,7 +78,12 @@ public class MailUtil {
         return all;
     }
     
-    // 获取与玩家有关的邮件
+    /**
+     * 获取与玩家有关的邮件
+     * @param p 玩家
+     * @param type 邮件类型
+     * @return 发送/收到邮件的ID列表
+     */
     public static HashMap<String, ArrayList<Integer>> getRelevantMail(Player p, String type){
         HashMap<String, ArrayList<Integer>> hm = new HashMap();
         String name = p.getName();
@@ -69,7 +93,7 @@ public class MailUtil {
         switch (type) {
             case "player":
                 MailBox.getMailHashMap(type).forEach((k, v) -> {
-                    if(v.ExpireValidate()){
+                    if(isExpired(v)){
                         deleteList.add(k);
                     }else{
                         if(v.getSender().equals(name)) senderList.add(k);
@@ -95,15 +119,15 @@ public class MailUtil {
             case "date":
                 ArrayList<Integer> collectedDate = SQLManager.get().getCollectedMailList(p, type);
                 MailBox.getMailHashMap(type).forEach((k, v) -> {
-                    if(v.isStart() || p.hasPermission("mailbox.admin.see.date")){
-                        if(v.ExpireValidate()){
+                    if(((MailDate)v).isStart() || p.hasPermission("mailbox.admin.see.date")){
+                        if(isExpired(v)){
                             deleteList.add(k);
                         }else{
                             if(v.getSender().equals(name)) senderList.add(k);
                             if(!collectedDate.contains(k)) recipientList.add(k);
                         }
                     }else{
-                        if(v.ExpireValidate()){
+                        if(isExpired(v)){
                             deleteList.add(k);
                         }else{
                             if(v.getSender().equals(name)) senderList.add(k);
@@ -116,7 +140,7 @@ public class MailUtil {
             case "times":
                 ArrayList<Integer> collectedTimes = SQLManager.get().getCollectedMailList(p, type);
                 MailBox.getMailHashMap(type).forEach((k, v) -> {
-                    if(v.TimesValidate()){
+                    if(((MailTimes)v).TimesValidate()){
                         if(v.getSender().equals(name)) senderList.add(k);
                         if(!collectedTimes.contains(k)) recipientList.add(k);
                     }else{
@@ -128,7 +152,7 @@ public class MailUtil {
             case "keytimes":
                 ArrayList<Integer> collectedKeyTimes = SQLManager.get().getCollectedMailList(p, type);
                 MailBox.getMailHashMap(type).forEach((k, v) -> {
-                    if(v.TimesValidate()){
+                    if(((MailTimes)v).TimesValidate()){
                         if(v.getSender().equals(name)) senderList.add(k);
                         if(!collectedKeyTimes.contains(k)) recipientList.add(k);
                     }else{
@@ -149,8 +173,14 @@ public class MailUtil {
         hm.put("asRecipient", recipientList);
         return hm;
     }
-    
-    // 设置玩家领取一封邮件
+
+    /**
+     * 设置玩家领取一封邮件
+     * @param type 邮件类型
+     * @param id 邮件ID
+     * @param playername 玩家名
+     * @return boolean
+     */
     public static boolean setCollect(String type, int id, String playername){
         return SQLManager.get().setMailCollect(type, id, playername);
     }
@@ -183,19 +213,46 @@ public class MailUtil {
             return false;
         }
     }
-    
-    // 删除一封邮件
+
+    /**
+     * 删除一封邮件
+     * @param type 邮件类型
+     * @param id 邮件ID
+     * @return boolean
+     */
     public static boolean setDelete(String type, int id){
         return SQLManager.get().deleteMail(type, id);
     }
     
-    // 获取玩家某类型邮件已发件数量
+    /**
+     * 判断一封邮件是否过期
+     * @param bm 邮件
+     * @return boolean
+     */
+    public static boolean isExpired(BaseMail bm){
+        if(bm instanceof MailExpirable){
+            return ((MailExpirable)bm).ExpireValidate();
+        }else{
+            return false;
+        }
+    }
+
+    /**
+     * 获取玩家某类型邮件已发件数量
+     * @param p 玩家
+     * @param type 邮件类型
+     * @return 数量
+     */
     public static int asSenderNumber(Player p, String type){
         MailBox.updateRelevantMailList(p, type);
         return MailBox.getRelevantMailList(p, type).get("asSender").size();
     }
-    
-    // 获取玩家player类型邮件可以发件的数量
+
+    /**
+     * 获取玩家player类型邮件最大发件的数量
+     * @param p 玩家
+     * @return 数量
+     */
     public static int playerAsSenderAllow(Player p){
         for(int i=GlobalConfig.playerOut;i>0;i--){
             if(p.hasPermission("mailbox.send.player.out."+i)){
@@ -310,7 +367,7 @@ public class MailUtil {
      * @param point 点券
      * @return 基础附件邮件
      */
-    public static BaseFileMail createBaseFileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, int times, String key, boolean only, String template, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
+    public static BaseFileMail createBaseFileMail(String type, int id, String sender, List<String> recipient, String permission, String topic, String content, String date, String deadline, int times, String key, boolean only, String template, String filename, List<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point){
         switch(type){
             case "system":
                 return new SystemFileMail(id, sender, topic, content, date, filename, isl, cl, cd, coin, point);
@@ -334,13 +391,18 @@ public class MailUtil {
                 return null;
         }
     }
-    
-    // 向玩家发送邮件提醒
+
+    /**
+     * 向玩家发送邮件提醒
+     * @param p 玩家
+     * @param msg 提醒信息
+     * @param key 邮件口令
+     */
     public static void sendTips(Player p, String msg, String key){
         if(GlobalConfig.tips.contains("msg")){
             p.sendMessage(msg);
             if(!key.equals("")){
-                TextComponent tc = new TextComponent(Message.tipsKey.replace("%key%", key));
+                TextComponent tc = new TextComponent(OuterMessage.tipsKey.replace("%key%", key));
                 tc.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, key));
                 p.spigot().sendMessage(tc);
             }

@@ -4,8 +4,9 @@ import com.tripleying.qwq.MailBox.Mail.BaseMail;
 import com.tripleying.qwq.MailBox.Mail.BaseFileMail;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Mail.MailTimes;
 import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -348,11 +349,11 @@ public class MailBoxGui extends VexGui{
     private VexScrollingList writeMail(BaseMail bm, VexScrollingList vsl, int i){
         // 查看邮件按钮
         vsl.addComponent(new VexButton(mail_button_id+"_"+i,"",mail_button_image_1,mail_button_image_2,mail_button_x,mail_y_offset*i+mail_button_y,mail_button_w,mail_button_h,player -> {
-            if(bm.ExpireValidate()){
-                player.sendMessage(Message.mailExpire.replace("%para%",""));
+            if(MailUtil.isExpired(bm)){
+                player.sendMessage(OuterMessage.mailExpire.replace("%para%",""));
                 if(bm.Delete(player)) player.closeInventory();
-            }else if(!bm.TimesValidate()){
-                player.sendMessage(Message.mailExpire.replace("%para%",""));
+            }else if(bm instanceof MailTimes && !((MailTimes)bm).TimesValidate()){
+                player.sendMessage(OuterMessage.mailExpire.replace("%para%",""));
                 if(bm.Delete(player)) player.closeInventory();
             }else{
                 MailContentGui.openMailContentGui(player, bm, asSender);

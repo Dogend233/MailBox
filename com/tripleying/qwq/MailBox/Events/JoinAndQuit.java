@@ -1,8 +1,8 @@
 package com.tripleying.qwq.MailBox.Events;
 
-import com.tripleying.qwq.MailBox.ConfigMessage;
+import com.tripleying.qwq.MailBox.InnerMessage;
 import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import com.tripleying.qwq.MailBox.VexView.MailBoxHud;
 import lk.vexview.api.VexViewAPI;
@@ -20,7 +20,7 @@ public class JoinAndQuit implements Listener {
     
     public JoinAndQuit(boolean enVexView, boolean enHud){
         this.enVexView = enVexView;
-        if(this.enHud = enHud) Bukkit.getConsoleSender().sendMessage(ConfigMessage.hud_box);
+        if(this.enHud = enHud) Bukkit.getConsoleSender().sendMessage(InnerMessage.hud_box);
     }
     
     // 玩家进入事件
@@ -32,7 +32,7 @@ public class JoinAndQuit implements Listener {
         for(String type:MailUtil.getTrueTypeWhithoutSpecial()){
             MailBox.updateRelevantMailList(player, type);
             if(!MailBox.getRelevantMailList(player, type).get("asRecipient").isEmpty()){
-                MailUtil.sendTips(player, Message.tipsJoin.replace("%player", player.getName()),"");
+                MailUtil.sendTips(player, OuterMessage.tipsJoin.replace("%player", player.getName()),"");
                 return;
             }
         }

@@ -1,6 +1,6 @@
 package com.tripleying.qwq.MailBox.VexView;
 
-import com.tripleying.qwq.MailBox.ConfigMessage;
+import com.tripleying.qwq.MailBox.InnerMessage;
 import com.tripleying.qwq.MailBox.Events.DoubleKeyPress;
 import com.tripleying.qwq.MailBox.Events.JoinAndQuit;
 import com.tripleying.qwq.MailBox.Events.SingleKeyPress;
@@ -24,7 +24,7 @@ public class VexViewConfig {
     
     // 配置VexView
     public static void VexViewConfigSet(){
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview);
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview);
         // 加载按键列表
         if(KEY.isEmpty()) ReflectionUtil.getVexViewKeys(KEY);
         // 注册SendGUI打开事件监听器
@@ -32,7 +32,7 @@ public class VexViewConfig {
         // VexView文件夹
         File f = FileUtil.getFile(DIR);
         if(!f.exists()){
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", DIR));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.folder_create.replace("%folder%", DIR));
             f.mkdir();
         }
         // 加载配置
@@ -64,10 +64,10 @@ public class VexViewConfig {
                 String key1 = key.substring(0, l);
                 String key2 = key.substring(l+1);
                 Bukkit.getPluginManager().registerEvents(new DoubleKeyPress(Integer.parseInt(key1), Integer.parseInt(key2)), MailBox.getInstance());
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.double_box.replace("%key1%", getKey(key1)).replace("%key2%", getKey(key2)));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.double_box.replace("%key1%", getKey(key1)).replace("%key2%", getKey(key2)));
             }else{
                 Bukkit.getPluginManager().registerEvents(new SingleKeyPress(Integer.parseInt(key)), MailBox.getInstance());
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.single_box.replace("%key%", getKey(key)));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.single_box.replace("%key%", getKey(key)));
             }
         }
         MailBoxGui.setBoxConfig(
@@ -434,13 +434,13 @@ public class VexViewConfig {
     
     // 加载配置
     private static void ConfigLoad(){
-        ConfigSet(FileUtil.getConfig(DIR, "hud.yml", JAR), 
-            FileUtil.getConfig(DIR, "box.yml", JAR), 
-            FileUtil.getConfig(DIR, "content.yml", JAR), 
-            FileUtil.getConfig(DIR, "select.yml", JAR), 
-            FileUtil.getConfig(DIR, "send.yml", JAR), 
-            FileUtil.getConfig(DIR, "item_list.yml", JAR), 
-            FileUtil.getConfig(DIR, "cdkey.yml", JAR)
+        ConfigSet(FileUtil.getConfig("hud.yml", DIR, JAR), 
+            FileUtil.getConfig("box.yml", DIR, JAR), 
+            FileUtil.getConfig("content.yml", DIR, JAR), 
+            FileUtil.getConfig("select.yml", DIR, JAR), 
+            FileUtil.getConfig("send.yml", DIR, JAR), 
+            FileUtil.getConfig("item_list.yml", DIR, JAR), 
+            FileUtil.getConfig("cdkey.yml", DIR, JAR)
         );
     }
     

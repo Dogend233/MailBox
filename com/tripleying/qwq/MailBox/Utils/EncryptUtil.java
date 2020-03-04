@@ -6,11 +6,14 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * 加密工具
- * @author Dogend
  */
 public class EncryptUtil {
-    
-    // MD5
+
+    /**
+     * MD5
+     * @param str 明码
+     * @return 密码
+     */
     public static String MD5(String str){
         try {
             MessageDigest m = MessageDigest.getInstance("MD5");

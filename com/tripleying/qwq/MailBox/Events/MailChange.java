@@ -7,7 +7,7 @@ import com.tripleying.qwq.MailBox.Mail.*;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.io.IOException;
 import java.util.List;
@@ -36,16 +36,16 @@ public class MailChange implements Listener {
         String typeName = bm.getTypeName();
         String file;
         if(bm instanceof BaseFileMail){
-            file = Message.globalHasFile+": "+((BaseFileMail)bm).getFileName();
+            file = OuterMessage.globalHasFile+": "+((BaseFileMail)bm).getFileName();
         }else{
-            file = Message.globalNoFile;
+            file = OuterMessage.globalNoFile;
         }
         // 更新邮件列表
         MailBox.updateMailList(e.getPlayer(), type);
         // 输出到控制台
-        Bukkit.getConsoleSender().sendMessage(Message.mailSend.replace("%sender%", bm.getSender()).replace("%type%", type).replace("%file%", file));
+        Bukkit.getConsoleSender().sendMessage(OuterMessage.mailSend.replace("%sender%", bm.getSender()).replace("%type%", type).replace("%file%", file));
         if(GlobalConfig.tips.isEmpty()) return;
-        String msg = Message.tipsNew.replace("%sender%", bm.getSender()).replace("%type%", typeName);
+        String msg = OuterMessage.tipsNew.replace("%sender%", bm.getSender()).replace("%type%", typeName);
         switch (type){
             case "system":
                 Bukkit.getOnlinePlayers().stream().filter((p) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.system"))).forEachOrdered((p) -> {
@@ -59,7 +59,7 @@ public class MailChange implements Listener {
                     }
                 }); break;
             case "date":
-                if(bm.isStart()){
+                if(((MailDate)bm).isStart()){
                     Bukkit.getOnlinePlayers().stream().filter((p) -> (MailBoxAPI.hasPlayerPermission(p, "mailbox.collect.date"))).forEachOrdered((p) -> {
                         MailUtil.sendTips(p, msg.replace("%player", p.getName()),"");
                     });
@@ -90,7 +90,7 @@ public class MailChange implements Listener {
         // 更新玩家可领取邮件列表
         MailBox.updateRelevantMailList(p, type);
         // 输出到控制台
-        Bukkit.getConsoleSender().sendMessage(Message.mailCollect.replace("%player%", p.getName()).replace("%type%", bm.getTypeName()).replace("%id%", Integer.toString(bm.getId())));
+        Bukkit.getConsoleSender().sendMessage(OuterMessage.mailCollect.replace("%player%", p.getName()).replace("%type%", bm.getTypeName()).replace("%id%", Integer.toString(bm.getId())));
     }
     
     @EventHandler
@@ -101,7 +101,7 @@ public class MailChange implements Listener {
         // 更新邮件列表
         MailBox.updateMailList(e.getPlayer(), type);
         // 输出到控制台
-        Bukkit.getConsoleSender().sendMessage(Message.mailDelete.replace("%deleter%", deleter).replace("%type%", bm.getTypeName()).replace("%id%", Integer.toString(bm.getId())));
+        Bukkit.getConsoleSender().sendMessage(OuterMessage.mailDelete.replace("%deleter%", deleter).replace("%type%", bm.getTypeName()).replace("%id%", Integer.toString(bm.getId())));
     }
     
 }

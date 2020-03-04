@@ -1,9 +1,8 @@
 package com.tripleying.qwq.MailBox.SQL;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Mail.BaseMail;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import com.tripleying.qwq.MailBox.Utils.TimeUtil;
 import java.sql.Connection;
@@ -94,9 +93,9 @@ public class SQLManager {
             // 1.11以下手动加载数据库连接类
             if(GlobalConfig.server_under_1_11) Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection("jdbc:sqlite:plugins/MailBox/" + databaseName + ".db");
-            Bukkit.getConsoleSender().sendMessage(Message.sqlSuccess.replace("%sql%", "SQLite"));
+            Bukkit.getConsoleSender().sendMessage(OuterMessage.sqlSuccess.replace("%sql%", "SQLite"));
         } catch (SQLException | ClassNotFoundException e) {
-            Bukkit.getConsoleSender().sendMessage(Message.sqlError.replace("%sql%", "SQLite"));
+            Bukkit.getConsoleSender().sendMessage(OuterMessage.sqlError.replace("%sql%", "SQLite"));
             Bukkit.getLogger().info(e.getLocalizedMessage());
         }
     }
@@ -140,9 +139,9 @@ public class SQLManager {
     {
         try {
             connection = DriverManager.getConnection("jdbc:mysql://" + ip + ":" + port + "/" + databaseName + "?useSSL=false&autoReconnect=true", userName, userPassword);
-            Bukkit.getConsoleSender().sendMessage(Message.sqlSuccess.replace("%sql%", "MySQL"));
+            Bukkit.getConsoleSender().sendMessage(OuterMessage.sqlSuccess.replace("%sql%", "MySQL"));
         } catch (SQLException e) {
-            Bukkit.getConsoleSender().sendMessage(Message.sqlError.replace("%sql%", "MySQL"));
+            Bukkit.getConsoleSender().sendMessage(OuterMessage.sqlError.replace("%sql%", "MySQL"));
             Bukkit.getLogger().info(e.getLocalizedMessage());
         }
     }
@@ -430,7 +429,7 @@ public class SQLManager {
     
     //获取邮件列表
     public HashMap<Integer, BaseMail> getMailList(String type){
-        String typeName = Message.getTypeName(type);
+        String typeName = OuterMessage.getTypeName(type);
         if(typeName==null) return null;
         String sql = SQLCommand.SELECT_LIST_MAIL.commandToString(SQLPrefix, type);
         HashMap<Integer, BaseMail> hm = new HashMap();
@@ -478,14 +477,14 @@ public class SQLManager {
                 }
                 BaseMail bm = filename.equals("0") ? MailUtil.createBaseMail(type, mail, sender, recipient, permission, topic, content, time, deadline, times, key, only, null)
                                                     :MailUtil.createBaseFileMail(type, mail, sender, recipient, permission, topic, content, time, deadline, times, key, only, filename);
-                if(bm.ExpireValidate() && MailUtil.setDelete(type, mail)){
-                    Bukkit.getConsoleSender().sendMessage(Message.mailExpire.replace("%para%", bm.getTypeName()+"-"+mail));
+                if(MailUtil.isExpired(bm) && MailUtil.setDelete(type, mail)){
+                    Bukkit.getConsoleSender().sendMessage(OuterMessage.mailExpire.replace("%para%", bm.getTypeName()+"-"+mail));
                     continue;
                 }
                 hm.put(mail, bm);
             }
         } catch (SQLException e) {
-            Bukkit.getConsoleSender().sendMessage(Message.mailListError.replace("%type%", typeName));
+            Bukkit.getConsoleSender().sendMessage(OuterMessage.mailListError.replace("%type%", typeName));
             Bukkit.getLogger().info(e.getLocalizedMessage());
         }
         return hm;
@@ -493,7 +492,7 @@ public class SQLManager {
     
     //获取玩家已领取的邮件ID列表
     public ArrayList<Integer> getCollectedMailList(Player p, String type){
-        String typeName = Message.getTypeName(type);
+        String typeName = OuterMessage.getTypeName(type);
         if(typeName==null) return null;
         String sql;
         switch (type) {
@@ -516,7 +515,7 @@ public class SQLManager {
             while (rs.next()) l.add(rs.getInt("mail"));
             return l;
         } catch (SQLException e) {
-            Bukkit.getConsoleSender().sendMessage(Message.mailPlayerError.replace("%player%", p.getName()).replace("%type%", typeName));
+            Bukkit.getConsoleSender().sendMessage(OuterMessage.mailPlayerError.replace("%player%", p.getName()).replace("%type%", typeName));
             Bukkit.getLogger().info(e.getLocalizedMessage());
             return null;
         }

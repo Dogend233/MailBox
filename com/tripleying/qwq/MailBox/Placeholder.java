@@ -1,65 +1,92 @@
-package com.tripleying.qwq.MailBox.Placeholder;
+package com.tripleying.qwq.MailBox;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.GlobalConfig;
-import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
 import com.tripleying.qwq.MailBox.Utils.CdkeyUtil;
 import com.tripleying.qwq.MailBox.Utils.ItemUtil;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
-public class MailBoxExpansion extends PlaceholderExpansion {
+/**
+ *　PlaceholderAPI变量
+ */
+public class Placeholder extends PlaceholderExpansion {
     
     @Override
     public String onPlaceholderRequest(Player p, String identifier){
 
-        if(p!=null){
-            
-            // 玩家可领取邮件数量
-            for(String type:MailUtil.getTrueType()){
-                if(identifier.equals("player_mail_"+type)){
-                    return Integer.toString(MailBox.getRelevantMailList(p, type).get("asRecipient").size());
-                }
-            }
-            
-            // 玩家可领取邮件总数量
-            if(identifier.equals("player_mail_all")){
-                return Integer.toString(MailBox.getMailAllCount(p));
-            }
-            
-            // 玩家可发送物品的最大数量
-            if(identifier.equals("player_send_item")){
-                return Integer.toString(ItemUtil.allowPlayerSend(p));
-            }
-            
-            // 玩家已发送某类型邮件的数量
-            for(String type:MailUtil.getTrueType()){
-                if(identifier.equals("player_send_"+type+"_number")){
-                    return Integer.toString(MailUtil.asSenderNumber(p, type));
-                }
-            }
-            
-            // 玩家可发送player邮件的最大数量
-            if(identifier.equals("player_send_player_max")){
-                return Integer.toString(MailUtil.playerAsSenderAllow(p));
-            }
-            
-            // 玩家收件箱是否有邮件
-            if(identifier.equals("player_hasmail")){
-                for(String type:MailUtil.getTrueTypeWhithoutSpecial()){
-                    MailBox.updateRelevantMailList(p, type);
-                    if(!MailBox.getRelevantMailList(p, type).get("asRecipient").isEmpty()) return Message.placeholderHasMail;
-                }
-                return Message.placeholderNoMail;
-            }
-            
-            // 玩家今日输入兑换码的次数
-            if(identifier.equals("player_cdkey_day")){
-                return Integer.toString(CdkeyUtil.cdkeyDay(p));
+        if(p!=null && identifier.startsWith("player_")){
+            return getPlayerPlaceholder(p, identifier);
+        }
+        
+        if(identifier.startsWith("server_")){
+            return getServerPlaceholder(identifier);
+        }
+        
+        return "";
+        
+    }
+    
+    /**
+     * 获取玩家变量
+     * @param p 玩家
+     * @param identifier 占位符
+     * @return String
+     */
+    public String getPlayerPlaceholder(Player p, String identifier){
+        
+        // 玩家可领取邮件数量
+        for(String type:MailUtil.getTrueType()){
+            if(identifier.equals("player_mail_"+type)){
+                return Integer.toString(MailBox.getRelevantMailList(p, type).get("asRecipient").size());
             }
         }
+
+        // 玩家可领取邮件总数量
+        if(identifier.equals("player_mail_all")){
+            return Integer.toString(MailBox.getMailAllCount(p));
+        }
+
+        // 玩家可发送物品的最大数量
+        if(identifier.equals("player_send_item")){
+            return Integer.toString(ItemUtil.allowPlayerSend(p));
+        }
+
+        // 玩家已发送某类型邮件的数量
+        for(String type:MailUtil.getTrueType()){
+            if(identifier.equals("player_send_"+type+"_number")){
+                return Integer.toString(MailUtil.asSenderNumber(p, type));
+            }
+        }
+
+        // 玩家可发送player邮件的最大数量
+        if(identifier.equals("player_send_player_max")){
+            return Integer.toString(MailUtil.playerAsSenderAllow(p));
+        }
+
+        // 玩家收件箱是否有邮件
+        if(identifier.equals("player_hasmail")){
+            for(String type:MailUtil.getTrueTypeWhithoutSpecial()){
+                MailBox.updateRelevantMailList(p, type);
+                if(!MailBox.getRelevantMailList(p, type).get("asRecipient").isEmpty()) return OuterMessage.placeholderHasMail;
+            }
+            return OuterMessage.placeholderNoMail;
+        }
+
+        // 玩家今日输入兑换码的次数
+        if(identifier.equals("player_cdkey_day")){
+            return Integer.toString(CdkeyUtil.cdkeyDay(p));
+        }
+
+        return "";
+        
+    }
+    
+    /**
+     * 获取服务器变量
+     * @param identifier 占位符
+     * @return String
+     */
+    public String getServerPlaceholder(String identifier){
         
         // 服务器邮件数量
         for(String type:MailUtil.getTrueType()){
@@ -119,6 +146,7 @@ public class MailBoxExpansion extends PlaceholderExpansion {
         }
         
         return "";
+        
     }
 
     @Override

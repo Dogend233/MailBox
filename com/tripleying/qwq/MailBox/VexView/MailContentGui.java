@@ -4,7 +4,7 @@ import com.tripleying.qwq.MailBox.Mail.*;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import com.tripleying.qwq.MailBox.Utils.TimeUtil;
 import java.util.ArrayList;
@@ -143,7 +143,7 @@ public class MailContentGui extends VexGui{
                         ((Conversable)p).acceptConversationInput("0");
                     }else{
                         // 发送邮件
-                        player.sendMessage(bm.Send(player, null)?Message.mailSendSuccess:Message.mailSendError);
+                        player.sendMessage(bm.Send(player, null)?OuterMessage.mailSendSuccess:OuterMessage.mailSendError);
                     }
                 });
         // 领取按钮
@@ -454,7 +454,10 @@ public class MailContentGui extends VexGui{
             this.addComponent(new VexText(text_date_x,text_date_y,Arrays.asList(text_date_prefix+date),text_date_size));
         }
         // 截止时间
-        if(bm instanceof MailDate && !((MailDate)bm).getDeadline().equals("0")) this.addComponent(new VexText(text_deadline_x,text_deadline_y,Arrays.asList(text_deadline_prefix+((MailDate)bm).getDeadline()),text_deadline_size));
+        if(bm instanceof MailExpirable){
+            String expirableDate = ((MailExpirable)bm).getExpireDate();
+            if(!expirableDate.equals("0")) this.addComponent(new VexText(text_deadline_x,text_deadline_y,Arrays.asList(text_deadline_prefix+expirableDate),text_deadline_size));
+        }
         // 邮件数量
         if(bm instanceof MailTimes) this.addComponent(new VexText(text_times_x,text_times_y,Arrays.asList(text_times_prefix+((MailTimes)bm).getTimes()),text_times_size));
         // 邮件口令
@@ -471,8 +474,8 @@ public class MailContentGui extends VexGui{
             if(isPreview){
                 List<String> hover = new ArrayList();
                 if(!BUTTON_HOVER.get("send").isEmpty()) BUTTON_HOVER.get("send").forEach(v -> hover.add(v));
-                if(bm.getExpandCoin()!=0) hover.add(Message.moneyExpand+": §r"+bm.getExpandCoin()+" "+Message.moneyVault);
-                if(bm.getExpandPoint()!=0) hover.add(Message.moneyExpand+": §r"+bm.getExpandPoint()+" "+Message.moneyPlayerpoints);
+                if(bm.getExpandCoin()!=0) hover.add(OuterMessage.moneyExpand+": §r"+bm.getExpandCoin()+" "+OuterMessage.moneyVault);
+                if(bm.getExpandPoint()!=0) hover.add(OuterMessage.moneyExpand+": §r"+bm.getExpandPoint()+" "+OuterMessage.moneyPlayerpoints);
                 if(!hover.isEmpty()) VexViewConfig.setHover(vbs, hover);
                 this.addComponent(vbs);
             }else{
@@ -504,7 +507,7 @@ public class MailContentGui extends VexGui{
             if(fm.isHasItem()){
                 int x_offset = ((slot_w-18)/2)-1; 
                 int y_offset = ((slot_h-18)/2)-1;
-                ArrayList<ItemStack> isl = fm.getItemList();
+                List<ItemStack> isl = fm.getItemList();
                 for(int i = 0 ;i<isl.size();i++){
                     int x = slot_x.get(i);
                     int y = slot_y.get(i);
@@ -541,8 +544,8 @@ public class MailContentGui extends VexGui{
             if(isPreview){
                 List<String> hover = new ArrayList();
                 if(!BUTTON_HOVER.get("send").isEmpty()) BUTTON_HOVER.get("send").forEach(v -> hover.add(v));
-                if(fm.getExpandCoin()!=0) hover.add(Message.moneyExpand+": §r"+fm.getExpandCoin()+" "+Message.moneyVault);
-                if(fm.getExpandPoint()!=0) hover.add(Message.moneyExpand+": §r"+fm.getExpandPoint()+" "+Message.moneyPlayerpoints);
+                if(fm.getExpandCoin()!=0) hover.add(OuterMessage.moneyExpand+": §r"+fm.getExpandCoin()+" "+OuterMessage.moneyVault);
+                if(fm.getExpandPoint()!=0) hover.add(OuterMessage.moneyExpand+": §r"+fm.getExpandPoint()+" "+OuterMessage.moneyPlayerpoints);
                 if(!hover.isEmpty()) VexViewConfig.setHover(vbs, hover);
                 this.addComponent(vbs);
             }else{
@@ -557,7 +560,7 @@ public class MailContentGui extends VexGui{
                 }
             }
         }else{
-            p.sendMessage(Message.fileFailed);
+            p.sendMessage(OuterMessage.fileFailed);
         }
     }
     

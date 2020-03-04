@@ -82,6 +82,12 @@ mailbox:
     #单封times邮件最大数量
     #Maximum count of single times-mail
     count: 20
+  #keytimes邮件(mail)
+  keytimes:
+    #被禁止的口令前缀
+    key_prefix_ban:
+    - /suicide
+    - /pay
   #玩家每日可输入兑换码的次数
   #Players can input the number of exchange codes per day
   cdkey_day: 5

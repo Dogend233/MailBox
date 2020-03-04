@@ -4,7 +4,10 @@ import com.tripleying.qwq.MailBox.Utils.FileUtil;
 import java.io.UnsupportedEncodingException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-public class ConfigMessage {
+/**
+ * 内部信息
+ */
+public class InnerMessage {
     
     public static String enable;
     public static String author;

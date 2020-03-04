@@ -6,29 +6,25 @@ import org.bukkit.entity.Player;
 
 /**
  * 邮件发送事件
- * @author Dogend
  */
 public class MailSendEvent extends MailEvent{
     
+    /**
+     * 玩家
+     */
     private final Player player;
-    private final CommandSender sender;
     
     /**
-     * 构造器
-     * @param bm 基础邮件
-     * @param p 玩家
+     * 指令发送者
      */
+    private final CommandSender sender;
+    
     public MailSendEvent(BaseMail bm, Player p){
         super(bm);
         this.player = p;
         this.sender = null;
     }
-    
-    /**
-     * 构造器
-     * @param bm 基础邮件
-     * @param sender 指令执行者
-     */
+
     public MailSendEvent(BaseMail bm, CommandSender sender){
         super(bm);
         this.sender = sender;

@@ -1,12 +1,15 @@
 package com.tripleying.qwq.MailBox.Mail;
 
-import com.tripleying.qwq.MailBox.Utils.TemplateUtil;
 import java.util.ArrayList;
 import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.ConversationContext;
+import org.bukkit.entity.Player;
 
 public class TemplateMail extends BaseMail implements MailTemplate {
     
+    /**
+     * 模板文件名
+     */
     private String template;
     
     public TemplateMail(String sender, String topic, String content, String template) {
@@ -16,7 +19,7 @@ public class TemplateMail extends BaseMail implements MailTemplate {
     
     @Override
     public boolean Send(CommandSender send, ConversationContext cc) {
-        return TemplateUtil.saveTemplateMail((MailTemplate)this);
+        return MailTemplate.super.Send(send, cc);
     }
     
     @Override
@@ -25,13 +28,27 @@ public class TemplateMail extends BaseMail implements MailTemplate {
     }
 
     @Override
-    public void setTemplate(String templateName) {
-        this.template = templateName;
+    public void setTemplate(String template) {
+        this.template = template;
     }
 
     @Override
     public String getTemplate() {
         return template;
     }
-    
+
+    @Override
+    public boolean sendData() {
+        return true;
+    }
+
+    @Override
+    public boolean collectValidate(Player p) {
+        return true;
+    }
+
+    @Override
+    public boolean sendValidate(Player p, ConversationContext cc) {
+        return true;
+    }
 }

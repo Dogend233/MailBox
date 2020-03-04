@@ -9,24 +9,44 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * 反射工具
- * @author Dogend
  */
 public class ReflectionUtil {
     
-    // 反射版本
+    /**
+     * 反射版本
+     */
     private static String VERSION;
-    // OBC物品类的asNMSCopy方法
-    private static Method asNMSCopyMethod;
-    // NMS的NBTTagCompound类
-    private static Class<?> nbtTagCompoundClazz;
-    // NMS物品类的save方法, 参数为NBTTagCompound
-    private static Method saveNmsItemStackMethod;
-    // NMS物品类的getName方法
-    private static Method getNameNmsItemStackMethod;
-    // NMSIChatBaseComponent类的getText方法
-    private static Method getTextNmsIChatBaseComponentMethod;
     
-    // 物品转json
+    /**
+     * OBC物品类的asNMSCopy方法
+     */
+    private static Method asNMSCopyMethod;
+    
+    /**
+     * NMS的NBTTagCompound类
+     */
+    private static Class<?> nbtTagCompoundClazz;
+    
+    /**
+     * NMS物品类的save方法, 参数为NBTTagCompound
+     */
+    private static Method saveNmsItemStackMethod;
+    
+    /**
+     * NMS物品类的getName方法
+     */
+    private static Method getNameNmsItemStackMethod;
+    
+    /**
+     * NMSIChatBaseComponent类的getText方法
+     */
+    private static Method getTextNmsIChatBaseComponentMethod;
+
+    /**
+     * 物品转json
+     * @param is 物品
+     * @return json字符串
+     */
     public static String Item2Json(ItemStack is){
         Object nmsItemStackObj;
         Object nmsNbtTagCompoundObj;
@@ -40,8 +60,12 @@ public class ReflectionUtil {
             return "";
         }
     }
-    
-    // 获取物品名
+
+    /**
+     * 获取物品名
+     * @param is 物品
+     * @return 物品名
+     */
     public static String getItemStackName(ItemStack is){
         String name = is.getType().name();
         try {
@@ -55,8 +79,11 @@ public class ReflectionUtil {
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException  ex) {}
         return name;
     }
-    
-    // 获取VexView的按键值
+
+    /**
+     * 获取VexView的按键值
+     * @param KEY Map(id-按键名)
+     */
     public static void getVexViewKeys(HashMap<String, String> KEY){
         try {
             Class<?> keyClazz = Class.forName("lk.vexview.event.MinecraftKeys");
@@ -70,16 +97,21 @@ public class ReflectionUtil {
             }
         } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {}
     }
-    
-    // 获取NMS版本
+
+    /**
+     * 获取NMS版本
+     * @return NMS版本
+     */
     public static String getVersion(){
         String name = Bukkit.getServer().getClass().getPackage().getName();
         VERSION = name.substring(name.lastIndexOf('.') + 1) + ".";
         getClassAndMethod();
         return VERSION;
     }
-    
-    // 获取类和方法
+
+    /**
+     * 获取类和方法
+     */
     public static void getClassAndMethod(){
         Class<?> obcItemStackClazz = getOBCClass("inventory.CraftItemStack");
         Class<?> nmsItemStackClazz = getNMSClass("ItemStack");
@@ -92,8 +124,12 @@ public class ReflectionUtil {
             saveNmsItemStackMethod = getMethod(nmsItemStackClazz, "save", nbtTagCompoundClazz);
         } catch (NoSuchMethodException | SecurityException ex) {}
     }
-    
-    // 获取NMS的类
+
+    /**
+     * 获取NMS的类
+     * @param nmsClassName 类名
+     * @return 类
+     */
     public static Class<?> getNMSClass(String nmsClassName) {
         String clazzName = "net.minecraft.server." + VERSION + nmsClassName;
         Class<?> clazz = null;
@@ -102,8 +138,12 @@ public class ReflectionUtil {
         } catch (ClassNotFoundException t) {}
         return clazz;
     }
-    
-    // 获取OBC的类
+
+    /**
+     * 获取OBC的类
+     * @param obcClassName 类名
+     * @return 类
+     */
     public static Class<?> getOBCClass(String obcClassName) {
         String clazzName = "org.bukkit.craftbukkit." + VERSION + obcClassName;
         Class<?> clazz = null;
@@ -112,8 +152,14 @@ public class ReflectionUtil {
         } catch (ClassNotFoundException t) {}
         return clazz;
     }
-    
-    // 获取一个类的方法
+
+    /**
+     * 获取类的方法
+     * @param clazz 类
+     * @param methodName 方法名
+     * @param params 参数列表
+     * @return 方法
+     */
     public static Method getMethod(Class<?> clazz, String methodName, Class<?>... params) {
         Method method = null;
         try {

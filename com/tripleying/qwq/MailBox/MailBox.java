@@ -27,7 +27,7 @@ import lk.vexview.api.VexViewAPI;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PlayerPoints;
-import static org.bukkit.Material.AIR;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
@@ -35,6 +35,9 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
+/**
+ * 主类
+ */
 public class MailBox extends JavaPlugin {
     
     private boolean enCmdOpen;
@@ -72,40 +75,40 @@ public class MailBox extends JavaPlugin {
         // 设置插件文件夹
         FileUtil.setDataFolder(getDataFolder());
         // 加载插件内部语言
-        if(!ConfigMessage.set(this)) {
+        if(!InnerMessage.set(this)) {
             Bukkit.getConsoleSender().sendMessage("-----§cMailBox: Super Super Super Error ! ! !-----");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
         // 插件启动
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.enable);
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.enable);
         // 打印作者
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.author.replace("%author%", getDescription().getAuthors().toString()));
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.author.replace("%author%", getDescription().getAuthors().toString()));
         // 打印网页
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.website.replace("%website%", getDescription().getWebsite()));
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.website.replace("%website%", getDescription().getWebsite()));
         // 打印版本
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.version.replace("%version%", getDescription().getVersion()));
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.version.replace("%version%", getDescription().getVersion()));
         // 获取反射版本
         ReflectionUtil.getVersion();
         // 获取服务端核心
         String serverJar = Bukkit.getServer().getName();
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.server_jar.replace("%server%", serverJar));
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.server_jar.replace("%server%", serverJar));
         // 获取MC版本
         String version = Bukkit.getServer().getVersion();
         version = version.substring(version.indexOf("MC")+3, version.length()-1).trim();
         String subversion = version.substring(0, version.lastIndexOf('.'));
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.server_version.replace("%version%", version));
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.server_version.replace("%version%", version));
         // 判断MC版本
         if(GlobalConfig.server_under_1_11 = !VersionUtil.check(subversion, "1.11")){
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.under1_11);
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.under1_11);
             if(GlobalConfig.server_under_1_10 = !VersionUtil.check(subversion, "1.10")){
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.under1_10);
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.under1_10);
                 if(GlobalConfig.server_under_1_9 = !VersionUtil.check(subversion, "1.9")){
-                    Bukkit.getConsoleSender().sendMessage(ConfigMessage.under1_9);
+                    Bukkit.getConsoleSender().sendMessage(InnerMessage.under1_9);
                     // 更改配置文件默认编码
                     FileUtil.setEncoding(serverJar);
                     if(GlobalConfig.server_under_1_8 = !VersionUtil.check(subversion, "1.8")){
-                        Bukkit.getConsoleSender().sendMessage(ConfigMessage.under1_8);
+                        Bukkit.getConsoleSender().sendMessage(InnerMessage.under1_8);
                     }
                 }
             }
@@ -115,7 +118,7 @@ public class MailBox extends JavaPlugin {
         // 加载插件
         loadPlugin();
         // 插件启动完成
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.enabled);
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.enabled);
         // 更新修改时间
         TimeUtil.setLastTime(System.currentTimeMillis()/(1000*3600*24)*(1000*3600*24)+24*60*60*1000);
         // 检查更新
@@ -125,11 +128,11 @@ public class MailBox extends JavaPlugin {
     @Override
     public void onDisable(){
         // 插件关闭
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.disable);
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.disable);
         // 卸载插件
         unloadPlugin();
         // 插件关闭完毕
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.diasbled);
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.diasbled);
     }
     
     // 检查前置插件
@@ -148,12 +151,12 @@ public class MailBox extends JavaPlugin {
                 }
             }
             if(GlobalConfig.enVault = enable){
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_enable.replace("%plugin%", "Vault").replace("%version%", Bukkit.getPluginManager().getPlugin("Vault").getDescription().getVersion()));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_enable.replace("%plugin%", "Vault").replace("%version%", Bukkit.getPluginManager().getPlugin("Vault").getDescription().getVersion()));
             }else{
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_close.replace("%plugin%", "Vault"));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_close.replace("%plugin%", "Vault"));
             }
         }else{
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_disable.replace("%plugin%", "Vault"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_disable.replace("%plugin%", "Vault"));
             GlobalConfig.enVault = false;
         }
         // [PlayerPoints]
@@ -166,25 +169,25 @@ public class MailBox extends JavaPlugin {
                 enable = PlayerPointsUtil.setPoints(PlayerPoints.class.cast(plugin));
             }
             if(GlobalConfig.enPlayerPoints = enable){
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_enable.replace("%plugin%", "PlayerPoints").replace("%version%", Bukkit.getPluginManager().getPlugin("PlayerPoints").getDescription().getVersion()));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_enable.replace("%plugin%", "PlayerPoints").replace("%version%", Bukkit.getPluginManager().getPlugin("PlayerPoints").getDescription().getVersion()));
             }else{
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_close.replace("%plugin%", "PlayerPoints"));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_close.replace("%plugin%", "PlayerPoints"));
             }
         }else{
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_disable.replace("%plugin%", "PlayerPoints"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_disable.replace("%plugin%", "PlayerPoints"));
             GlobalConfig.enPlayerPoints = false;
         }
         // [PlaceholderAPI]
         if(config.getBoolean("softDepend.PlaceholderAPI",true)){
             if (GlobalConfig.enPlaceholderAPI = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_enable.replace("%plugin%", "PlaceholderAPI").replace("%version%", Bukkit.getPluginManager().getPlugin("PlaceholderAPI").getDescription().getVersion()));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_enable.replace("%plugin%", "PlaceholderAPI").replace("%version%", Bukkit.getPluginManager().getPlugin("PlaceholderAPI").getDescription().getVersion()));
                 if(PlaceholderAPI.isRegistered("mailbox")) PlaceholderAPI.unregisterPlaceholderHook("mailbox");
-                new com.tripleying.qwq.MailBox.Placeholder.MailBoxExpansion().register();
+                new com.tripleying.qwq.MailBox.Placeholder().register();
             }else{
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_close.replace("%plugin%", "PlaceholderAPI"));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_close.replace("%plugin%", "PlaceholderAPI"));
             }
         }else{
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_disable.replace("%plugin%", "PlaceholderAPI"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_disable.replace("%plugin%", "PlaceholderAPI"));
             GlobalConfig.enPlaceholderAPI = false;
         }
         // [VexView]
@@ -196,60 +199,60 @@ public class MailBox extends JavaPlugin {
         if(config.getBoolean("softDepend.VexView",true)){
             if(Bukkit.getPluginManager().isPluginEnabled("VexView")){
                 String version = VexViewAPI.getVexView().getVersion();
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_enable.replace("%plugin%", "VexView").replace("%version%", version));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_enable.replace("%plugin%", "VexView").replace("%version%", version));
                 GlobalConfig.enVexView = true;
                 // 检查[VexView]版本号
                 if(VersionUtil.check(version, "2.6.8")){
                     Bukkit.getPluginManager().registerEvents(new VexInvGuiClose(), this);
                 }else{
                     if(GlobalConfig.server_over_1_12){
-                        Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview_under2_6_8_server_over1_12);
+                        Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview_under2_6_8_server_over1_12);
                         GlobalConfig.enVexView = false;
                     }else{
                         GlobalConfig.vexview_under_2_6_8 = true;
-                        Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview_under2_6_8);
+                        Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview_under2_6_8);
                         if(!VersionUtil.check(version, "2.6.0")){
                             GlobalConfig.vexview_under_2_6 = true;
-                            Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview_under2_6);
+                            Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview_under2_6);
                             if(VersionUtil.check(version, "2.5.6")){
                                 Bukkit.getPluginManager().registerEvents(new VexInvGuiClose(), this);
                             }else{
-                                Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview_under2_5_6);
+                                Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview_under2_5_6);
                                 if(!VersionUtil.check(version, "2.5.0")){
-                                    Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview_under2_5);
+                                    Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview_under2_5);
                                     GlobalConfig.vexview_under_2_5 = true;
                                     if(!VersionUtil.check(version, "2.4.0")){
-                                        Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview_under2_4);
+                                        Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview_under2_4);
                                         GlobalConfig.enVexView = false;
                                     }
                                 }else if(version.equals("2.5")){
                                 }else{
-                                    Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview_under2_5_6_over2_5);
+                                    Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview_under2_5_6_over2_5);
                                     GlobalConfig.vexview_over_2_5 = true;
                                 }
                             }
                         }else if(version.equals("2.6")){
                         }else{
-                            Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview_under2_6_8_over2_6);
+                            Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview_under2_6_8_over2_6);
                             GlobalConfig.enVexView = false;
                         }
                     }
                 }
             }else{
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_close.replace("%plugin%", "VexView"));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_close.replace("%plugin%", "VexView"));
             }
         }else{
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_disable.replace("%plugin%", "VexView"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_disable.replace("%plugin%", "VexView"));
         }
         // [LocaleLanguageAPI]
         if(config.getBoolean("softDepend.LocaleLanguageAPI",true)){
             if (GlobalConfig.enLocaleLanguageAPI = Bukkit.getPluginManager().isPluginEnabled("LocaleLanguageAPI")) {
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_enable.replace("%plugin%", "LocaleLanguageAPI").replace("%version%", Bukkit.getPluginManager().getPlugin("LocaleLanguageAPI").getDescription().getVersion()));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_enable.replace("%plugin%", "LocaleLanguageAPI").replace("%version%", Bukkit.getPluginManager().getPlugin("LocaleLanguageAPI").getDescription().getVersion()));
             }else{
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_close.replace("%plugin%", "PlaceholderAPI"));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_close.replace("%plugin%", "LocaleLanguageAPI"));
             }
         }else{
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.soft_depend_disable.replace("%plugin%", "PlaceholderAPI"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.soft_depend_disable.replace("%plugin%", "LocaleLanguageAPI"));
             GlobalConfig.enLocaleLanguageAPI = false;
         }
     }
@@ -267,26 +270,26 @@ public class MailBox extends JavaPlugin {
         // 移除HUD
         if(GlobalConfig.enVexView){
             Bukkit.getOnlinePlayers().stream().forEach(player -> VexViewAPI.removeHUD(player, MailBoxHud.id));
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.vexview_hud_close);
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.vexview_hud_close);
         }
         // 注销PlaceholderAPI占位符
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") && PlaceholderAPI.isRegistered("mailbox")){
             PlaceholderAPI.unregisterPlaceholderHook("mailbox");
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.placeholder_unhook);
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.placeholder_unhook);
         }
         // 断开MySQL连接
         try{
             SQLManager.get().shutdown();
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.sql_shutdown);
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.sql_shutdown);
         }catch(Exception e){
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.sql_shutdown_error);
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.sql_shutdown_error);
         }
     }
     
     // 加载插件
     private void loadPlugin(){
         // 加载插件内部语言
-        if(!ConfigMessage.set(this)) {
+        if(!InnerMessage.set(this)) {
             Bukkit.getConsoleSender().sendMessage("-----§cMailBox: Super Super Super Error ! ! !-----");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
@@ -295,16 +298,16 @@ public class MailBox extends JavaPlugin {
         File f = getDataFolder();
         if(!f.exists()){
             f.mkdir();
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", "MailBox"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.folder_create.replace("%folder%", "MailBox"));
         }
         // 语言文件夹
         f = FileUtil.getFile("Message");
         if(!f.exists()){
             f.mkdir();
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", "Message"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.folder_create.replace("%folder%", "Message"));
         }
         // 读取config配置文件
-        config = FileUtil.getConfig("", "config.yml", "");
+        config = FileUtil.getConfig("config.yml", "", "");
         // 检查前置
         checkSoftDepend();
         // 设置GlobalConfig
@@ -320,30 +323,30 @@ public class MailBox extends JavaPlugin {
         f = FileUtil.getFile("MailFiles");
         if(!f.exists()){
             f.mkdir();
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", "MailFiles"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.folder_create.replace("%folder%", "MailFiles"));
         }
         // 邮件文件夹
         for(String type:MailUtil.getTrueType()){
             f = FileUtil.getFile("MailFiles/"+type);
             if(!f.exists()){
                 f.mkdir();
-                Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", type));
+                Bukkit.getConsoleSender().sendMessage(InnerMessage.folder_create.replace("%folder%", type));
             }
         }
         // 模板文件夹
         f = FileUtil.getFile("Template");
         if(!f.exists()){
             f.mkdir();
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", "Template"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.folder_create.replace("%folder%", "Template"));
         }
         // 兑换码文件夹
         f = FileUtil.getFile("Cdkey");
         if(!f.exists()){
             f.mkdir();
-            Bukkit.getConsoleSender().sendMessage(ConfigMessage.folder_create.replace("%folder%", "Cdkey"));
+            Bukkit.getConsoleSender().sendMessage(InnerMessage.folder_create.replace("%folder%", "Cdkey"));
         }
         // 连接数据库
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.sql_connect);
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.sql_connect);
         if(config.getBoolean("database.enableMySQL")){
             SQLManager.get().enableMySQL(
                 config.getString("database.mySQLhost"), 
@@ -383,11 +386,11 @@ public class MailBox extends JavaPlugin {
                 switch (args[0]) {
                     case "cdk":
                         if(sender instanceof Player && MailBoxAPI.hasPlayerPermission(sender, "mailbox.cdkey.use")) CdkeyUtil.exchangeCdkey(((Player)sender), args[1]);
-                        else sender.sendMessage(Message.globalNoPermission);
+                        else sender.sendMessage(OuterMessage.globalNoPermission);
                         break;
                     case "item":
                         if(sender.hasPermission("mailbox.admin.item")) onCommandItem(sender,args);
-                        else sender.sendMessage(Message.globalNoPermission);
+                        else sender.sendMessage(OuterMessage.globalNoPermission);
                         break;
                     case "template":
                     case "send":
@@ -403,7 +406,7 @@ public class MailBox extends JavaPlugin {
                         onCommandMail(sender, args);
                         break;
                     default:
-                        sender.sendMessage(Message.commandInvalid);
+                        sender.sendMessage(OuterMessage.commandInvalid);
                 }
             }else{
                 return true;
@@ -619,14 +622,14 @@ public class MailBox extends JavaPlugin {
         if(sender==null) return;
         switch (arg) {
             case "help":
-                (sender.hasPermission("mailbox.admin.help") ? Message.helpAdmin : Message.helpPlayer).forEach(s -> sender.sendMessage(s));
+                (sender.hasPermission("mailbox.admin.help") ? OuterMessage.helpAdmin : OuterMessage.helpPlayer).forEach(s -> sender.sendMessage(s));
                 break;
             case "sendbox":
             case "sb":
                 if((sender instanceof Player)){
                     MailList.list(sender, "Sender");
                 }else{
-                    sender.sendMessage(Message.commandOnlyPlayer);
+                    sender.sendMessage(OuterMessage.commandOnlyPlayer);
                 }
                 break;
             case "receivebox":
@@ -650,25 +653,25 @@ public class MailBox extends JavaPlugin {
                         });
                     });
                 }else{
-                    sender.sendMessage(Message.globalNoPermission);
+                    sender.sendMessage(OuterMessage.globalNoPermission);
                 }   break;
             case "reload":
                 if(sender.hasPermission("mailbox.admin.reload")){
                     reloadPlugin();
-                    sender.sendMessage(Message.commandReload);
+                    sender.sendMessage(OuterMessage.commandReload);
                 }else{
-                    sender.sendMessage(Message.globalNoPermission);
+                    sender.sendMessage(OuterMessage.globalNoPermission);
                 }
                 break;
             case "check":
                 if(sender.hasPermission("mailbox.admin.check")){
                     VersionUtil.check(sender, 0L);
                 }else{
-                    sender.sendMessage(Message.globalNoPermission);
+                    sender.sendMessage(OuterMessage.globalNoPermission);
                 }
                 break;
             default:
-                sender.sendMessage(Message.commandInvalid);
+                sender.sendMessage(OuterMessage.commandInvalid);
         }
     }
     
@@ -679,7 +682,7 @@ public class MailBox extends JavaPlugin {
             case "list":
                 List<String> list = ItemUtil.getExportList();
                 if(list.isEmpty()){
-                    sender.sendMessage(Message.commandEmptyItemList);
+                    sender.sendMessage(OuterMessage.commandEmptyItemList);
                 }else{
                     if(GlobalConfig.vexview_under_2_5 || !(sender instanceof Player)){
                         int i = 0;
@@ -692,51 +695,51 @@ public class MailBox extends JavaPlugin {
                 }   break;
             case "export":
                 if(args.length!=3){
-                    sender.sendMessage(Message.commandInvalid);
+                    sender.sendMessage(OuterMessage.commandInvalid);
                     break;
                 }
                 if(sender instanceof Player){
                     if(GlobalConfig.server_under_1_9) is = ((Player)sender).getInventory().getItemInHand();
                     else is = ((Player)sender).getInventory().getItemInMainHand();
-                    if(!is.getType().equals(AIR) && ItemUtil.exportItem(is, args[2])){
-                        sender.sendMessage(Message.commandExportItemSuccess);
+                    if(!is.getType().equals(Material.AIR) && ItemUtil.exportItem(is, args[2])){
+                        sender.sendMessage(OuterMessage.commandExportItemSuccess);
                     }else{
-                        sender.sendMessage(Message.commandExportItemError);
+                        sender.sendMessage(OuterMessage.commandExportItemError);
                     }
                 }else{
-                    sender.sendMessage(Message.commandOnlyPlayer);
+                    sender.sendMessage(OuterMessage.commandOnlyPlayer);
                 }   break;
             case "import":
                 if(args.length==3){
                     is = ItemUtil.importItem(args[2]);
                 }else{
-                    sender.sendMessage(Message.commandInvalid);
+                    sender.sendMessage(OuterMessage.commandInvalid);
                     break;
                 }
                 if(is==null){
-                    sender.sendMessage(Message.commandReadItemError);
+                    sender.sendMessage(OuterMessage.commandReadItemError);
                 }else{
                     if(sender instanceof Player){
                         ((Player)sender).getInventory().addItem(is);
                     }else{
                         sender.sendMessage(ItemUtil.getName(is)+'\n'+"§a"+ReflectionUtil.Item2Json(is).replace(',', '\n'));
                     }
-                    sender.sendMessage(Message.commandImportItemSuccess);
+                    sender.sendMessage(OuterMessage.commandImportItemSuccess);
                 }   break;
             case "id":
                 if(sender instanceof Player){
                     if(GlobalConfig.server_under_1_9) is = ((Player)sender).getInventory().getItemInHand();
                     else is = ((Player)sender).getInventory().getItemInMainHand();
                     if(is==null){
-                        sender.sendMessage(Message.commandReadItemError);
+                        sender.sendMessage(OuterMessage.commandReadItemError);
                     }else{
                         sender.sendMessage("Material: "+is.getType().name());
                     }
                 }else{
-                    sender.sendMessage(Message.commandOnlyPlayer);
+                    sender.sendMessage(OuterMessage.commandOnlyPlayer);
                 }   break;
             default:
-                sender.sendMessage(Message.commandInvalid);
+                sender.sendMessage(OuterMessage.commandInvalid);
         }
     }
     
@@ -744,18 +747,18 @@ public class MailBox extends JavaPlugin {
         if(sender.hasPermission("mailbox.admin.template")){
             BaseMail bm = TemplateUtil.loadTemplateMail(args[1]);
             if(bm==null){
-                sender.sendMessage(Message.commandFileNotExist);
+                sender.sendMessage(OuterMessage.commandFileNotExist);
                 return;
             }
             if(args.length==2 && args[0].equals("template")){
                 MailNew.New(sender, bm);
             }else if(args.length>=3){
                 if(!MailBoxAPI.getAllType().contains(args[2])){
-                    sender.sendMessage(Message.commandMailTypeNotExist);
+                    sender.sendMessage(OuterMessage.commandMailTypeNotExist);
                     return;
                 }
                 if(!sender.hasPermission("mailbox.admin.send."+args[2])){
-                    sender.sendMessage(Message.globalNoPermission);
+                    sender.sendMessage(OuterMessage.globalNoPermission);
                     return;
                 }
                 bm = bm.setType(args[2]);
@@ -768,7 +771,7 @@ public class MailBox extends JavaPlugin {
                             try{
                                 only = Boolean.parseBoolean(args[3]);
                             }catch(NumberFormatException e){
-                                sender.sendMessage(Message.commandMailNewCdkeyOnly);
+                                sender.sendMessage(OuterMessage.commandMailNewCdkeyOnly);
                                 return;
                             }
                             ((MailCdkey)bm).setOnly(only);
@@ -777,7 +780,7 @@ public class MailBox extends JavaPlugin {
                             if(args.length==5){
                                 ((MailKeyTimes)bm).setKey(args[4].replace('&', '§'));
                             }else{
-                                sender.sendMessage(Message.commandMailNewKeytimesLength);
+                                sender.sendMessage(OuterMessage.commandMailNewKeytimesLength);
                                 return;
                             }
                         case "times":
@@ -785,15 +788,15 @@ public class MailBox extends JavaPlugin {
                             try{
                                 times = Integer.parseInt(args[3]);
                             }catch(NumberFormatException e){
-                                sender.sendMessage(Message.commandMailNewTimesCount);
+                                sender.sendMessage(OuterMessage.commandMailNewTimesCount);
                                 return;
                             }
                             if(times<1) {
-                                sender.sendMessage(Message.commandMailNewTimesZero);
+                                sender.sendMessage(OuterMessage.commandMailNewTimesZero);
                                 return;
                             }
                             if(times>GlobalConfig.timesCount && !sender.hasPermission("mailbox.admin.send.check.times")){
-                                sender.sendMessage(Message.commandMailNewTimesMax.replace("%max%", Integer.toString(GlobalConfig.timesCount)));
+                                sender.sendMessage(OuterMessage.commandMailNewTimesMax.replace("%max%", Integer.toString(GlobalConfig.timesCount)));
                                 return;
                             }
                             ((MailTimes)bm).setTimes(times);
@@ -828,7 +831,7 @@ public class MailBox extends JavaPlugin {
                                             }
                                             break;
                                         default:
-                                            sender.sendMessage(Message.commandMailNewDateTime);
+                                            sender.sendMessage(OuterMessage.commandMailNewDateTime);
                                         return;
                                     }
                                 }
@@ -847,12 +850,12 @@ public class MailBox extends JavaPlugin {
                                             }
                                             break;
                                         default:
-                                            sender.sendMessage(Message.commandMailNewDateTime);
+                                            sender.sendMessage(OuterMessage.commandMailNewDateTime);
                                         return;
                                     }
                                 }
                             }else{
-                                sender.sendMessage(Message.commandMailNewDateLength);
+                                sender.sendMessage(OuterMessage.commandMailNewDateLength);
                                 return;
                             }
                             break;
@@ -860,26 +863,26 @@ public class MailBox extends JavaPlugin {
                         case "system":
                             break;
                         default:
-                            sender.sendMessage(Message.commandMailTypeNotExist);
+                            sender.sendMessage(OuterMessage.commandMailTypeNotExist);
                             return;
                     }
                     if(args[0].equals("template")){
                         MailNew.New(sender, bm);
                     }else if(sender.hasPermission("mailbox.admin.template.send")){
                         if(bm.getSender()==null){
-                            sender.sendMessage(Message.commandMailSendSender);
+                            sender.sendMessage(OuterMessage.commandMailSendSender);
                         }else{
                             bm.Send(sender, null);
                         }
                     }else{
-                        sender.sendMessage(Message.globalNoPermission);
+                        sender.sendMessage(OuterMessage.globalNoPermission);
                     }
                 }
             }else{
-                sender.sendMessage(Message.commandInvalid);
+                sender.sendMessage(OuterMessage.commandInvalid);
             }
         }else{
-            sender.sendMessage(Message.globalNoPermission);
+            sender.sendMessage(OuterMessage.globalNoPermission);
         }
     }
     
@@ -891,18 +894,18 @@ public class MailBox extends JavaPlugin {
                     if(sender instanceof Player) updateMailList((Player) sender, type);
                     else updateMailList(null, type);
                 }else{
-                    sender.sendMessage(Message.globalNoPermission);
+                    sender.sendMessage(OuterMessage.globalNoPermission);
                 }
             }else if(args[1].equals("clean") && (type.equals("player") || type.equals("date") || type.equals("times") || type.equals("keytimes"))){
                 if(sender.hasPermission("mailbox.admin.clean."+type)){
                     StringBuilder t = new StringBuilder("");
-                    if((type.equals("player"))) PLAYER_LIST.forEach((Integer k, BaseMail v) -> { if(v.ExpireValidate()) if(v.Delete(null)) t.append("1"); });
-                    if((type.equals("date"))) DATE_LIST.forEach((Integer k, BaseMail v) -> { if(v.ExpireValidate()) if(v.Delete(null)) t.append("1"); });
-                    if((type.equals("times"))) TIMES_LIST.forEach((Integer k, BaseMail v) -> { if(v.ExpireValidate()) if(v.Delete(null)) t.append("1"); });
-                    if((type.equals("keytimes"))) KEYTIMES_LIST.forEach((Integer k, BaseMail v) -> { if(v.ExpireValidate()) if(v.Delete(null)) t.append("1"); });
-                    sender.sendMessage(Message.commandMailClean.replace("%type%", Message.getTypeName(type)).replace("%count%", Integer.toString(t.length())));
+                    if((type.equals("player"))) PLAYER_LIST.forEach((Integer k, BaseMail v) -> { if(MailUtil.isExpired(v)) if(v.Delete(null)) t.append("1"); });
+                    if((type.equals("date"))) DATE_LIST.forEach((Integer k, BaseMail v) -> { if(MailUtil.isExpired(v)) if(v.Delete(null)) t.append("1"); });
+                    if((type.equals("times"))) TIMES_LIST.forEach((Integer k, BaseMail v) -> { if(MailUtil.isExpired(v)) if(v.Delete(null)) t.append("1"); });
+                    if((type.equals("keytimes"))) KEYTIMES_LIST.forEach((Integer k, BaseMail v) -> { if(MailUtil.isExpired(v)) if(v.Delete(null)) t.append("1"); });
+                    sender.sendMessage(OuterMessage.commandMailClean.replace("%type%", OuterMessage.getTypeName(type)).replace("%count%", Integer.toString(t.length())));
                 }else{
-                    sender.sendMessage(Message.globalNoPermission);
+                    sender.sendMessage(OuterMessage.globalNoPermission);
                 }
             }else{
             }
@@ -912,26 +915,26 @@ public class MailBox extends JavaPlugin {
                     try{
                         MailView.view(type, Integer.parseInt(args[2]), sender);
                     }catch(NumberFormatException e){
-                        sender.sendMessage(Message.commandMailIdError);
+                        sender.sendMessage(OuterMessage.commandMailIdError);
                     }
                     break;
                 case "collect":
                     try{
                         MailView.collect(type, Integer.parseInt(args[2]), sender);
                     }catch(NumberFormatException e){
-                        sender.sendMessage(Message.commandMailIdError);
+                        sender.sendMessage(OuterMessage.commandMailIdError);
                     } 
                     break;
                 case "delete":
                     try{
                         MailView.delete(type, Integer.parseInt(args[2]), sender);
                     }catch(NumberFormatException e){
-                        sender.sendMessage(Message.commandMailIdError);
+                        sender.sendMessage(OuterMessage.commandMailIdError);
                     }
                     break;
                 case "create":
                     if(!type.equals("cdkey") || !sender.hasPermission("mailbox.admin.createt.cdkey")){
-                        sender.sendMessage(Message.commandInvalid);
+                        sender.sendMessage(OuterMessage.commandInvalid);
                         break;
                     }
                     updateMailList(null, "cdkey");
@@ -941,11 +944,11 @@ public class MailBox extends JavaPlugin {
                         mc = (MailCdkey)MailBox.getMailHashMap(type).get(mail);
                     }
                     catch(NumberFormatException e){
-                        sender.sendMessage(Message.commandMailIdError);
+                        sender.sendMessage(OuterMessage.commandMailIdError);
                         break;
                     }
                     if(mc==null){
-                        sender.sendMessage(Message.commandMailNull);
+                        sender.sendMessage(OuterMessage.commandMailNull);
                         break;
                     }
                     int count;
@@ -956,24 +959,24 @@ public class MailBox extends JavaPlugin {
                             count = Integer.parseInt(args[3]);
                         }
                         catch(NumberFormatException e){
-                            sender.sendMessage(Message.commandMailCdkeyCreateError);
+                            sender.sendMessage(OuterMessage.commandMailCdkeyCreateError);
                             break;
                         }
                     }
-                    sender.sendMessage(Message.commandMailCdkeyCreate.replace("%count%", Integer.toString(mc.generateCdkey(count))));
+                    sender.sendMessage(OuterMessage.commandMailCdkeyCreate.replace("%count%", Integer.toString(mc.generateCdkey(count))));
                     break;
                 case "export":
                     if(!type.equals("cdkey") || !sender.hasPermission("mailbox.admin.export.cdkey")){
-                        sender.sendMessage(Message.commandInvalid);
+                        sender.sendMessage(OuterMessage.commandInvalid);
                         break;
                     }
                     if(args[2].equals("all")){
                         updateMailList(null, "cdkey");
                         getMailHashMap("cdkey").forEach((k,v) -> {
                             if(CdkeyUtil.exportCdkey(k)){
-                                sender.sendMessage(Message.commandMailCdkeyExportSuccess+" - "+k);
+                                sender.sendMessage(OuterMessage.commandMailCdkeyExportSuccess+" - "+k);
                             }else{
-                                sender.sendMessage(Message.commandMailCdkeyExportError+" - "+k);
+                                sender.sendMessage(OuterMessage.commandMailCdkeyExportError+" - "+k);
                             }
                         });
                     }else{
@@ -981,28 +984,28 @@ public class MailBox extends JavaPlugin {
                             int mail = Integer.parseInt(args[2]);
                             if(MailBox.getMailHashMap(type).containsKey(mail)){
                                 if(CdkeyUtil.exportCdkey(mail)){
-                                    sender.sendMessage(Message.commandMailCdkeyExportSuccess);
+                                    sender.sendMessage(OuterMessage.commandMailCdkeyExportSuccess);
                                 }else{
-                                    sender.sendMessage(Message.commandMailCdkeyExportError);
+                                    sender.sendMessage(OuterMessage.commandMailCdkeyExportError);
                                 }
                             }else{
-                                sender.sendMessage(Message.commandMailNull);
+                                sender.sendMessage(OuterMessage.commandMailNull);
                             }
                         }
                         catch(NumberFormatException e){
-                            sender.sendMessage(Message.commandMailIdError);
+                            sender.sendMessage(OuterMessage.commandMailIdError);
                         }
                     }   break;
                 case "reset":
                     if(!type.equals("cdkey") || !sender.hasPermission("mailbox.admin.reset.cdkey")){
-                        sender.sendMessage(Message.commandInvalid);
+                        sender.sendMessage(OuterMessage.commandInvalid);
                         break;
                     }
                     if(args.length==3){
                         CdkeyUtil.cdkeyDayRemove(args[2]);
-                        sender.sendMessage(Message.cdkeyReset.replace("%player%", args[2]));
+                        sender.sendMessage(OuterMessage.cdkeyReset.replace("%player%", args[2]));
                     }else{
-                        sender.sendMessage(Message.commandInvalid);
+                        sender.sendMessage(OuterMessage.commandInvalid);
                     }   break;
                 case "upload":
                 case "download":
@@ -1021,33 +1024,33 @@ public class MailBox extends JavaPlugin {
                                         String filename = ((BaseFileMail)bm).getFileName();
                                         if(args[1].equals("upload")){
                                             if(MailFileUtil.uploadFile(type, filename)){
-                                                sender.sendMessage(Message.fileSuccess.replace("%file%", filename).replace("%state%", Message.fileUpload));
+                                                sender.sendMessage(OuterMessage.fileSuccess.replace("%file%", filename).replace("%state%", OuterMessage.fileUpload));
                                             }else{
-                                                sender.sendMessage(Message.fileError.replace("%file%", filename).replace("%state%", Message.fileUpload));
+                                                sender.sendMessage(OuterMessage.fileError.replace("%file%", filename).replace("%state%", OuterMessage.fileUpload));
                                             }
                                         }else{
                                             if(MailFileUtil.downloadFile(type, filename)){
-                                                sender.sendMessage(Message.fileSuccess.replace("%file%", filename).replace("%state%", Message.fileDownload));
+                                                sender.sendMessage(OuterMessage.fileSuccess.replace("%file%", filename).replace("%state%", OuterMessage.fileDownload));
                                             }else{
-                                                sender.sendMessage(Message.fileError.replace("%file%", filename).replace("%state%", Message.fileDownload));
+                                                sender.sendMessage(OuterMessage.fileError.replace("%file%", filename).replace("%state%", OuterMessage.fileDownload));
                                             }
                                         }
                                     }else{
-                                        sender.sendMessage(Message.fileNotFile);
+                                        sender.sendMessage(OuterMessage.fileNotFile);
                                     }
                                 }
                                 catch(NumberFormatException e){
-                                    sender.sendMessage(Message.commandMailIdError);
+                                    sender.sendMessage(OuterMessage.commandMailIdError);
                                 }
                             }
                         }else{
-                            sender.sendMessage(Message.globalNoPermission);
+                            sender.sendMessage(OuterMessage.globalNoPermission);
                         }
                     }else{
-                        sender.sendMessage(Message.commandInvalid);
+                        sender.sendMessage(OuterMessage.commandInvalid);
                     }   break;
                 default:
-                    sender.sendMessage(Message.commandInvalid);
+                    sender.sendMessage(OuterMessage.commandInvalid);
                     break;
             }
         }
@@ -1106,7 +1109,7 @@ public class MailBox extends JavaPlugin {
             default:
                 return;
         }
-        String str = Message.commandMailUpdate.replace("%type%", Message.getTypeName(type)).replace("%count%", Integer.toString(count));
+        String str = OuterMessage.commandMailUpdate.replace("%type%", OuterMessage.getTypeName(type)).replace("%count%", Integer.toString(count));
         Bukkit.getConsoleSender().sendMessage(str);
         if(p!=null) p.sendMessage(str);
     }
@@ -1233,7 +1236,7 @@ public class MailBox extends JavaPlugin {
     // 设置OpenCmd
     public void setOpenCmd(boolean enable){
         this.enCmdOpen = enable;
-        if(enCmdOpen)Bukkit.getConsoleSender().sendMessage(ConfigMessage.command_box);
+        if(enCmdOpen)Bukkit.getConsoleSender().sendMessage(InnerMessage.command_box);
     }
     
 }

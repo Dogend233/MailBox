@@ -1,8 +1,9 @@
 package com.tripleying.qwq.MailBox.Utils;
 
+import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.Mail.BaseFileMail;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.SQL.SQLManager;
 import java.io.File;
 import java.io.IOException;
@@ -14,12 +15,16 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * 附件工具
- * @author Dogend
  */
 public class MailFileUtil {
-    
-    // 生成一个附件名
-    public static String generateFilename(String type) throws IOException, Exception{
+
+    /**
+     * 生成一个附件名
+     * @param type 邮件类型
+     * @return 附件名
+     * @throws Exception 尝试失败次数过多
+     */
+    public static String generateFilename(String type) throws Exception{
         String md5 = EncryptUtil.MD5(TimeUtil.get("ms"));
         if(GlobalConfig.fileSQL){
             for(int i=0;MailFileUtil.existFilesSQL(md5, type);i++){
@@ -34,7 +39,12 @@ public class MailFileUtil {
         return md5;
     }
     
-    // 判断附件是否存在本地
+    /**
+     * 判断附件是否存在本地
+     * @param fileName 附件名
+     * @param type 邮件类型
+     * @return boolean
+     */
     public static boolean existFiles(String fileName, String type){
         File f = FileUtil.getFile("MailFiles");
         if(!f.exists())f.mkdir();
@@ -43,8 +53,12 @@ public class MailFileUtil {
         f = new File(f, fileName+".yml");
         return f.exists();
     }
-    
-    // 保存附件文件到本地
+
+    /**
+     * 保存附件文件到本地
+     * @param fm 附件邮件
+     * @return boolean
+     */
     public static boolean saveMailFilesLocal(BaseFileMail fm){
         File f = FileUtil.getFile("MailFiles");
         if(!f.exists())f.mkdir();
@@ -60,7 +74,7 @@ public class MailFileUtil {
             }
         }
         if(fm.isHasItem()){
-            ArrayList<ItemStack> isl = fm.getItemList();
+            List<ItemStack> isl = fm.getItemList();
             for(int i=0;i<isl.size();i++){
                 mailFiles.set("is."+(i+1), isl.get(i));
             }
@@ -77,8 +91,12 @@ public class MailFileUtil {
             return false;
         }
     }
-    
-    // 从本地获取附件数据
+
+    /**
+     * 从本地获取附件数据
+     * @param fm 附件邮件
+     * @return boolean
+     */
     public static boolean getMailFilesLocal(BaseFileMail fm){
         YamlConfiguration mf;
         File f = FileUtil.getFile("MailFiles/"+fm.getType()+"/"+fm.getFileName()+".yml");
@@ -113,8 +131,13 @@ public class MailFileUtil {
             return false;
         }
     }
-    
-    // 从本地删除一个附件文件
+
+    /**
+     * 从本地删除一个附件文件
+     * @param fileName 附件邮件
+     * @param type 邮件类型
+     * @return boolean
+     */
     public static boolean setDeleteFile(String fileName, String type){
         File f = FileUtil.getFile("MailFiles/"+type+"/"+fileName+".yml");
         if(f.exists()){
@@ -123,16 +146,25 @@ public class MailFileUtil {
             return true;
         }
     }
-    
-    // 将一封本地附件上传到数据库
+
+    /**
+     * 将一封本地附件上传到数据库
+     * @param type 邮件类型
+     * @param filename 附件名
+     * @return boolean
+     */
     public static boolean uploadFile(String type, String filename){
-        BaseFileMail fm = new BaseFileMail(type, 0,"", "", "", "", "");
+        BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, "", "", "", "");
         fm.setFileName(filename);
         getMailFilesLocal(fm);
         return saveMailFilesSQL(fm);
     }
 
-    // 将一个类型的所有本地附件上传到数据库
+    /**
+     * 将一个类型的所有本地附件上传到数据库
+     * @param cs 指令发送者
+     * @param type 邮件类型
+     */
     public static void uploadFile(CommandSender cs, String type){
         List<String> nl = SQLManager.get().getAllFileName(type);
         int all = nl.size();
@@ -142,19 +174,28 @@ public class MailFileUtil {
                 if(uploadFile(type,fn)){
                     succ++;
                 }else{
-                    cs.sendMessage(Message.fileSuccess.replace("%file%", fn).replace("%state%", Message.fileUpload));
+                    cs.sendMessage(OuterMessage.fileSuccess.replace("%file%", fn).replace("%state%", OuterMessage.fileUpload));
                 }
             }
-            cs.sendMessage(Message.fileMulti.replace("%state%", Message.fileUpload).replace("%ok%", Integer.toString(succ)).replace("all", Integer.toString(all)));
+            cs.sendMessage(OuterMessage.fileMulti.replace("%state%", OuterMessage.fileUpload).replace("%ok%", Integer.toString(succ)).replace("all", Integer.toString(all)));
         }
     }
 
-    // 判断附件是否存在数据库
+    /**
+     * 判断附件是否存在数据库
+     * @param fileName 附件名
+     * @param type 邮件类型
+     * @return boolean
+     */
     public static boolean existFilesSQL(String fileName, String type){
         return SQLManager.get().existMailFiles(fileName, type);
     }
-    
-    // 保存附件到数据库
+
+    /**
+     * 保存附件到数据库
+     * @param fm 附件邮件
+     * @return boolean
+     */
     public static boolean saveMailFilesSQL(BaseFileMail fm){
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("type", fm.getType());
@@ -166,7 +207,7 @@ public class MailFileUtil {
         YamlConfiguration item = new YamlConfiguration();
         int i = 0;
         if(fm.isHasItem()){
-            ArrayList<ItemStack> isl = fm.getItemList();
+            List<ItemStack> isl = fm.getItemList();
             for(;i<isl.size();i++){
                 item.set("is.is_"+(i+1), isl.get(i));
             }
@@ -176,7 +217,11 @@ public class MailFileUtil {
         return SQLManager.get().sendMailFiles(fm.getFileName(), yaml, itemString);
     }
     
-    // 从数据库获取附件数据
+    /**
+     * 从数据库获取附件数据
+     * @param fm 附件邮件
+     * @return boolean
+     */
     public static boolean getMailFilesSQL(BaseFileMail fm){
         YamlConfiguration mf = SQLManager.get().getMailFiles(fm.getFileName(), fm.getType());
         if(mf==null){
@@ -210,16 +255,25 @@ public class MailFileUtil {
             return true;
         }
     }
-    
-    // 将一封数据库附件下载到本地
+
+    /**
+     * 将一封数据库附件下载到本地
+     * @param type 邮件类型
+     * @param filename 附件名
+     * @return boolean
+     */
     public static boolean downloadFile(String type, String filename){
-        BaseFileMail fm = new BaseFileMail(type, 0,"", "", "", "", "");
+        BaseFileMail fm = MailBoxAPI.createBaseFileMail(type, "", "", "", "");
         fm.setFileName(filename);
         getMailFilesSQL(fm);
         return saveMailFilesLocal(fm);
     }
-
-    // 将一个类型的所有数据库附件下载到本地
+    
+    /**
+     * 将一个类型的所有数据库附件下载到本地
+     * @param cs 指令发送者
+     * @param type 邮件类型
+     */
     public static void downloadFile(CommandSender cs, String type){
         List<String> nl = SQLManager.get().getAllFileName(type);
         int all = nl.size();
@@ -229,15 +283,20 @@ public class MailFileUtil {
                 if(downloadFile(type,fn)){
                     succ++;
                 }else{
-                    cs.sendMessage(Message.fileSuccess.replace("%file%", fn).replace("%state%", Message.fileDownload));
+                    cs.sendMessage(OuterMessage.fileSuccess.replace("%file%", fn).replace("%state%", OuterMessage.fileDownload));
                 }
             }
-            cs.sendMessage(Message.fileMulti.replace("%state%", Message.fileDownload).replace("%ok%", Integer.toString(succ)).replace("all", Integer.toString(all)));
+            cs.sendMessage(OuterMessage.fileMulti.replace("%state%", OuterMessage.fileDownload).replace("%ok%", Integer.toString(succ)).replace("all", Integer.toString(all)));
 
         }
     }
-    
-    // 从数据库删除一个附件文件
+
+    /**
+     * 从数据库删除一个附件文件
+     * @param filename 附件名
+     * @param type 邮件类型
+     * @return boolean
+     */
     public static boolean setDeleteFileSQL(String filename, String type){
         return SQLManager.get().deleteMailFiles(filename, type);
     }

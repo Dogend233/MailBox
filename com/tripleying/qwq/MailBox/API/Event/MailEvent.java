@@ -5,11 +5,21 @@ import com.tripleying.qwq.MailBox.Mail.BaseMail;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+/**
+ * 邮件事件
+ */
 public class MailEvent extends Event {
     
-    private static final HandlerList HANDLERS = new HandlerList();
-    private final boolean file;
+    /**
+     * 邮件
+     */
     private final BaseMail bmail;
+    
+    /**
+     * 是否为附件邮件
+     */
+    private final boolean file;
+    private static final HandlerList HANDLERS = new HandlerList();
     
     /**
      * 构造器
@@ -21,10 +31,10 @@ public class MailEvent extends Event {
     }
     
     /**
-     * 邮件是否含有附件
+     * 邮件是否为附件邮件
      * @return boolean
      */
-    public boolean hasFile(){
+    public boolean isFile(){
         return file;
     }
     

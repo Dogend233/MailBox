@@ -1,7 +1,7 @@
     package com.tripleying.qwq.MailBox.VexView;
 
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import java.util.Arrays;
 import lk.vexview.api.VexViewAPI;
 import lk.vexview.gui.VexGui;
@@ -79,7 +79,7 @@ public class MailCdkeyGUI extends VexGui {
         if(MailBoxAPI.hasPlayerPermission(p, "mailbox.cdkey.use")){
             VexViewAPI.openGui(p, new MailCdkeyGUI(p));
         }else{
-            p.sendMessage(Message.globalNoPermission);
+            p.sendMessage(OuterMessage.globalNoPermission);
         }
     }
     

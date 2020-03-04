@@ -1,8 +1,6 @@
 package com.tripleying.qwq.MailBox.Mail;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
-import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.inventory.ItemStack;
 
@@ -14,7 +12,7 @@ public class KeyTimesFileMail extends TimesFileMail implements MailKeyTimes {
         super("keytimes", id, sender, topic, content, date, times, filename);
         this.key = key;
     }
-    public KeyTimesFileMail(int id, String sender, String topic, String content, String date, int times, String key, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point) {
+    public KeyTimesFileMail(int id, String sender, String topic, String content, String date, int times, String key, String filename, List<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point) {
         super("keytimes", id, sender, topic, content, date, times, filename, isl, cl, cd, coin, point);
         this.key = key;
     }

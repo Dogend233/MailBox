@@ -4,7 +4,7 @@ import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.Mail.BaseFileMail;
 import com.tripleying.qwq.MailBox.Mail.BaseMail;
 import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,20 +37,20 @@ public class MailList {
             }).map((id) -> id.size()).reduce(Integer::sum).get();
         }
         if(count==0){
-            p.sendMessage(Message.listNullBox.replace("%box%", playertype.equals("Sender") ? Message.listOutBox : Message.listInBox));
+            p.sendMessage(OuterMessage.listNullBox.replace("%box%", playertype.equals("Sender") ? OuterMessage.listOutBox : OuterMessage.listInBox));
             return;
         }else{
             if(playertype.equals("Sender")){
-                p.sendMessage(Message.listCountBox.replace("%box%", Message.listOutBox).replace("%count%", Integer.toString(count)));
+                p.sendMessage(OuterMessage.listCountBox.replace("%box%", OuterMessage.listOutBox).replace("%count%", Integer.toString(count)));
             }else{
-                p.sendMessage(Message.listCountBox.replace("%box%", Message.listInBox).replace("%count%", Integer.toString(count)));
+                p.sendMessage(OuterMessage.listCountBox.replace("%box%", OuterMessage.listInBox).replace("%count%", Integer.toString(count)));
             }
         }
         MailUtil.getTrueTypeWhithoutSpecial().stream().filter((t) -> (idMap.containsKey(t))).forEachOrdered((t) -> {
             idMap.get(t).stream().map((mid) -> {
                 BaseMail bm = MailBox.getMailHashMap(t).get(mid);
                 StringBuilder str = new StringBuilder("§d"+bm.getTypeName()+" §r"+bm.getTopic());
-                if(bm instanceof BaseFileMail) str.append("§r - §c").append(Message.globalHasFile);
+                if(bm instanceof BaseFileMail) str.append("§r - §c").append(OuterMessage.globalHasFile);
                 TextComponent msg = new TextComponent(str.toString());
                 msg.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mailbox "+t+" see "+mid));
                 return msg;
@@ -60,7 +60,7 @@ public class MailList {
         });
         if(p.hasPermission("mailbox.admin.see.cdkey")) MailBox.getMailHashMap("cdkey").values().stream().map((bm) -> {
             StringBuilder str = new StringBuilder("§d"+bm.getTypeName()+" §r"+bm.getTopic());
-            if(bm instanceof BaseFileMail) str.append("§r - §c").append(Message.globalHasFile);
+            if(bm instanceof BaseFileMail) str.append("§r - §c").append(OuterMessage.globalHasFile);
             TextComponent msg = new TextComponent(str.toString());
             msg.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mailbox cdkey see "+bm.getId()));
             return msg;
@@ -75,15 +75,15 @@ public class MailList {
             return type;
         }).map((type) -> MailBox.getMailHashMap(type).size()).reduce(Integer::sum).get();
         if(count==0){
-            sender.sendMessage(Message.listNullConsole);
+            sender.sendMessage(OuterMessage.listNullConsole);
             return;
         }else{
-            sender.sendMessage(Message.listCountConsole.replace("%count%", Integer.toString(count)));
+            sender.sendMessage(OuterMessage.listCountConsole.replace("%count%", Integer.toString(count)));
         }
         MailUtil.getTrueType().forEach((type) -> {
             MailBox.getMailHashMap(type).forEach((k,v) -> {
                 StringBuilder str = new StringBuilder("§d"+v.getTypeName()+" §r- "+k+" - "+v.getTopic());
-                if(v instanceof BaseFileMail) str.append("§r - §c").append(Message.globalHasFile);
+                if(v instanceof BaseFileMail) str.append("§r - §c").append(OuterMessage.globalHasFile);
                 sender.sendMessage(str.toString());
             });
         });

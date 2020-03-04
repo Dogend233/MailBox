@@ -3,7 +3,7 @@ package com.tripleying.qwq.MailBox.VexView;
 import com.tripleying.qwq.MailBox.Mail.*;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.Utils.ItemUtil;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import com.tripleying.qwq.MailBox.Utils.PlayerPointsUtil;
@@ -179,14 +179,14 @@ public class MailSendGui extends VexInventoryGui{
             bal_coin = VaultUtil.getEconomyBalance(p);
             this.addComponent(image_coin);
             VexTextField vtf = createTextField(FIELD.get("coin"),"0");
-            VexViewConfig.setHover(vtf, Arrays.asList(Message.moneyBalance+"："+bal_coin));
+            VexViewConfig.setHover(vtf, Arrays.asList(OuterMessage.moneyBalance+"："+bal_coin));
             this.addComponent(vtf);
         }
         if(enPlayerPoints && perm_point){
             bal_point = PlayerPointsUtil.getPoints(p);
             this.addComponent(image_point);
             VexTextField vtf = createTextField(FIELD.get("point"),"0");
-            VexViewConfig.setHover(vtf, Arrays.asList(Message.moneyBalance+"："+bal_point));
+            VexViewConfig.setHover(vtf, Arrays.asList(OuterMessage.moneyBalance+"："+bal_point));
             this.addComponent(vtf);
         }
     }
@@ -428,14 +428,14 @@ public class MailSendGui extends VexInventoryGui{
                     co = Double.parseDouble(t);
                     if(co<0) co=0;
                 }catch(NumberFormatException e){
-                    p.sendMessage(Message.globalNumberError);
+                    p.sendMessage(OuterMessage.globalNumberError);
                     return;
                 }
                 if(co>bal_coin && !p.hasPermission("mailbox.admin.send.check.coin")){
-                    p.sendMessage(Message.moneyBalanceNotEnough.replace("%money%", Message.moneyVault).replace("%max%", Double.toString(VaultUtil.getEconomyBalance(p))));
+                    p.sendMessage(OuterMessage.moneyBalanceNotEnough.replace("%money%", OuterMessage.moneyVault).replace("%max%", Double.toString(VaultUtil.getEconomyBalance(p))));
                     return;
                 }else if(co>GlobalConfig.vaultMax && !p.hasPermission("mailbox.admin.send.check.coin")){
-                    p.sendMessage(Message.globalExceedMax.replace("%para%", Message.moneyVault).replace("%max%", Double.toString(GlobalConfig.vaultMax)));
+                    p.sendMessage(OuterMessage.globalExceedMax.replace("%para%", OuterMessage.moneyVault).replace("%max%", Double.toString(GlobalConfig.vaultMax)));
                     return;
                 }
             }
@@ -447,14 +447,14 @@ public class MailSendGui extends VexInventoryGui{
                     po = Integer.parseInt(t);
                     if(po<0) po=0;
                 }catch(NumberFormatException e){
-                    p.sendMessage(Message.globalNumberError);
+                    p.sendMessage(OuterMessage.globalNumberError);
                     return;
                 }
                 if(po>bal_point && !p.hasPermission("mailbox.admin.send.check.point")){
-                    p.sendMessage(Message.moneyBalanceNotEnough.replace("%money%", Message.moneyPlayerpoints).replace("%max%", Double.toString(PlayerPointsUtil.getPoints(p))));
+                    p.sendMessage(OuterMessage.moneyBalanceNotEnough.replace("%money%", OuterMessage.moneyPlayerpoints).replace("%max%", Double.toString(PlayerPointsUtil.getPoints(p))));
                     return;
                 }else if(po>GlobalConfig.playerPointsMax && !p.hasPermission("mailbox.admin.send.check.coin")){
-                    p.sendMessage(Message.globalExceedMax.replace("%para%", Message.moneyPlayerpoints).replace("%max%", Integer.toString(GlobalConfig.playerPointsMax)));
+                    p.sendMessage(OuterMessage.globalExceedMax.replace("%para%", OuterMessage.moneyPlayerpoints).replace("%max%", Integer.toString(GlobalConfig.playerPointsMax)));
                     return;
                 }
             }
@@ -491,7 +491,7 @@ public class MailSendGui extends VexInventoryGui{
                 try{
                     times = Integer.parseInt(getTextField(FIELD.get("times")[5]).getTypedText().trim());
                 }catch(NumberFormatException e){
-                    p.sendMessage(Message.globalNumberError);
+                    p.sendMessage(OuterMessage.globalNumberError);
                     return;
                 }
                 break;
@@ -554,11 +554,11 @@ public class MailSendGui extends VexInventoryGui{
     // 验证邮件主题、内容、收件人和权限
     private boolean valid(){
         if(topic.equals("")){
-            p.sendMessage(Message.globalEmptyField.replace("%para%", Message.globalTopic));
+            p.sendMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.globalTopic));
             return false;
         }else{
             if(text.equals("")){
-                p.sendMessage(Message.globalEmptyField.replace("%para%", Message.globalContent));
+                p.sendMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.globalContent));
                 return false;
             }else{
                 switch (type) {
@@ -567,35 +567,39 @@ public class MailSendGui extends VexInventoryGui{
                     case "system":
                         return true;
                     case "keytimes":
-                        if(key.equals("")){
-                            p.sendMessage(Message.globalEmptyField.replace("%para%", Message.keytimesKey));
+                        if(key.trim().equals("")){
+                            p.sendMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.keytimesKey));
+                            return false;
+                        }
+                        if(!GlobalConfig.keytimesKeyPrefixBan.isEmpty() && GlobalConfig.keytimesKeyPrefixBan.stream().anyMatch(k -> key.trim().startsWith(k))){
+                            p.sendMessage(OuterMessage.keytimesKeyPrefixBan);
                             return false;
                         }
                     case "times":
                         if(times<1){
-                            p.sendMessage(Message.timesSendZero);
+                            p.sendMessage(OuterMessage.timesSendZero);
                             return false;
                         }
                         if(times>GlobalConfig.timesCount && !p.hasPermission("mailbox.admin.send.check.times")){
-                            p.sendMessage(Message.timesSendExceed.replace("%max%", Integer.toString(GlobalConfig.timesCount)));
+                            p.sendMessage(OuterMessage.timesSendExceed.replace("%max%", Integer.toString(GlobalConfig.timesCount)));
                             return false;
                         }
                         return true;
                     case "template":
                         if(template==null || template.equals("")){
-                            p.sendMessage(Message.globalEmptyField.replace("%para%", Message.templateTemplate));
+                            p.sendMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.templateTemplate));
                             return false;
                         }
                         return true;
                     case "permission":
                         if(perm==null || perm.equals("")){
-                            p.sendMessage(Message.globalEmptyField.replace("%para%", Message.permissionPermission));
+                            p.sendMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.permissionPermission));
                             return false;
                         }
                         return true;
                     case "date":
                         if(startdate==null || startdate.equals("")){
-                            p.sendMessage(Message.globalEmptyField.replace("%para%", Message.dateStart));
+                            p.sendMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.dateStart));
                             return false;
                         }
                         if(!startdate.equals("0")){
@@ -611,12 +615,12 @@ public class MailSendGui extends VexInventoryGui{
                                         break;
                                     }
                                 default:
-                                    p.sendMessage(Message.commandMailNewDateTime);
+                                    p.sendMessage(OuterMessage.commandMailNewDateTime);
                                     return false;
                             }
                         }
                         if(deadline==null || deadline.equals("")){
-                            p.sendMessage(Message.globalEmptyField.replace("%para%", Message.dateDeadline));
+                            p.sendMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.dateDeadline));
                             return false;
                         }
                         if(deadline.equals("0")){
@@ -634,20 +638,20 @@ public class MailSendGui extends VexInventoryGui{
                                     return true;
                                 }
                             default:
-                                p.sendMessage(Message.commandMailNewDateTime);
+                                p.sendMessage(OuterMessage.commandMailNewDateTime);
                                 return false;
                         }
                     case "player":
                         if(rl.isEmpty()){
-                            p.sendMessage(Message.globalEmptyField.replace("%para%", Message.playerRecipient));
+                            p.sendMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.playerRecipient));
                             return false;
                         }
                         if(rl.size()>GlobalConfig.playerMultiplayer && !p.hasPermission("mailbox.admin.send.multiplayer")){
-                            p.sendMessage(Message.playerRecipientMax.replace("%max%", Integer.toString(GlobalConfig.playerMultiplayer)));
+                            p.sendMessage(OuterMessage.playerRecipientMax.replace("%max%", Integer.toString(GlobalConfig.playerMultiplayer)));
                             return false;
                         }
                         if(!p.hasPermission("mailbox.admin.send.me") && rl.contains(p.getName())){
-                            p.sendMessage(Message.playerSelfRecipient);
+                            p.sendMessage(OuterMessage.playerSelfRecipient);
                             return false;
                         }
                         // 获取目标收件箱上限 有卡顿
@@ -730,7 +734,7 @@ public class MailSendGui extends VexInventoryGui{
             int out = MailUtil.playerAsSenderAllow(p);
             int outed = MailUtil.asSenderNumber(p, type);
             if((out-outed)<=0){
-                p.sendMessage(Message.playerMailOutMax.replace("%type%",Message.getTypeName("player")));
+                p.sendMessage(OuterMessage.playerMailOutMax.replace("%type%",OuterMessage.getTypeName("player")));
                 return;
             }
         }
@@ -742,7 +746,7 @@ public class MailSendGui extends VexInventoryGui{
             int out = MailUtil.playerAsSenderAllow(p);
             int outed = MailUtil.asSenderNumber(p, "player");
             if((out-outed)<=0){
-                p.sendMessage(Message.playerMailOutMax.replace("%type%",Message.getTypeName("player")));
+                p.sendMessage(OuterMessage.playerMailOutMax.replace("%type%",OuterMessage.getTypeName("player")));
                 return;
             }
         }

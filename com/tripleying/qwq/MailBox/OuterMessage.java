@@ -7,7 +7,10 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-public class Message {
+/**
+ * 外部信息
+ */
+public class OuterMessage {
     
     private static final HashMap<String,String> DISPLAY = new HashMap();
     public static String globalTopic;
@@ -126,6 +129,7 @@ public class Message {
     
     public static String keytimesKey;
     public static String keytimesKeyInputPrompt;
+    public static String keytimesKeyPrefixBan;
     
     public static String cdkeyOnly;
     public static String cdkeyCreate;
@@ -209,8 +213,8 @@ public class Message {
     public static List<String> helpAdmin;
     
     public static void setLanguage(String language){
-        Bukkit.getConsoleSender().sendMessage(ConfigMessage.lang_setup.replace("%lang%", language));
-        YamlConfiguration lang = FileUtil.getConfig("Message", language+".yml", "message");
+        Bukkit.getConsoleSender().sendMessage(InnerMessage.lang_setup.replace("%lang%", language));
+        YamlConfiguration lang = FileUtil.getConfig(language+".yml", "Message", "message");
         // 全局
         MailBoxAPI.getAllType().forEach(type -> updateTypeName(type, lang.getString("global."+type)));
         globalTopic = lang.getString("global.topic");
@@ -329,6 +333,7 @@ public class Message {
         // keytimes邮件
         keytimesKey = lang.getString("keytimes.key");
         keytimesKeyInputPrompt = lang.getString("keytimes.key-input-prompt");
+        keytimesKeyPrefixBan = lang.getString("keytimes.key-prefix-ban","§b[邮箱]:这个前缀被禁止作为口令");
         // cdkey邮件
         cdkeyOnly = lang.getString("cdkey.only");
         cdkeyCreate = lang.getString("cdkey.create");

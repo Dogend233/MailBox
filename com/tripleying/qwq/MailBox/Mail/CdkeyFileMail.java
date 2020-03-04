@@ -1,14 +1,11 @@
 package com.tripleying.qwq.MailBox.Mail;
 
 import com.tripleying.qwq.MailBox.API.Event.MailCollectEvent;
-import com.tripleying.qwq.MailBox.Utils.CdkeyUtil;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.conversations.ConversationContext;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -20,7 +17,7 @@ public class CdkeyFileMail extends BaseFileMail implements MailCdkey {
         super("cdkey", id, sender, topic, content, date, filename);
         this.only = only;
     }
-    public CdkeyFileMail(int id, String sender, String topic, String content, String date, boolean only, String filename, ArrayList<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point) {
+    public CdkeyFileMail(int id, String sender, String topic, String content, String date, boolean only, String filename, List<ItemStack> isl, List<String> cl, List<String> cd, double coin, int point) {
         super("cdkey", id, sender, topic, content, date, filename, isl, cl, cd, coin, point);
         this.only = only;
     }
@@ -44,27 +41,6 @@ public class CdkeyFileMail extends BaseFileMail implements MailCdkey {
     public void setOnly(boolean only) {
         this.only = only;
     }
-
-    @Override
-    public int generateCdkey(int i) {
-        if(only){
-            try {
-                if(CdkeyUtil.sendCdkey(CdkeyUtil.generateCdkey(),getId())) return 1;
-            } catch (Exception ex) {}
-            return 0;
-        }else{
-            int count = 0;
-            int ID = getId();
-            for(int j=0;j<i;j++){
-                try {
-                    if(CdkeyUtil.sendCdkey(CdkeyUtil.generateCdkey(),ID)) count++;
-                } catch (Exception ex) {
-                    Logger.getLogger(CdkeyMail.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            return count;
-        }
-    }
     
     @Override
     public boolean Collect(Player p){
@@ -78,11 +54,6 @@ public class CdkeyFileMail extends BaseFileMail implements MailCdkey {
     }
     
     @Override
-    public void DeleteLocalCdkey(){
-        CdkeyUtil.deleteLocalCdkey(getId());
-    }
-    
-    @Override
     public boolean Delete(Player p){
         DeleteLocalCdkey();
         if(DeleteFile()){
@@ -90,6 +61,16 @@ public class CdkeyFileMail extends BaseFileMail implements MailCdkey {
         }else{
             return false;
         }
+    }
+
+    @Override
+    public boolean collectValidate(Player p) {
+        return true;
+    }
+
+    @Override
+    public boolean sendValidate(Player p, ConversationContext cc) {
+        return true;
     }
     
 }

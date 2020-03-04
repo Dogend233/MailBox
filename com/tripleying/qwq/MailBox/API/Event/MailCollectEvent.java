@@ -4,18 +4,15 @@ import com.tripleying.qwq.MailBox.Mail.BaseMail;
 import org.bukkit.entity.Player;
 
 /**
- *  邮件领取事件
- * @author Dogend
+ * 邮件领取事件
  */
 public class MailCollectEvent extends MailEvent {
 
+    /**
+     * 玩家
+     */
     private final Player player;
     
-    /**
-     * 构造器
-     * @param bm 基础邮件
-     * @param p 玩家
-     */
     public MailCollectEvent(BaseMail bm, Player p){
         super(bm);
         this.player = p;

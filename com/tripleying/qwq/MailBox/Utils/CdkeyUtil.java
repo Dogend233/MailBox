@@ -1,27 +1,28 @@
 package com.tripleying.qwq.MailBox.Utils;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
+import com.tripleying.qwq.MailBox.Mail.BaseMail;
 import com.tripleying.qwq.MailBox.Mail.MailCdkey;
 import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import com.tripleying.qwq.MailBox.SQL.SQLManager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.entity.Player;
 
 /**
  * Cdkey工具
- * @author Dogend
  */
 public class CdkeyUtil {
     
-    // 生成一个Cdkey
+    /**
+     * 生成一个Cdkey
+     * @return Cdkey
+     * @throws Exception 尝试失败次数过多
+     */
     public static String generateCdkey() throws Exception{
         String cdkey = EncryptUtil.MD5(TimeUtil.get("ms")).toUpperCase();
         for(int i=0;SQLManager.get().existCdkey(cdkey)>0;i++){
@@ -31,17 +32,30 @@ public class CdkeyUtil {
         return cdkey;
     }
     
-    // 发送一个Cdkey
+    /**
+     * 发送一个Cdkey
+     * @param cdkey Cdkey
+     * @param mail 邮件id
+     * @return boolean
+     */
     public static boolean sendCdkey(String cdkey, int mail){
         return SQLManager.get().sendCdkey(cdkey, mail);
     }
     
-    // 获取一个邮件的Cdkey
+    /**
+     * 获取一个邮件的Cdkey
+     * @param mail 邮件id
+     * @return Cdkey列表
+     */
     public static List<String> getMailCdkey(int mail){
         return SQLManager.get().getCdkey(mail);
     }
     
-    // 导出一个邮件的Cdkey
+    /**
+     * 导出一个邮件的Cdkey至本地
+     * @param mail 邮件id
+     * @return boolean
+     */
     public static boolean exportCdkey(int mail){
         try {
             List<String> cdk = getMailCdkey(mail);
@@ -57,23 +71,35 @@ public class CdkeyUtil {
             return false;
         }
     }
-    
-    // 删除本地已导出的兑换码
+
+    /**
+     * 删除本地已导出的Cdkey
+     * @param mail 邮件id
+     * @return boolean
+     */
     public static boolean deleteLocalCdkey(int mail){
         File f = FileUtil.getFile("Cdkey/"+mail+".txt");
         if(f.exists()) return f.delete();
         else return true;
     }
     
-    // 删除一个Cdkey
+    /**
+     * 删除一个Cdkey
+     * @param cdkey Cdkey
+     * @return boolean
+     */
     public static boolean deleteCdkey(String cdkey){
         return SQLManager.get().deleteCdkey(cdkey);
     }
-    
-    // 兑换一个Cdkey
+
+    /**
+     * 使玩家兑换一个Cdkey
+     * @param p 玩家
+     * @param cdkey Cdkey
+     */
     public static void exchangeCdkey(Player p, String cdkey){
         if(!p.hasPermission("mailbox.admin.cdkey.day") && cdkeyDay(p)>=GlobalConfig.cdkeyDay){
-            p.sendMessage(Message.exchangeExceedDay);
+            p.sendMessage(OuterMessage.exchangeExceedDay);
             return;
         }else{
             cdkeyDayAdd(p);
@@ -82,31 +108,35 @@ public class CdkeyUtil {
         if(mail>0){
             MailBox.updateRelevantMailList(p, "cdkey");
             if(!MailBox.getRelevantMailList(p, "cdkey").get("asRecipient").contains(mail)){
-                p.sendMessage(Message.exchangeRepeat);
+                p.sendMessage(OuterMessage.exchangeRepeat);
             }else{
                 MailCdkey mc = (MailCdkey)MailBox.getMailHashMap("cdkey").get(mail);
                 if(mc==null){
-                    p.sendMessage(Message.exchangeNotMail);
+                    p.sendMessage(OuterMessage.exchangeNotMail);
                 }else{
                     if(SQLManager.get().existCdkey(cdkey)>0){
-                        if(mc.Collect(p)){
-                            if(mc.isOnly()) mc.Delete(p);
+                        if(((BaseMail)mc).Collect(p)){
+                            if(mc.isOnly()) ((BaseMail)mc).Delete(p);
                             else deleteCdkey(cdkey);
-                            p.sendMessage(Message.exchangeSuccess);
+                            p.sendMessage(OuterMessage.exchangeSuccess);
                         }else{
-                            p.sendMessage(Message.exchangeError);
+                            p.sendMessage(OuterMessage.exchangeError);
                         }
                     }else{
-                        p.sendMessage(Message.exchangeError);
+                        p.sendMessage(OuterMessage.exchangeError);
                     }
                 }
             }
         }else{
-            p.sendMessage(Message.exchangeNotCdkey);
+            p.sendMessage(OuterMessage.exchangeNotCdkey);
         }
     }
     
-    // 获取一个玩家今日输入Cdkey次数
+    /**
+     * 获取一个玩家今日输入Cdkey次数
+     * @param p 玩家
+     * @return 次数
+     */
     public static int cdkeyDay(Player p){
         TimeUtil.updateLastTime();
         String pn = p.getName();
@@ -116,8 +146,11 @@ public class CdkeyUtil {
             return 0;
         }
     }
-    
-    // 使玩家今日输入兑换码的次数加一
+
+    /**
+     * 使玩家今日输入兑换码的次数加一
+     * @param p 玩家
+     */
     public static void cdkeyDayAdd(Player p){
         TimeUtil.updateLastTime();
         String pn = p.getName();
@@ -128,7 +161,10 @@ public class CdkeyUtil {
         }
     }
     
-    // 重置玩家今日输入兑换码的次数
+    /**
+     * 重置玩家今日输入兑换码的次数
+     * @param name 玩家名字
+     */
     public static void cdkeyDayRemove(String name){
         if(MailBox.CDKEY_DAY.containsKey(name)) MailBox.CDKEY_DAY.remove(name);
     }

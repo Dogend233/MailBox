@@ -13,17 +13,24 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * 模板工具
- * @author Dogend
  */
 public class TemplateUtil {
     
-    // 判断模板是否存在
+    /**
+     * 判断模板是否存在
+     * @param filename 模板名
+     * @return boolean
+     */
     public static boolean existTemplate(String filename){
         File f = FileUtil.getFile("Template/"+filename+".yml");
         return f.exists();
     }
-    
-    // 取出一个模板
+
+    /**
+     * 加载一个模板
+     * @param filename 模板名
+     * @return 邮件
+     */
     public static BaseMail loadTemplateMail(String filename){
         YamlConfiguration mailFiles;
         File f = FileUtil.getFile("Template/"+filename+".yml");
@@ -91,8 +98,12 @@ public class TemplateUtil {
             return null;
         }
     }
-    
-    // 保存一个模板
+
+    /**
+     * 保存一个模板
+     * @param mt 模板邮件
+     * @return boolean
+     */
     public static boolean saveTemplateMail(MailTemplate mt){
         File f = FileUtil.getFile("Template/"+mt.getTemplate()+".yml");
         if(!f.exists()){
@@ -118,7 +129,7 @@ public class TemplateUtil {
                 mailFiles.set("cmd.enable",false);
             }
             if(fm.isHasItem()){
-                ArrayList<ItemStack> is = fm.getItemList();
+                List<ItemStack> is = fm.getItemList();
                 for(int i=0;i<is.size();i++){
                     mailFiles.set("is."+(i+1),is.get(i));
                 }

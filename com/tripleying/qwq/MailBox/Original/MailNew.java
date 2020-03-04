@@ -4,7 +4,7 @@ import com.tripleying.qwq.MailBox.Mail.*;
 import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.GlobalConfig;
 import com.tripleying.qwq.MailBox.MailBox;
-import com.tripleying.qwq.MailBox.Message;
+import com.tripleying.qwq.MailBox.OuterMessage;
 import static com.tripleying.qwq.MailBox.Original.MailNew.color;
 import static com.tripleying.qwq.MailBox.Original.MailNew.sendable;
 import com.tripleying.qwq.MailBox.Utils.ItemUtil;
@@ -46,19 +46,19 @@ public class MailNew {
             if(c>1){
                 create(new TypeSelect(sender), sender);
             }else if(pl){
-                sender.sendMessage(Message.newCreate.replace("%type%", Message.getTypeName("player")));
+                sender.sendMessage(OuterMessage.newCreate.replace("%type%", OuterMessage.getTypeName("player")));
                 create(new Topic(new PlayerMail(0,sender.getName(),null,null,null,null), sender, false), sender);
             }else if(ti){
-                sender.sendMessage(Message.newCreate.replace("%type%", Message.getTypeName("times")));
+                sender.sendMessage(OuterMessage.newCreate.replace("%type%", OuterMessage.getTypeName("times")));
                 create(new Topic(new TimesMail(0,sender.getName(),null,null,null,0), sender, false), sender);
             }else if(kti){
-                sender.sendMessage(Message.newCreate.replace("%type%", Message.getTypeName("keytimes")));
+                sender.sendMessage(OuterMessage.newCreate.replace("%type%", OuterMessage.getTypeName("keytimes")));
                 create(new Topic(new KeyTimesMail(0,sender.getName(),null,null,null,0,null), sender, false), sender);
             }else{
-                sender.sendMessage(Message.globalNoPermission);
+                sender.sendMessage(OuterMessage.globalNoPermission);
             }
         }else{
-            sender.sendMessage(Message.globalNoPermission);
+            sender.sendMessage(OuterMessage.globalNoPermission);
         }
     }
     public static void New(CommandSender sender, BaseMail bm){
@@ -66,7 +66,7 @@ public class MailNew {
         else if(bm instanceof MailTemplate){
             create(new TypeSelect(sender, bm), sender);
         }else{
-            sender.sendMessage(Message.newCreate.replace("%type%", bm.getTypeName()));
+            sender.sendMessage(OuterMessage.newCreate.replace("%type%", bm.getTypeName()));
             if(bm.getSender()==null){
                 create(new Sender(bm, sender, true), sender);
             }else{
@@ -81,7 +81,7 @@ public class MailNew {
         }
     }
     public static void Preview(CommandSender sender, BaseMail bm){
-        sender.sendMessage(Message.newCreate.replace("%type%", bm.getTypeName()));
+        sender.sendMessage(OuterMessage.newCreate.replace("%type%", bm.getTypeName()));
         if(bm.getSender()==null){
             if(sender instanceof Player){
                 bm.setSender(((Player)sender).getName());
@@ -93,12 +93,12 @@ public class MailNew {
         create(new Preview(bm, sender), sender);
     }
     public static void create(ValidatingPrompt p, CommandSender s){
-        ((Conversable)s).acceptConversationInput(Message.newStop);
+        ((Conversable)s).acceptConversationInput(OuterMessage.newStop);
         Conversation conversation = new ConversationFactory(MailBox.getInstance())
         .withFirstPrompt(p)
         .addConversationAbandonedListener((ConversationAbandonedEvent abandonedEvent) -> {
             if (abandonedEvent.gracefulExit()) {
-                abandonedEvent.getContext().getForWhom().sendRawMessage(Message.newStopMsg);
+                abandonedEvent.getContext().getForWhom().sendRawMessage(OuterMessage.newStopMsg);
             }
         }).buildConversation((Conversable)s);
         conversation.begin();
@@ -116,9 +116,9 @@ public class MailNew {
                         int outed = MailUtil.asSenderNumber(p, "player");
                         if(outed>=out){
                             if(cc==null){
-                                sender.sendMessage(Message.playerMailOutMax.replace("%type%",Message.getTypeName("player")));
+                                sender.sendMessage(OuterMessage.playerMailOutMax.replace("%type%",OuterMessage.getTypeName("player")));
                             }else{
-                                cc.getForWhom().sendRawMessage(Message.playerMailOutMax.replace("%type%",Message.getTypeName("player")));
+                                cc.getForWhom().sendRawMessage(OuterMessage.playerMailOutMax.replace("%type%",OuterMessage.getTypeName("player")));
                             }
                             return false;
                         }
@@ -170,29 +170,29 @@ class TypeSelect extends ValidatingPrompt{
         int i = 1;
         for(String t:MailBoxAPI.getAllType()){
             if(sender.hasPermission("mailbox.admin.send."+t)){
-                cc.getForWhom().sendRawMessage(Message.newSelect.replace("%num%", Integer.toString(i++)).replace("%type%", Message.getTypeName(t)));
+                cc.getForWhom().sendRawMessage(OuterMessage.newSelect.replace("%num%", Integer.toString(i++)).replace("%type%", OuterMessage.getTypeName(t)));
                 select.add(t);
             }
         }
         if(i==1){
             if(sendable(sender,"player",null)){
-                cc.getForWhom().sendRawMessage(Message.newSelect.replace("%num%", Integer.toString(i++)).replace("%type%", Message.getTypeName("player")));
+                cc.getForWhom().sendRawMessage(OuterMessage.newSelect.replace("%num%", Integer.toString(i++)).replace("%type%", OuterMessage.getTypeName("player")));
                 select.add("player");
             }
             if(sendable(sender,"times",null)){
-                cc.getForWhom().sendRawMessage(Message.newSelect.replace("%num%", Integer.toString(i++)).replace("%type%", Message.getTypeName("times")));
+                cc.getForWhom().sendRawMessage(OuterMessage.newSelect.replace("%num%", Integer.toString(i++)).replace("%type%", OuterMessage.getTypeName("times")));
                 select.add("times");
             }
             if(sendable(sender,"keytimes",null)){
-                cc.getForWhom().sendRawMessage(Message.newSelect.replace("%num%", Integer.toString(i++)).replace("%type%", Message.getTypeName("keytimes")));
+                cc.getForWhom().sendRawMessage(OuterMessage.newSelect.replace("%num%", Integer.toString(i++)).replace("%type%", OuterMessage.getTypeName("keytimes")));
                 select.add("keytimes");
             }
         }
-        return Message.newCancel;
+        return OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)){
+        if(str.equals(OuterMessage.newStop)){
             return true;
         }
         try{
@@ -245,17 +245,17 @@ class TypeSelect extends ValidatingPrompt{
                 default:
                     break;
             }
-            cc.getForWhom().sendRawMessage(Message.newOptionNotExist);
+            cc.getForWhom().sendRawMessage(OuterMessage.newOptionNotExist);
             return false;
         }catch(NumberFormatException e){
-            cc.getForWhom().sendRawMessage(Message.globalNumberError);
+            cc.getForWhom().sendRawMessage(OuterMessage.globalNumberError);
             return false;
         }
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop) || type==null) return Prompt.END_OF_CONVERSATION;
-        cc.getForWhom().sendRawMessage(Message.newCreate.replace("%type%", Message.getTypeName(type)));
+        if(str.equals(OuterMessage.newStop) || type==null) return Prompt.END_OF_CONVERSATION;
+        cc.getForWhom().sendRawMessage(OuterMessage.newCreate.replace("%type%", OuterMessage.getTypeName(type)));
         if(bm!=null){
             bm = bm.setType(type);
             if(bm.getSender()==null) return new Sender(bm, sender, true);
@@ -287,16 +287,16 @@ class Topic extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.newInputPrompt.replace("%para%", Message.globalTopic)+'\n'+Message.newCancel;
+        return OuterMessage.newInputPrompt.replace("%para%", OuterMessage.globalTopic)+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
         if(str.trim().equals("")){
-            cc.getForWhom().sendRawMessage(Message.globalEmptyField.replace("%para%", Message.globalTopic));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.globalTopic));
             return false;
         }else{
             if(str.length()>GlobalConfig.topicMax){
-                cc.getForWhom().sendRawMessage(Message.globalExceedMax.replace("%para%", Message.globalTopic).replace("%max%", Integer.toString(GlobalConfig.topicMax)));
+                cc.getForWhom().sendRawMessage(OuterMessage.globalExceedMax.replace("%para%", OuterMessage.globalTopic).replace("%max%", Integer.toString(GlobalConfig.topicMax)));
                 return false;
             }else{
                 return true;
@@ -305,9 +305,9 @@ class Topic extends ValidatingPrompt{
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         str = MailNew.color(str);
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.globalTopic).replace("%value%", str));
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.globalTopic).replace("%value%", str));
         bm.setTopic(str);
         if(change) return new Preview(bm, sender);
         return new Content(bm, sender, false);
@@ -325,16 +325,16 @@ class Content extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.newInputPrompt.replace("%para%", Message.globalContent)+'\n'+Message.newCancel;
+        return OuterMessage.newInputPrompt.replace("%para%", OuterMessage.globalContent)+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
         if(str.trim().equals("")){
-            cc.getForWhom().sendRawMessage(Message.globalEmptyField.replace("%para%", Message.globalContent));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.globalContent));
             return false;
         }else{
             if(str.length()>GlobalConfig.contentMax){
-                cc.getForWhom().sendRawMessage(Message.globalExceedMax.replace("%para%", Message.globalContent).replace("%max%", Integer.toString(GlobalConfig.contentMax)));
+                cc.getForWhom().sendRawMessage(OuterMessage.globalExceedMax.replace("%para%", OuterMessage.globalContent).replace("%max%", Integer.toString(GlobalConfig.contentMax)));
                 return false;
             }else{
                 return true;
@@ -343,9 +343,9 @@ class Content extends ValidatingPrompt{
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         str = MailNew.color(str);
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.globalContent).replace("%value%", str));
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.globalContent).replace("%value%", str));
         bm.setContent(str);
         if(change) return new Preview(bm, sender);
         if(bm.getSender()==null){
@@ -385,12 +385,12 @@ class Sender extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.newInputPrompt.replace("%para%", Message.globalSender)+'\n'+Message.newCancel;
+        return OuterMessage.newInputPrompt.replace("%para%", OuterMessage.globalSender)+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
         if(str.trim().equals("")){
-            cc.getForWhom().sendRawMessage(Message.globalEmptyField.replace("%para%", Message.globalSender));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.globalSender));
             return false;
         }else{
             return true;
@@ -398,9 +398,9 @@ class Sender extends ValidatingPrompt{
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         str = MailNew.color(str);
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.globalSender).replace("%value%", str));
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.globalSender).replace("%value%", str));
         bm.setSender(str);
         if(change){
             if(bm instanceof MailPermission && ((MailPermission)bm).getPermission()==null) return new PermissionPermission(bm, sender, true);
@@ -444,20 +444,20 @@ class PermissionPermission extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.permissionPermissionInputPrompt+'\n'+Message.newCancel;
+        return OuterMessage.permissionPermissionInputPrompt+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
         if(str.trim().equals("")){
-            cc.getForWhom().sendRawMessage(Message.globalEmptyField.replace("%para%", Message.permissionPermission));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.permissionPermission));
             return false;
         }
         return true;
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.permissionPermission).replace("%value%", str));
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.permissionPermission).replace("%value%", str));
         ((MailPermission)bm).setPermission(str);
         if(change) return new Preview(bm, sender);
         if(MailNew.filable(sender)){
@@ -479,23 +479,23 @@ class PlayerRecipient extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.playerRecipientInputPrompt+'\n'+Message.newCancel;
+        return OuterMessage.playerRecipientInputPrompt+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
         String[] r = str.split(" ");
         if(r.length<1){
-            cc.getForWhom().sendRawMessage(Message.globalEmptyField.replace("%para%", Message.playerRecipient));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.playerRecipient));
             return false;
         }else{
             if(r.length>GlobalConfig.playerMultiplayer && !sender.hasPermission("mailbox.admin.send.multiplayer")){
-                cc.getForWhom().sendRawMessage(Message.playerRecipientMax.replace("%max%", Integer.toString(GlobalConfig.playerMultiplayer)));
+                cc.getForWhom().sendRawMessage(OuterMessage.playerRecipientMax.replace("%max%", Integer.toString(GlobalConfig.playerMultiplayer)));
                 return false;
             }
             if(sender instanceof Player && !sender.hasPermission("mailbox.admin.send.me")){
                 for(String name:r){
                     if(name.equals(sender.getName())){
-                        cc.getForWhom().sendRawMessage(Message.playerSelfRecipient);
+                        cc.getForWhom().sendRawMessage(OuterMessage.playerSelfRecipient);
                         return false;
                     }
                 }
@@ -505,12 +505,12 @@ class PlayerRecipient extends ValidatingPrompt{
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         ((MailPlayer)bm).setRecipient(Arrays.asList(str.split(" ")));
         if(((MailPlayer)bm).getRecipient().size()==1){
-            cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.playerRecipient).replace("%value%", str));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.playerRecipient).replace("%value%", str));
         }else{
-            cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.playerRecipient).replace("%value%", ""));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.playerRecipient).replace("%value%", ""));
             ((MailPlayer)bm).getRecipient().forEach((s) -> {
                 cc.getForWhom().sendRawMessage(s);
             });
@@ -536,11 +536,11 @@ class DateStart extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.dateStartInputPrompt+'\n'+Message.newNullInputPrompt.replace("%para%", Message.dateStart)+'\n'+Message.newCancel;
+        return OuterMessage.dateStartInputPrompt+'\n'+OuterMessage.newNullInputPrompt.replace("%para%", OuterMessage.dateStart)+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop) || str.equals("0")) return true;
+        if(str.equals(OuterMessage.newStop) || str.equals("0")) return true;
         List<Integer> t = TimeUtil.toDate(str, sender, cc);
         switch (t.size()) {
             case 3:
@@ -548,19 +548,19 @@ class DateStart extends ValidatingPrompt{
                 date = TimeUtil.toDate(t, sender, cc);
                 return date != null;
             default:
-                cc.getForWhom().sendRawMessage(Message.dateFormat);
+                cc.getForWhom().sendRawMessage(OuterMessage.dateFormat);
                 return false;
         }
     }
 
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         if(str.equals("0")){
-            cc.getForWhom().sendRawMessage(Message.globalSetNull.replace("%para%", Message.dateStart));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalSetNull.replace("%para%", OuterMessage.dateStart));
             bm.setDate(str);
         }else{
-            cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.dateStart).replace("%value%", date));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.dateStart).replace("%value%", date));
             bm.setDate(date);
         }
         if(change) return new Preview(bm, sender);
@@ -580,11 +580,11 @@ class DateDeadline extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.dateDeadlineInputPrompt+'\n'+Message.newNullInputPrompt.replace("%para%", Message.dateDeadline)+'\n'+Message.newCancel;
+        return OuterMessage.dateDeadlineInputPrompt+'\n'+OuterMessage.newNullInputPrompt.replace("%para%", OuterMessage.dateDeadline)+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop) || str.equals("0")) return true;
+        if(str.equals(OuterMessage.newStop) || str.equals("0")) return true;
         List<Integer> t = TimeUtil.toDate(str, sender, cc);
         switch (t.size()) {
             case 3:
@@ -592,19 +592,19 @@ class DateDeadline extends ValidatingPrompt{
                 date = TimeUtil.toDate(t, sender, cc);
                 return date != null;
             default:
-                cc.getForWhom().sendRawMessage(Message.dateFormat);
+                cc.getForWhom().sendRawMessage(OuterMessage.dateFormat);
                 return false;
         }
     }
 
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         if(str.equals("0")){
-            cc.getForWhom().sendRawMessage(Message.globalSetNull.replace("%para%", Message.dateDeadline));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalSetNull.replace("%para%", OuterMessage.dateDeadline));
             ((MailDate)bm).setDeadline(str);
         }else{
-            cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.dateDeadline).replace("%value%", date));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.dateDeadline).replace("%value%", date));
             ((MailDate)bm).setDeadline(date);
         }
         if(change) return new Preview(bm, sender);
@@ -627,33 +627,33 @@ class TimesTimes extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.timesTimesInputPrompt+'\n'+Message.newCancel;
+        return OuterMessage.timesTimesInputPrompt+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)){
+        if(str.equals(OuterMessage.newStop)){
             return true;
         }
         try{
             if(Integer.parseInt(str)<1){
-                cc.getForWhom().sendRawMessage(Message.timesSendZero);
+                cc.getForWhom().sendRawMessage(OuterMessage.timesSendZero);
                 return false;
             }
             if(Integer.parseInt(str)>GlobalConfig.timesCount && !sender.hasPermission("mailbox.admin.send.check.times")){
-                cc.getForWhom().sendRawMessage(Message.timesSendExceed.replace("%max%", Integer.toString(GlobalConfig.timesCount)));
+                cc.getForWhom().sendRawMessage(OuterMessage.timesSendExceed.replace("%max%", Integer.toString(GlobalConfig.timesCount)));
                 return false;
             }
             return true;
         }catch(NumberFormatException e){
-            cc.getForWhom().sendRawMessage(Message.globalNumberError);
+            cc.getForWhom().sendRawMessage(OuterMessage.globalNumberError);
             return false;
         }
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         int times = Integer.parseInt(str);
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.timesTimes).replace("%value%", Integer.toString(times)));
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.timesTimes).replace("%value%", Integer.toString(times)));
         ((MailTimes)bm).setTimes(times);
         if(change) return new Preview(bm, sender);
         if(bm instanceof MailKeyTimes) return new KeytimesKey(bm, sender, false);
@@ -676,20 +676,25 @@ class KeytimesKey extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.keytimesKeyInputPrompt+'\n'+Message.newCancel;
+        return OuterMessage.keytimesKeyInputPrompt+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.trim().equals("")){
-            cc.getForWhom().sendRawMessage(Message.globalEmptyField.replace("%para%", Message.keytimesKey));
+        String s = str.trim();
+        if(s.equals("")){
+            cc.getForWhom().sendRawMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.keytimesKey));
+            return false;
+        }
+        if(!GlobalConfig.keytimesKeyPrefixBan.isEmpty() && GlobalConfig.keytimesKeyPrefixBan.stream().anyMatch(key -> s.startsWith(key))){
+            cc.getForWhom().sendRawMessage(OuterMessage.keytimesKeyPrefixBan);
             return false;
         }
         return true;
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.keytimesKey).replace("%value%", str));
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.keytimesKey).replace("%value%", str));
         ((MailKeyTimes)bm).setKey(color(str));
         if(change) return new Preview(bm, sender);
         if(MailNew.filable(sender)){
@@ -712,7 +717,7 @@ class CdkeyOnly extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.cdkeyOnlyInputPrompt+'\n'+Message.newCancel;
+        return OuterMessage.cdkeyOnlyInputPrompt+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
@@ -720,17 +725,17 @@ class CdkeyOnly extends ValidatingPrompt{
             only = true;
         }else if(str.equalsIgnoreCase("n")){
             only = false;
-        }else if(str.equals(Message.newStop)){
+        }else if(str.equals(OuterMessage.newStop)){
         }else{
-            cc.getForWhom().sendRawMessage(Message.newOptionNotExist);
+            cc.getForWhom().sendRawMessage(OuterMessage.newOptionNotExist);
             return false;
         }
         return true;
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.cdkeyOnly).replace("%value%", Boolean.toString(only)));
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.cdkeyOnly).replace("%value%", Boolean.toString(only)));
         ((MailCdkey)bm).setOnly(only);
         if(change) return new Preview(bm, sender);
         if(MailNew.filable(sender)){
@@ -752,20 +757,20 @@ class Template extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.templateTemplateInputPrompt+'\n'+Message.newCancel;
+        return OuterMessage.templateTemplateInputPrompt+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
         if(str.trim().equals("")){
-            cc.getForWhom().sendRawMessage(Message.globalEmptyField.replace("%para%", Message.templateTemplate));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalEmptyField.replace("%para%", OuterMessage.templateTemplate));
             return false;
         }
         return true;
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.templateTemplate).replace("%value%", str));
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.templateTemplate).replace("%value%", str));
         ((MailTemplate)bm).setTemplate(str);
         if(change) return new Preview(bm, sender);
         if(MailNew.filable(sender)){
@@ -786,7 +791,7 @@ class File extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.fileFileInputPrompt+'\n'+Message.newCancel;
+        return OuterMessage.fileFileInputPrompt+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
@@ -794,16 +799,16 @@ class File extends ValidatingPrompt{
             file = true;
         }else if(str.equalsIgnoreCase("n")){
             file = false;
-        }else if(str.equals(Message.newStop)){
+        }else if(str.equals(OuterMessage.newStop)){
         }else{
-            cc.getForWhom().sendRawMessage(Message.newOptionNotExist);
+            cc.getForWhom().sendRawMessage(OuterMessage.newOptionNotExist);
             return false;
         }
         return true;
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         if(file){
             if(GlobalConfig.enVault && MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.coin")){
                 return new Coin(bm.addFile(), sender, false);
@@ -836,11 +841,11 @@ class Coin extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.moneyMoneyInputPrompt.replace("%money%", Message.moneyVault).replace("%bal%", Double.toString(bal))+'\n'+Message.newCancel;
+        return OuterMessage.moneyMoneyInputPrompt.replace("%money%", OuterMessage.moneyVault).replace("%bal%", Double.toString(bal))+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return true;
+        if(str.equals(OuterMessage.newStop)) return true;
         try{
             coin = Double.parseDouble(str);
             if(coin<0) coin=0;
@@ -849,24 +854,24 @@ class Coin extends ValidatingPrompt{
                 fm.setCoin(coin);
                 double expand = fm.getExpandCoin();
                 if(expand>bal && !p.hasPermission("mailbox.admin.send.check.coin")){
-                    cc.getForWhom().sendRawMessage(Message.moneyBalanceNotEnough.replace("%money%", Message.moneyVault).replace("%max%", Double.toString(bal)));
+                    cc.getForWhom().sendRawMessage(OuterMessage.moneyBalanceNotEnough.replace("%money%", OuterMessage.moneyVault).replace("%max%", Double.toString(bal)));
                     return false;
                 }else if(expand>GlobalConfig.vaultMax && !p.hasPermission("mailbox.admin.send.check.coin")){
-                    cc.getForWhom().sendRawMessage(Message.globalExceedMax.replace("%para%", Message.moneyVault).replace("%max%", Double.toString(GlobalConfig.vaultMax)));
+                    cc.getForWhom().sendRawMessage(OuterMessage.globalExceedMax.replace("%para%", OuterMessage.moneyVault).replace("%max%", Double.toString(GlobalConfig.vaultMax)));
                     return false;
                 }else{
                     return true;
                 }
             }else return sender instanceof ConsoleCommandSender;
         }catch(NumberFormatException e){
-            cc.getForWhom().sendRawMessage(Message.globalNumberError);
+            cc.getForWhom().sendRawMessage(OuterMessage.globalNumberError);
             return false;
         }
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.moneyVault).replace("%value%", Double.toString(coin)));
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.moneyVault).replace("%value%", Double.toString(coin)));
         fm.setCoin(coin);
         if(change) return new Preview(fm, sender);
         if(GlobalConfig.enPlayerPoints && MailBoxAPI.hasPlayerPermission(sender, "mailbox.send.money.point")){
@@ -895,11 +900,11 @@ class Point extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.moneyMoneyInputPrompt.replace("%money%", Message.moneyPlayerpoints).replace("%bal%", Integer.toString(bal))+'\n'+Message.newCancel;
+        return OuterMessage.moneyMoneyInputPrompt.replace("%money%", OuterMessage.moneyPlayerpoints).replace("%bal%", Integer.toString(bal))+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return true;
+        if(str.equals(OuterMessage.newStop)) return true;
         try{
             point = Integer.parseInt(str);
             if(point<0) point=0;
@@ -908,24 +913,24 @@ class Point extends ValidatingPrompt{
                 fm.setPoint(point);
                 int expand = fm.getExpandPoint();
                 if(expand>bal && !p.hasPermission("mailbox.admin.send.check.point")){
-                    cc.getForWhom().sendRawMessage(Message.moneyBalanceNotEnough.replace("%money%", Message.moneyPlayerpoints).replace("%max%", Double.toString(bal)));
+                    cc.getForWhom().sendRawMessage(OuterMessage.moneyBalanceNotEnough.replace("%money%", OuterMessage.moneyPlayerpoints).replace("%max%", Double.toString(bal)));
                     return false;
                 }else if(expand>GlobalConfig.playerPointsMax && !p.hasPermission("mailbox.admin.send.check.point")){
-                    cc.getForWhom().sendRawMessage(Message.globalExceedMax.replace("%para%", Message.moneyPlayerpoints).replace("%max%", Integer.toString(GlobalConfig.playerPointsMax)));
+                    cc.getForWhom().sendRawMessage(OuterMessage.globalExceedMax.replace("%para%", OuterMessage.moneyPlayerpoints).replace("%max%", Integer.toString(GlobalConfig.playerPointsMax)));
                     return false;
                 }else{
                     return true;
                 }
             }else return sender instanceof ConsoleCommandSender;
         }catch(NumberFormatException e){
-            sender.sendMessage(Message.globalNumberError);
+            sender.sendMessage(OuterMessage.globalNumberError);
             return false;
         }
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
-        cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.moneyPlayerpoints).replace("%value%", Integer.toString(point)));
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
+        cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.moneyPlayerpoints).replace("%value%", Integer.toString(point)));
         fm.setPoint(point);
         if(change) return new Preview(fm, sender);
         if(MailNew.itemable(sender)>0){
@@ -953,14 +958,14 @@ class Item extends ValidatingPrompt{
     @Override
     public String getPromptText(ConversationContext cc) {
         if(sender instanceof Player){
-            return Message.itemItemInputPromptInv.replace("%slot%", Integer.toString(itemable))+'\n'+Message.newNullInputPrompt.replace("%para%", Message.itemItem)+'\n'+Message.newCancel;
+            return OuterMessage.itemItemInputPromptInv.replace("%slot%", Integer.toString(itemable))+'\n'+OuterMessage.newNullInputPrompt.replace("%para%", OuterMessage.itemItem)+'\n'+OuterMessage.newCancel;
         }else{
-            return Message.itemItemInputPromptLocal.replace("%slot%", Integer.toString(itemable))+'\n'+Message.newNullInputPrompt.replace("%para%", Message.itemItem)+'\n'+Message.newCancel;
+            return OuterMessage.itemItemInputPromptLocal.replace("%slot%", Integer.toString(itemable))+'\n'+OuterMessage.newNullInputPrompt.replace("%para%", OuterMessage.itemItem)+'\n'+OuterMessage.newCancel;
         }
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return true;
+        if(str.equals(OuterMessage.newStop)) return true;
         if(str.equals("0")){
             item = new ArrayList();
             return true;
@@ -972,12 +977,12 @@ class Item extends ValidatingPrompt{
                     int i = Integer.parseInt(s);
                     il.add(i);
                 }catch(NumberFormatException e){
-                    cc.getForWhom().sendRawMessage(Message.globalNumberError);
+                    cc.getForWhom().sendRawMessage(OuterMessage.globalNumberError);
                     return false;
                 }
             }
             if(il.size()>itemable){
-                cc.getForWhom().sendRawMessage(Message.globalExceedMax.replace("%max%", Integer.toString(itemable)));
+                cc.getForWhom().sendRawMessage(OuterMessage.globalExceedMax.replace("%max%", Integer.toString(itemable)));
                 return false;
             }
             ArrayList<ItemStack> ial = new ArrayList();
@@ -986,13 +991,13 @@ class Item extends ValidatingPrompt{
             for(int i:il){
                 ItemStack is = p.getInventory().getItem((i-1));
                 if(is==null){
-                    cc.getForWhom().sendRawMessage(Message.itemSlotNullInv.replace("%slot%", Integer.toString(i)));
+                    cc.getForWhom().sendRawMessage(OuterMessage.itemSlotNullInv.replace("%slot%", Integer.toString(i)));
                     return false;
                 }else{
                     if(skip || ItemUtil.isAllowSend(is)){
                         ial.add(is);
                     }else{
-                        cc.getForWhom().sendRawMessage(Message.itemSlotBan.replace("%slot%", Integer.toString(i)));
+                        cc.getForWhom().sendRawMessage(OuterMessage.itemSlotBan.replace("%slot%", Integer.toString(i)));
                         return false;
                     }
                 }
@@ -1002,14 +1007,14 @@ class Item extends ValidatingPrompt{
         }else{
             List<String> il = Arrays.asList(str.split(" "));
             if(il.size()>itemable){
-                cc.getForWhom().sendRawMessage(Message.globalExceedMax.replace("%max%", Integer.toString(itemable)));
+                cc.getForWhom().sendRawMessage(OuterMessage.globalExceedMax.replace("%max%", Integer.toString(itemable)));
                 return false;
             }
             ArrayList<ItemStack> ial = new ArrayList();
             for(String s:il){
                 ItemStack is = ItemUtil.importItem(s);
                 if(is==null){
-                    cc.getForWhom().sendRawMessage((Message.itemSlotNullLocal.replace("%item%", s)));
+                    cc.getForWhom().sendRawMessage((OuterMessage.itemSlotNullLocal.replace("%item%", s)));
                     return false;
                 }else{
                     ial.add(is);
@@ -1021,12 +1026,12 @@ class Item extends ValidatingPrompt{
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         if(item.isEmpty()) {
-            cc.getForWhom().sendRawMessage(Message.globalSetNull.replace("%para%", Message.itemItem));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalSetNull.replace("%para%", OuterMessage.itemItem));
         }else{
             fm.setItemList(item);
-            cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.itemItem).replace("%value%", fm.getItemNameString()));
+            cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.itemItem).replace("%value%", fm.getItemNameString()));
         }
         if(change) return new Preview(fm, sender);
         if(sender.hasPermission("mailbox.admin.send.command")){
@@ -1048,26 +1053,26 @@ class Command extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.extracommandCommandInputPrompt+'\n'+Message.newNullInputPrompt.replace("%para%", Message.extracommandCommand)+'\n'+Message.newCancel;
+        return OuterMessage.extracommandCommandInputPrompt+'\n'+OuterMessage.newNullInputPrompt.replace("%para%", OuterMessage.extracommandCommand)+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return true;
+        if(str.equals(OuterMessage.newStop)) return true;
         if(str.trim().equals("0")) return true;
         return true;
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         if(str.trim().equals("0")) {
             return new Preview(fm, sender);
         }else{
             if(str.indexOf("/")==0) str = str.substring(1);
             fm.setCommandList(Arrays.asList(str.split("/")));
             if(fm.getCommandList().size()<=1){
-                cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.extracommandCommand).replace("%value%", "/"+str));
+                cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.extracommandCommand).replace("%value%", "/"+str));
             }else{
-                cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.extracommandCommand).replace("%value%", ""));
+                cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.extracommandCommand).replace("%value%", ""));
                 fm.getCommandList().forEach((s) -> {
                     cc.getForWhom().sendRawMessage("/"+s);
                 });
@@ -1089,17 +1094,17 @@ class CommandDescription extends ValidatingPrompt{
     }
     @Override
     public String getPromptText(ConversationContext cc) {
-        return Message.extracommandDescriptionInputPrompt+'\n'+Message.newNullInputPrompt.replace("%para%", Message.extracommandDescription)+'\n'+Message.newCancel;
+        return OuterMessage.extracommandDescriptionInputPrompt+'\n'+OuterMessage.newNullInputPrompt.replace("%para%", OuterMessage.extracommandDescription)+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return true;
+        if(str.equals(OuterMessage.newStop)) return true;
         if(str.equals("0")) return true;
         return true;
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         if(str.equals("0")) {
             return new Preview(fm, sender);
         }else{
@@ -1109,9 +1114,9 @@ class CommandDescription extends ValidatingPrompt{
             });
             fm.setCommandDescription(desc);
             if(fm.getCommandList().size()<=1){
-                cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.extracommandDescription).replace("%value%", str));
+                cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.extracommandDescription).replace("%value%", str));
             }else{
-                cc.getForWhom().sendRawMessage(Message.globalSetField.replace("%para%", Message.extracommandDescription).replace("%value%", ""));
+                cc.getForWhom().sendRawMessage(OuterMessage.globalSetField.replace("%para%", OuterMessage.extracommandDescription).replace("%value%", ""));
                 fm.getCommandDescription().forEach((s) -> {
                     cc.getForWhom().sendRawMessage(s);
                 });
@@ -1125,24 +1130,24 @@ class CommandDescription extends ValidatingPrompt{
 class Preview extends ValidatingPrompt{
     private final static HashMap<Integer,String> OPTION = new HashMap();
     static {
-        OPTION.put(1, Message.newPreview.replace("%para%", Message.globalTopic));
-        OPTION.put(2, Message.newPreview.replace("%para%", Message.globalContent));
-        OPTION.put(3, Message.newPreview.replace("%para%", Message.globalSender));
-        OPTION.put(4, Message.newPreview.replace("%para%", Message.playerRecipient));
-        OPTION.put(5, Message.newPreview.replace("%para%", Message.permissionPermission));
-        OPTION.put(6, Message.newPreview.replace("%para%", Message.moneyVault));
-        OPTION.put(7, Message.newPreview.replace("%para%", Message.moneyPlayerpoints));
-        OPTION.put(8, Message.newPreview.replace("%para%", Message.extracommandCommand));
-        OPTION.put(9, Message.newPreview.replace("%para%", Message.extracommandDescription));
-        OPTION.put(10, Message.newPreview.replace("%para%", Message.itemItem));
-        OPTION.put(11, Message.newPreview.replace("%para%", Message.newAddFile));
-        OPTION.put(12, Message.newPreview.replace("%para%", Message.newRemoveFiles));
-        OPTION.put(13, Message.newPreview.replace("%para%", Message.dateStart));
-        OPTION.put(14, Message.newPreview.replace("%para%", Message.dateDeadline));
-        OPTION.put(15, Message.newPreview.replace("%para%", Message.templateTemplate));
-        OPTION.put(16, Message.newPreview.replace("%para%", Message.timesTimes));
-        OPTION.put(17, Message.newPreview.replace("%para%", Message.cdkeyOnly));
-        OPTION.put(18, Message.newPreview.replace("%para%", Message.keytimesKey));
+        OPTION.put(1, OuterMessage.newPreview.replace("%para%", OuterMessage.globalTopic));
+        OPTION.put(2, OuterMessage.newPreview.replace("%para%", OuterMessage.globalContent));
+        OPTION.put(3, OuterMessage.newPreview.replace("%para%", OuterMessage.globalSender));
+        OPTION.put(4, OuterMessage.newPreview.replace("%para%", OuterMessage.playerRecipient));
+        OPTION.put(5, OuterMessage.newPreview.replace("%para%", OuterMessage.permissionPermission));
+        OPTION.put(6, OuterMessage.newPreview.replace("%para%", OuterMessage.moneyVault));
+        OPTION.put(7, OuterMessage.newPreview.replace("%para%", OuterMessage.moneyPlayerpoints));
+        OPTION.put(8, OuterMessage.newPreview.replace("%para%", OuterMessage.extracommandCommand));
+        OPTION.put(9, OuterMessage.newPreview.replace("%para%", OuterMessage.extracommandDescription));
+        OPTION.put(10, OuterMessage.newPreview.replace("%para%", OuterMessage.itemItem));
+        OPTION.put(11, OuterMessage.newPreview.replace("%para%", OuterMessage.newAddFile));
+        OPTION.put(12, OuterMessage.newPreview.replace("%para%", OuterMessage.newRemoveFiles));
+        OPTION.put(13, OuterMessage.newPreview.replace("%para%", OuterMessage.dateStart));
+        OPTION.put(14, OuterMessage.newPreview.replace("%para%", OuterMessage.dateDeadline));
+        OPTION.put(15, OuterMessage.newPreview.replace("%para%", OuterMessage.templateTemplate));
+        OPTION.put(16, OuterMessage.newPreview.replace("%para%", OuterMessage.timesTimes));
+        OPTION.put(17, OuterMessage.newPreview.replace("%para%", OuterMessage.cdkeyOnly));
+        OPTION.put(18, OuterMessage.newPreview.replace("%para%", OuterMessage.keytimesKey));
     }
     public static HashMap<Integer,Integer> optional(BaseMail bm, CommandSender sender){
         HashMap<Integer,Integer> o = new HashMap();
@@ -1206,12 +1211,12 @@ class Preview extends ValidatingPrompt{
         optional.forEach((k,v) -> {
             cc.getForWhom().sendRawMessage(OPTION.get(v).replace("%num%", Integer.toString(k)));
         });
-        if(bm instanceof MailTemplate) return Message.templateSave+'\n'+Message.newCancel;
-        else return Message.newSend+'\n'+Message.newCancel;
+        if(bm instanceof MailTemplate) return OuterMessage.templateSave+'\n'+OuterMessage.newCancel;
+        else return OuterMessage.newSend+'\n'+OuterMessage.newCancel;
     }
     @Override
     protected boolean isInputValid(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return true;
+        if(str.equals(OuterMessage.newStop)) return true;
         try{
             change = Integer.parseInt(str);
             if(change==0){
@@ -1220,30 +1225,30 @@ class Preview extends ValidatingPrompt{
                 if(optional.containsKey(change)){
                     return true;
                 }else{
-                    cc.getForWhom().sendRawMessage(Message.newOptionNotExist);
+                    cc.getForWhom().sendRawMessage(OuterMessage.newOptionNotExist);
                     return false;
                 }
             }
         }catch(NumberFormatException e){
-            cc.getForWhom().sendRawMessage(Message.globalNumberError);
+            cc.getForWhom().sendRawMessage(OuterMessage.globalNumberError);
             return false;
         }
     }
     @Override
     protected Prompt acceptValidatedInput(ConversationContext cc, String str) {
-        if(str.equals(Message.newStop)) return Prompt.END_OF_CONVERSATION;
+        if(str.equals(OuterMessage.newStop)) return Prompt.END_OF_CONVERSATION;
         if(change==0){
             if(!MailNew.sendable(sender, bm.getType(), cc)){
-                cc.getForWhom().sendRawMessage(Message.globalNoPermission);
+                cc.getForWhom().sendRawMessage(OuterMessage.globalNoPermission);
                 return new Preview(bm, sender);
             }
             if(bm.Send(sender, cc)){
-                if(bm instanceof MailTemplate) cc.getForWhom().sendRawMessage(Message.templateSaveSuccess);
-                else cc.getForWhom().sendRawMessage(Message.mailSendSuccess);
+                if(bm instanceof MailTemplate) cc.getForWhom().sendRawMessage(OuterMessage.templateSaveSuccess);
+                else cc.getForWhom().sendRawMessage(OuterMessage.mailSendSuccess);
                 return Prompt.END_OF_CONVERSATION;
             }else{
-                if(bm instanceof MailTemplate) cc.getForWhom().sendRawMessage(Message.templateSaveError);
-                else cc.getForWhom().sendRawMessage(Message.mailSendError);
+                if(bm instanceof MailTemplate) cc.getForWhom().sendRawMessage(OuterMessage.templateSaveError);
+                else cc.getForWhom().sendRawMessage(OuterMessage.mailSendError);
                 return new Preview(bm, sender);
             }
         }else{
@@ -1295,7 +1300,7 @@ class Preview extends ValidatingPrompt{
                 case 18:
                     return new KeytimesKey(bm, sender, true);
                 default:
-                    cc.getForWhom().sendRawMessage(Message.newOptionNotExist);
+                    cc.getForWhom().sendRawMessage(OuterMessage.newOptionNotExist);
                     return new Preview(bm, sender);
             }
         }

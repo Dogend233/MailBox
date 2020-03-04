@@ -128,6 +128,7 @@ times:
 keytimes:
   key: '邮件口令'
   key-input-prompt: '§b[邮箱]:请输入邮件的口令'
+  key-prefix-ban: '§b[邮箱]:这个前缀被禁止作为口令'
 cdkey:
   only: '兑换码唯一性'
   create: '§a[生成兑换码]'

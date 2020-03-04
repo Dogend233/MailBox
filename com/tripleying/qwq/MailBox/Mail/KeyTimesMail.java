@@ -1,11 +1,15 @@
 package com.tripleying.qwq.MailBox.Mail;
 
-import com.tripleying.qwq.MailBox.API.MailBoxAPI;
 import com.tripleying.qwq.MailBox.Utils.MailUtil;
 import java.util.ArrayList;
 
 public class KeyTimesMail extends TimesMail implements MailKeyTimes {
     
+    /**
+     * 邮件口令
+     * 当玩家领取邮件时发送口令
+     * 当玩家发送口令时领取邮件
+     */
     private String key;
     
     public KeyTimesMail(int id, String sender, String topic, String content, String date, int times, String key) {

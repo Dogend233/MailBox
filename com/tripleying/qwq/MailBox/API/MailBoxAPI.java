@@ -2,19 +2,29 @@ package com.tripleying.qwq.MailBox.API;
 
 import com.tripleying.qwq.MailBox.Mail.BaseFileMail;
 import com.tripleying.qwq.MailBox.Mail.BaseMail;
+import com.tripleying.qwq.MailBox.Mail.CdkeyMail;
+import com.tripleying.qwq.MailBox.Mail.DateMail;
+import com.tripleying.qwq.MailBox.Mail.KeyTimesMail;
+import com.tripleying.qwq.MailBox.Mail.OnlineMail;
+import com.tripleying.qwq.MailBox.Mail.PermissionMail;
+import com.tripleying.qwq.MailBox.Mail.PlayerMail;
+import com.tripleying.qwq.MailBox.Mail.SystemMail;
+import com.tripleying.qwq.MailBox.Mail.TemplateMail;
+import com.tripleying.qwq.MailBox.Mail.TimesMail;
 import com.tripleying.qwq.MailBox.MailBox;
 import com.tripleying.qwq.MailBox.Utils.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.bukkit.command.CommandSender;
 
 /**
  * MailBoxAPI
- * @author Dogend
  */
 public class MailBoxAPI {
     
+    /**
+     * 插件版本
+     */
     private static String VERSION;
     
     /**
@@ -46,9 +56,8 @@ public class MailBoxAPI {
      */
     public static boolean hasPlayerPermission(CommandSender sender, String perm){
         if(sender.hasPermission("mailbox.player.*")){
-            return !(!sender.isOp() && sender.hasPermission("."+perm));
-        }
-        else return sender.hasPermission(perm);
+            return sender.isOp() || !sender.hasPermission("."+perm);
+        }else return sender.hasPermission(perm);
     }
 
     /**
@@ -61,7 +70,28 @@ public class MailBoxAPI {
      * @return 文本邮件
      */
     public static BaseMail createBaseMail(String type, String sender, String topic, String content, String date){
-        return new BaseMail(type,0,sender,topic,content,date).setType(type);
+         switch(type){
+            case "system":
+                return new SystemMail(0, sender, topic, content, date);
+            case "permission":
+                return new PermissionMail(0, sender, topic, content, date, null);
+            case "date":
+                return new DateMail(0, sender, topic, content, date, null);
+            case "player":
+                return new PlayerMail(0, sender, topic, content, date, null);
+            case "times":
+                return new TimesMail(0, sender, topic, content, date, 0);
+            case "keytimes":
+                return new KeyTimesMail(0, sender, topic, content, date, 0, null);
+            case "cdkey":
+                return new CdkeyMail(0, sender, topic, content, date, false);
+            case "online":
+                return new OnlineMail(sender, topic, content, date);
+            case "template":
+                return new TemplateMail(sender, topic, content, null);
+            default:
+                return null;
+        }
     }
     
     /**
