@@ -447,16 +447,16 @@ public class MailContentGui extends VexGui{
             }
         }
         this.addComponent(vtp);
-        // 发送时间
         if(text_date_display.contains(type)){
+            // 发送时间
             String date = bm.getDate();
             if(date==null || date.equals("0")) date = TimeUtil.get("ymdhms");
             this.addComponent(new VexText(text_date_x,text_date_y,Arrays.asList(text_date_prefix+date),text_date_size));
-        }
-        // 截止时间
-        if(bm instanceof MailExpirable){
-            String expirableDate = ((MailExpirable)bm).getExpireDate();
-            if(!expirableDate.equals("0")) this.addComponent(new VexText(text_deadline_x,text_deadline_y,Arrays.asList(text_deadline_prefix+expirableDate),text_deadline_size));
+            // 截止时间
+            if(bm instanceof MailExpirable){
+                String expirableDate = ((MailExpirable)bm).getExpireDate();
+                if(expirableDate!=null && !expirableDate.equals("0")) this.addComponent(new VexText(text_deadline_x,text_deadline_y,Arrays.asList(text_deadline_prefix+expirableDate),text_deadline_size));
+            }
         }
         // 邮件数量
         if(bm instanceof MailTimes) this.addComponent(new VexText(text_times_x,text_times_y,Arrays.asList(text_times_prefix+((MailTimes)bm).getTimes()),text_times_size));

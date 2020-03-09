@@ -422,7 +422,7 @@ public class MailView {
             str.append(bm.getDate());
             if(bm instanceof MailExpirable){
                 String expirableDate = ((MailExpirable)bm).getExpireDate();
-                if(!expirableDate.equals("0")){
+                if(expirableDate!=null && !expirableDate.equals("0")){
                     str.append(" - ");
                     str.append(expirableDate);
                 }

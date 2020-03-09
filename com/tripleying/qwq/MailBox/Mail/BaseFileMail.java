@@ -351,10 +351,6 @@ public abstract class BaseFileMail extends BaseMail {
         itemList = items;
         hasItem = !itemList.isEmpty();
     }
-    public void setItemList(ItemStack... items){
-        itemList = Arrays.asList(items);
-        hasItem = items.length!=0;
-    }
     
     /**
      * 邮件是否包含物品

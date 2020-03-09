@@ -1,6 +1,6 @@
 name: MailBox
 main: com.tripleying.qwq.MailBox.MailBox
-version: 2.4.2
+version: 2.4.3
 description: Send Mail with Items and Money.
 author: Dogend
 website: http://qwq.tripleying.com/plugins/mailbox

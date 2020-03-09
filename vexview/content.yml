@@ -104,9 +104,12 @@ text:
     y: 185
     size: 1
     prefix: §b
+    #显示时间的邮件(含截止时间)
     display:
     - date
     - player
+    - times
+    - keytimes
   #邮件数量
   times:
     x: 175

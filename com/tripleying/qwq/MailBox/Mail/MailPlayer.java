@@ -130,10 +130,12 @@ public interface MailPlayer extends MailExpirable {
     
     @Override
     default String getExpireDate() {
+        String date = getDate();
+        if(date==null) date = TimeUtil.get("ymdhms"); 
         try {
             long deadline = new SimpleDateFormat("dd").parse(GlobalConfig.playerExpired).getTime();
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            long sendTime = df.parse(getDate()).getTime();
+            long sendTime = df.parse(date).getTime();
             return df.format(sendTime+deadline);
         } catch (ParseException ex) {
             Bukkit.getLogger().info(ex.getLocalizedMessage());
