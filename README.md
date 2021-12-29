@@ -1,16 +1,20 @@
 # MailBox
-A plugin of Minecraft
+A plugin of Minecraft (1.7.10-1.18)
+Used to send items and money to players
+Mail type and Money type can be extended through the MailBoxModule
+(The plugin itself has no actual function ~)
 
-##### WIKI: http://qwq.tripleying.com/plugins/mailbox
+用于Bukkit服务器的邮箱插件
+支持版本 1.7.10 - 1.18
+可以向玩家发送物品、金钱以及在领取时执行指令
+通过模块可以扩展邮件类型、金钱类型
+(插件本身没有实际功能哦~)
 
-##### MCBBS: https://www.mcbbs.net/thread-921843-1-1.html
+##### 官方网站
+##### WebSite: http://qwq.tripleying.com/plugins/mailbox
 
-##### VexView: https://www.vexview.net/resources/mailbox-1-7-10-1-15.76
+##### 官方Wiki
+##### WIKI: http://qwq.tripleying.com/plugins/mailbox/wiki
 
-##### SoftDepend:
-- VexView(v2.4-v2.6.10): https://www.vexview.net/resources/vexview-gui-minecraft-1-7-10-1-16.2/
-- Vault: https://www.spigotmc.org/resources/vault.34315/
-- PlayerPoints: https://dev.bukkit.org/projects/playerpoints
-- PlayerPoints-RcVersion: https://www.mcbbs.net/thread-882028-1-1.html
-- PlaceholderAPI: https://www.spigotmc.org/resources/placeholderapi.6245/
-- LocaleLanguageAPI: http://qwq.xn--o5raa.com/plugins/localelanguageapi
+##### 模块列表
+##### MailBoxModule: http://qwq.tripleying.com/plugins/mailbox/wiki?page=module-list

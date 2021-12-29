@@ -1,19 +1,13 @@
 name: MailBox
-main: com.tripleying.qwq.MailBox.MailBox
-version: 2.4.3
-description: Send Mail with Items and Money.
+main: com.tripleying.dogend.mailbox.MailBox
+version: 3.0.0
+description: Dogend模块中心
 author: Dogend
 website: http://qwq.tripleying.com/plugins/mailbox
 prefix: MailBox
-depend: []
-softdepend: [VexView, Vault, PlayerPoints, PlaceholderAPI, LocaleLanguageAPI]
 commands:
   mailbox:
-    description: MailBox's Commands
-    aliases: mb
+    description: MailBox主指令
+    aliases: mail
     usage: |
-      /mb *Open MailBox
-      /mb new *Create a new Mail
-      /mb rb *See the list as recipient
-      /mb sb *See the list as sender
-      /mb cdk [cdkey] *Use cdkey
+      /mailbox(mail) 主指令

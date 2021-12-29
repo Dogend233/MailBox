@@ -1,141 +1,18 @@
-#语言(自带zh_cn)
-#language(Default options zh_cn)
-language: 'zh_cn'
-#数据库
-#Database
-database:
-  #是否使用MySQL(true为MySQL, false为SQLite)
-  #Use MySQL or not (true=MySQL, false=SQLite)
-  enableMySQL: false
-  #数据库名(MySQL与SQLite通用)
-  #Database name (common to MySQL and SQLite)
-  dataBaseName: mailbox
-  #数据表前缀(MySQL与SQLite通用)
-  #Data table prefix (common to MySQL and SQLite)
-  dataTablePrefix: mailbox
-  #MySQL数据库地址(仅MySQL)
-  #Mysql database address (MySQL only)
-  mySQLhost: localhost
-  #MySQL数据库端口(仅MySQL)
-  #Mysql database port (MySQL only)
-  mySQLport: 3306
-  #MySQL数据库用户名(仅MySQL)
-  #Mysql database user name (MySQL only)
-  mySQLusername: 'root'
-  #MySQL数据库密码(仅MySQL)
-  #Mysql database password (MySQL only)
-  mySQLpassword: '111aaa'
-  #是否使用数据库存储附件
-  #Use database to store attachment files
-  fileSQL: false
-#是否启用前置插件
-#Enable pre plugin or not
-softDepend:
-  Vault: true
-  VexView: true
-  PlayerPoints: true
-  PlaceholderAPI: true
-  LocaleLanguageAPI: true
-#插件配置
-#Plugin configuration
-mailbox:
-  #启动服务器时进行更新检查
-  #Check for updates when starting the server
-  updateCheck: true
-  #当一封新的邮件发送时，如果在线玩家可以领取，发送提示
-  #When a new email is sent, if online players can collect it, send a tip
-  #msg 普通消息(Chat message)
-  #title 标题消息(Title)
-  #sound 声音提示(Sound)
-  #flow vv的滚动消息，需要开启vv(Flowing message, need VexView)
-  #hud vv的HUD提示, 需要开启vv(HUD, need VexView)
-  newMailTips: 
-  - msg
-  - title
-  - sound
-  - flow
-  - hud
-  #sound提示的声音 (默认:ENTITY_PLAYER_LEVELUP, 低于1.9为:LEVEL_UP)
-  #Sound of sound (Default:ENTITY_PLAYER_LEVELUP,Under 1.9:LEVEL_UP)
-  newMailTipsSound: 'ENTITY_PLAYER_LEVELUP'
-  #邮件主题最大长度
-  #Maximum length of mail topic
-  topic_max: 30
-  #邮件内容最大长度
-  #Maximum length of mail content
-  content_max: 255
-  #player邮件(mail)
-  player:
-    #邮件过期时间（天）
-    #Player-mail expiration time (days)
-    expire: 30
-    #单封player邮件可指定最大玩家数量
-    multiplayer: 1
-    #玩家player邮件发件最大数量
-    #Maximum number of player-mail players can send
-    out: 10
-  #times邮件(mail)
-  times:
-    #邮件过期时间（小时）
-    #Player-mail expiration time (hours)
-    expire: 24
-    #单封times邮件最大数量
-    #Maximum count of single times-mail
-    count: 20
-  #keytimes邮件(mail)
-  keytimes:
-    #被禁止的口令前缀
-    key_prefix_ban:
-    - /suicide
-    - /pay
-  #玩家每日可输入兑换码的次数
-  #Players can input the number of exchange codes per day
-  cdkey_day: 5
-  #附件
-  #Attachments
-  file:
-    #最大发送物品格子数
-    #Maximum number of slots allowed to be sent
-    maxItem: 9
-    #禁止作为附件发送的物品
-    #Prohibited items sent as attachments
-    ban:
-      #Lore中含有此行的物品
-      #Items with this line in lore
-      lore: '§e- 无法作为邮件'
-      #Material在此列表中的物品
-      #Material in this list
-      #可通过手持物品输入 /mailbox item id 查看Material
-      #Material can be viewed by entering '/mailbox item id' of handheld items
-      #可使用小写，自动转为大写
-      #Can use lowercase, automatically change to uppercase
-      #大部分物品支持 [mod名]:[英文id] 格式
-      #Most items support [mod id]:[English ID] format
-      #例(Example)：ironbackpacks:backpack
-      id:
-      - 'minecraft:stone'
-      - 'GOLD_CHESTPLATE'
-  #Vault经济插件
-  #Vault Plugin
-  vault:
-    #玩家单封邮件可发送的最大数量
-    #Maximum number of this that can be sent in a single mail
-    max: 5000
-    #发送邮件时所消耗的金钱
-    #The amount consumed when sending mail
-    expand: 10
-    #每多一个附件物品增加的金钱消耗
-    #The amount of this consumed for each additional item
-    item: 50
-  #PlayerPoints点券插件
-  #PlayerPoints Plugin
-  player_points:
-    #玩家单封邮件可发送的最大数量
-    #Maximum number of this that can be sent in a single mail
-    max: 500
-    #发送邮件时所消耗的金钱
-    #The amount consumed when sending mail
-    expand: 0
-    #每多一个附件物品增加的金钱消耗
-    #The amount of this consumed for each additional item
-    item: 0
+version: '3.0.0'
+# 从已装的数据源选择一个进行使用
+# Select one of the installed data sources to use
+database: 'sqlite'
+# 个人邮件过期时间 (天)
+# Personal mail expiration time (day)
+expire-day: 30
+# 插件启动时进行更新检查
+# Check for updates when the plugin starts
+update-check: false
+# 检测到新版本时是否自动更新
+# Whether to update automatically when a new version is detected
+auto-update: false
+# 检测到配置文件与版本不符时是否更新
+# Update config when the configuration file is detected to be inconsistent with the version
+# 注: 该操作会删除文档中的注释
+# Note: This action will delete the comments in the document
+auto-config: false

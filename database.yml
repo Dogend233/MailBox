@@ -1,0 +1,52 @@
+version: "3.0.0"
+# SQLite 数据库
+# SQLite database settings
+sqlite:
+  # 是否启用
+  # Enable
+  enable: true
+  # 数据库类型
+  # Database type
+  type: 'sqlite'
+  # 数据库名
+  # Database name
+  database: MailBox
+# MySQL 数据库
+# MySQL database settings
+mysql:
+  # 是否启用
+  # Enable
+  enable: false
+  # 数据库类型
+  # Database type
+  type: 'mysql'
+  # 数据库名
+  # Database name
+  database: mailbox
+  # 数据库地址
+  # Database address
+  host: localhost
+  # 数据库端口
+  # Ddatabase port
+  port: 3306
+  # 数据库用户名
+  # Ddatabase user name
+  username: 'root'
+  # 数据库密码
+  # Ddatabase password
+  password: 'root'
+  # 是否启用下方的连接池
+  # Enable Simple Connection Pool
+  encp: false
+# 简单连接池 (插件内置的两个数据源使用)
+# Simple Connection Pool (Used for sqlite and mysql in this plugin)
+simplecp:
+  # 最小空闲连接数量
+  # Minimum number of free connections
+  min: 10
+  # 最大连接数量
+  # Maximum number of connections
+  max: 20
+  # 等待时间(ms)
+  # Waiting time (ms)
+  timeout: 3000

@@ -1,0 +1,51 @@
+version: '3.0.0'
+prefix: '&b[MailBox]: '
+reload:
+  load: '正在加载插件......'
+  unload: '正在卸载插件'
+  finish: '插件重载完成.'
+file:
+  read: '读取文件: &b%file%'
+  create: '创建文件: &b%file%'
+  create-error: '创建文件失败: &b%file%'
+config:
+  update: 已将 %config%.yml 更新至 v%version%
+  save-error: 保存 %config% 的新配置文件失败
+data:
+  enable: '已启用数据源: &6%data%'
+  enable-error: '数据源: %data% 启用失败, 卸载插件'
+  reg: '注册数据源: &6%data%'
+  reg-error: '注册数据源失败, 已有同名数据源被注册: &6%data%'
+  unreg: 已卸载其他数据源
+mail:
+  reg: '注册系统邮件: &6%mail%'
+  reg-error: '注册系统邮件失败, 已有同名系统邮件被注册: &6%mail%'
+  unreg: '注销系统邮件: &6%mail%'
+money:
+  reg: '注册金钱: &6%money%'
+  reg-invalid: '注册金钱失败, 无效的金钱类: &6%money%'
+  reg-duplicate: '注册金钱失败, 已有同名金钱被注册: &6%money%'
+  unreg: '注销金钱: &6%money%'
+command:
+  reg: '注册指令: &6%command%'
+  reg-error: '注册指令失败, 已有同名指令被注册: &6%command%'
+  unreg: '注销指令: &6%command%'
+  help: '&b==========&6[MailBox邮箱]&b=========='
+listener:
+  reg: '注册监听器: &6%listener%'
+  unreg: '注销监听器: &6%listener%'
+modlue:
+  load:
+    empty: 无本地模块可加载
+    success: '加载模块: &6%module% - v%version%'
+    error:
+      not-jar: '模块加载失败: %module% 无效的Jar文件 '
+      not-info: '模块加载失败: %module% 读取模块信息失败 '
+      info-err: '模块加载失败: %module% 模块信息不可用 '
+      has-duplicate: '模块加载失败: %module% 已有重名模块被加载: %another%'
+      depend-plugin: '模块加载失败: %module% 缺少前置插件: %depends%'
+      depend-module: '模块加载失败: %module% 缺少前置模块: %depends%'
+      recycle-depend: '模块加载失败: %module% 检测到循环依赖'
+      main:
+        read-err: '模块加载失败: %module% 主类错误'
+  unload: '卸载模块: &6%module%'
