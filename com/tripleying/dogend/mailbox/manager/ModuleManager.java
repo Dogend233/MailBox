@@ -103,27 +103,46 @@ public class ModuleManager {
                 }
             }
             // 加载jar
+            URLClassLoader cl = null;
             try{
-                URLClassLoader loader = new URLClassLoader(new URL[]{file.toURI().toURL()}, MailBox.getMailBox().getClass().getClassLoader());
-                Class<?> clazz = Class.forName(info.getMain(), true, loader);
+                List<URLClassLoader> ul = new ArrayList();
+                info.getDependModule().forEach(m -> {
+                    MailBoxModule mm = this.map.get(m);
+                    URLClassLoader ucl = this.jar_map.get(mm.getJar());
+                    ul.add(ucl);
+                });
+                info.getSoftdependModule().forEach(m -> {
+                    if(this.map.containsKey(m)){
+                        MailBoxModule mm = this.map.get(m);
+                        URLClassLoader ucl = this.jar_map.get(mm.getJar());
+                        ul.add(ucl);
+                    }
+                });
+                cl = this.getModuleURLClassLoader(file.toURI().toURL(), ul.toArray(new URLClassLoader[0]));
+                Class<?> clazz = Class.forName(info.getMain(), true, cl);
                 Constructor<?> constructor = clazz.getConstructor();
                 Object instance = constructor.newInstance();
                 Method init = MailBoxModule.class.getDeclaredMethod("init", ModuleInfo.class, JarFile.class, String.class);
                 init.setAccessible(true);
                 MailBoxModule module = MailBoxModule.class.cast(instance);
                 init.invoke(module, info, jar, file.getName());
-                this.map.put(name, module);
-                this.jar_map.put(jar, loader);
-                this.addBefore(info);
-                MessageUtil.log(MessageUtil.modlue_load_success.replaceAll("%module%", name).replaceAll("%version%", info.getVersion().toString()));
+                // 加载模块
                 module.onEnable();
-                // 调用插件加载事件
+                MessageUtil.log(MessageUtil.modlue_load_success.replaceAll("%module%", name).replaceAll("%version%", info.getVersion().toString()));
+                this.map.put(name, module);
+                this.jar_map.put(jar, cl);
+                this.addBefore(info);
+                // 调用模块加载事件
                 MailBoxModuleLoadEvent evt = new MailBoxModuleLoadEvent(module);
                 Bukkit.getPluginManager().callEvent(evt);
                 return true;
             }catch(Exception ex){
                 ex.printStackTrace();
                 MessageUtil.error(MessageUtil.modlue_load_error_main_err.replaceAll("%module%", file.getName()));
+                cl  = null;
+                try {
+                    jar.close();
+                } catch (Exception exj) {}
                 return false;
             }
         }
@@ -283,16 +302,21 @@ public class ModuleManager {
             module.unregisterAllCommand();
             module.unregisterAllMoney();
             module.unregisterAllSystemMail();
-            module.onDisable();
+            try{
+                module.onDisable();
+            }catch(Exception ex){}
             // 调用插件卸载事件
             MailBoxModuleUnloadEvent evt = new MailBoxModuleUnloadEvent(module);
             Bukkit.getPluginManager().callEvent(evt);
-            // 关闭jar文件, 移除类加载器
+            // 关闭jar文件, 类加载器
             JarFile jar = module.getJar();
-            this.jar_map.remove(jar);
             try {
-                module.getJar().close();
-            } catch (IOException ex) {}
+                jar.close();
+            } catch (Exception ex) {}
+            URLClassLoader ucl = this.jar_map.remove(jar);
+            try {
+                ucl.close();
+            } catch (Exception ex) {}
             this.map.remove(name);
         }
     }
@@ -339,6 +363,31 @@ public class ModuleManager {
      */
     public boolean hasModule(String name){
         return this.map.containsKey(name);
+    }
+    
+    /**
+     * 获取模块的类加载器
+     * @param url URL
+     * @param cls ClassLoaderArray
+     * @return URLClassLoader
+     */
+    private URLClassLoader getModuleURLClassLoader(URL url, ClassLoader... cls) {
+        URLClassLoader ucl;
+        URL[] urls = new URL[]{url};
+        ClassLoader cl = null;
+        for(ClassLoader c:cls){
+            if(cl==null){
+                cl = c;
+            }else{
+                cl = new URLClassLoader(urls, c);
+            }
+        }
+        if(cl==null){
+            ucl = new URLClassLoader(urls, MailBox.getMailBox().getClass().getClassLoader());
+        }else{
+            ucl = new URLClassLoader(urls, cl);
+        }
+        return ucl;
     }
 
     public static ModuleManager getModuleManager() {

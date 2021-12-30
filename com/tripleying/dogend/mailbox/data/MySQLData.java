@@ -25,7 +25,7 @@ public class MySQLData extends SQLData {
         this.url = "jdbc:mysql://".concat(yml.getString("mysql.host")).concat(":").concat(Integer.toString(yml.getInt("mysql.port"))).concat("/").concat(yml.getString("mysql.database"))
                     .concat("?user=").concat(yml.getString("mysql.username")).concat("&password=").concat(yml.getString("mysql.password"))
                     .concat("&autoReconnect=true&autoReconnectForPools=true&useSSL=false");
-        this.encp = yml.getBoolean(yml.getString("mysql.encp"), false);
+        this.encp = yml.getBoolean("mysql.encp", false);
         if(this.encp) this.cp = new SimpleCP(yml.getConfigurationSection("simplecp"), url);
         else this.cp = null;
     }

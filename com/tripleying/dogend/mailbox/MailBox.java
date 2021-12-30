@@ -94,21 +94,25 @@ public class MailBox extends JavaPlugin {
         Bukkit.getScheduler().runTask(this, () -> {
             // 注册基础指令
             this.cmdmgr.registerBaseCommand();
-            // 加载本地模块
-            this.modulemgr.loadLocalModule();
-            // 选择使用的数据源
-            String database = config.getString("database", "sqlite");
-            if(this.datamgr.selectData(database)){
-                // 注册指令
-                Bukkit.getPluginCommand("mailbox").setExecutor(this.cmdmgr);
-                // 注册监听器
-                Bukkit.getPluginManager().registerEvents(new onPlayerJoin(), this);
-                // 发起加载完成事件
-                Bukkit.getPluginManager().callEvent(new MailBoxLoadFinishEvent());
-            }else{
-                // 启动数据源失败, 卸载插件
-                MessageUtil.error(MessageUtil.data_enable_error.replaceAll("%data%", database));
-                Bukkit.getPluginManager().disablePlugin(this);
+            try{
+                // 加载本地模块
+                this.modulemgr.loadLocalModule();
+            }catch(Exception ex){
+            }finally{
+                // 选择使用的数据源
+                String database = config.getString("database", "sqlite");
+                if(this.datamgr.selectData(database)){
+                    // 注册指令
+                    Bukkit.getPluginCommand("mailbox").setExecutor(this.cmdmgr);
+                    // 注册监听器
+                    Bukkit.getPluginManager().registerEvents(new onPlayerJoin(), this);
+                    // 发起加载完成事件
+                    Bukkit.getPluginManager().callEvent(new MailBoxLoadFinishEvent());
+                }else{
+                    // 启动数据源失败, 卸载插件
+                    MessageUtil.error(MessageUtil.data_enable_error.replaceAll("%data%", database));
+                    Bukkit.getPluginManager().disablePlugin(this);
+                }
             }
         });
         
@@ -126,6 +130,8 @@ public class MailBox extends JavaPlugin {
     }
     
     public void unload(){
+        // 关闭在线玩家的GUI
+        Bukkit.getOnlinePlayers().forEach(p -> p.closeInventory());
         // 注销监听器
         HandlerList.unregisterAll(this);
         // 关闭数据源

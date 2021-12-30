@@ -10,4 +10,4 @@ commands:
     description: MailBox主指令
     aliases: mail
     usage: |
-      /mailbox(mail) 主指令
+      /mailbox 主指令
