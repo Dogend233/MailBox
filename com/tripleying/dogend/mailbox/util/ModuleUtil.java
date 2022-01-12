@@ -117,7 +117,7 @@ public class ModuleUtil {
         JarEntry entry = jar.getJarEntry("module.yml");
         try(
             InputStream input = jar.getInputStream(entry);
-            InputStreamReader reader = new InputStreamReader(input)
+            InputStreamReader reader = getInputStreamReader(input)
         ){
             YamlConfiguration yml = YamlConfiguration.loadConfiguration(reader);
             return new ModuleInfo(yml);
