@@ -65,8 +65,6 @@ public class MailBox extends JavaPlugin {
         if(mc_version<1.09) FileUtil.setCharset(Bukkit.getServer().getName());
         // 加载插件
         load();
-        // 更新检查
-        if(this.getConfig().getBoolean("update-check", false)) UpdateUtil.updatePlugin(Bukkit.getConsoleSender(), CommonConfig.auto_update);
     }
     
     public void load(){
@@ -84,15 +82,13 @@ public class MailBox extends JavaPlugin {
         // 检查配置文件更新
         if(config.getBoolean("auto-config", false)){
             ConfigUtil.checkConfigVersion("message", msg);
-            ConfigUtil.checkConfigVersion("db", db);
+            ConfigUtil.checkConfigVersion("database", db);
             ConfigUtil.checkConfigVersion("config", config);
         }
         // 初始化消息工具
         MessageUtil.init(msg);
         // 配置默认数据源
         this.loadDataBase(db);
-        // 重载配置文件
-        this.reloadConfig();
         // 初始化公共配置
         CommonConfig.init(config);
         // 当服务器完全启动后加载
@@ -120,7 +116,8 @@ public class MailBox extends JavaPlugin {
                 }
             }
         });
-        
+        // 更新检查
+        if(config.getBoolean("update-check", false)) UpdateUtil.updatePlugin(Bukkit.getConsoleSender(), CommonConfig.auto_update);
     }
     
     public void loadDataBase(YamlConfiguration database){

@@ -63,7 +63,7 @@ public class ModuleManager {
         ModuleInfo info;
         try {
             info = ModuleUtil.loadModuleInfo(jar);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             MessageUtil.error(MessageUtil.modlue_load_error_not_info.replaceAll("%module%", file.getName()));
             ex.printStackTrace();
             return false;

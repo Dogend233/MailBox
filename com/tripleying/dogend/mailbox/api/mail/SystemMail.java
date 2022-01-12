@@ -119,6 +119,7 @@ public abstract class SystemMail extends BaseMail {
     
     /**
      * 发送邮件
+     * @since 3.0.1
      * @return SystemMail
      */
     public SystemMail sendMail(){

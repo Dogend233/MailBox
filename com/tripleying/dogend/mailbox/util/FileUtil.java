@@ -4,6 +4,8 @@ import com.tripleying.dogend.mailbox.MailBox;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +18,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -30,10 +34,11 @@ public class FileUtil {
     // 默认编码格式
     private static String charset = "UTF-8";
     // 1.9以下默认编码为UTF-8的服务端核心
-    private static final List<String> UTF8_Server = Arrays.asList("Uranium");
+    private static final List<String> UTF8_Server;
     
     static{
         data_folder = new File("plugins/MailBox");
+        UTF8_Server = Arrays.asList("Uranium", "Cauldron");
     }
     
     /**
@@ -107,9 +112,11 @@ public class FileUtil {
      * 读取一个yml
      * @param f 文件
      * @return YamlConfiguration
+     * @throws java.io.FileNotFoundException 文件不存在
+     * @throws java.io.UnsupportedEncodingException 不支持的编码
      */
-    public static YamlConfiguration getYaml(File f){
-        return YamlConfiguration.loadConfiguration(f);
+    public static YamlConfiguration getYaml(File f) throws FileNotFoundException, UnsupportedEncodingException{
+        return YamlConfiguration.loadConfiguration(new InputStreamReader(new FileInputStream(f), charset));
     }
     
     /**
@@ -144,7 +151,11 @@ public class FileUtil {
             }
         }
         MessageUtil.log(MessageUtil.file_read.replaceAll("%file%", file));
-        return getYaml(f);
+        try {
+            return getYaml(f);
+        } catch (Exception ex) {
+            return new YamlConfiguration();
+        }
     }
     
     /**

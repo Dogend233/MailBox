@@ -46,11 +46,12 @@ public abstract class MailBoxModule {
     /**
      * 模块启动方法
      */
-    public abstract void onEnable();
+    public void onEnable(){}
+    
     /**
      * 模块卸载方法
      */
-    public abstract void onDisable();
+    public void onDisable(){};
     
     /**
      * 获取模块信息

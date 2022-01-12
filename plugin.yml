@@ -1,6 +1,6 @@
 name: MailBox
 main: com.tripleying.dogend.mailbox.MailBox
-version: 3.0.1
+version: 3.0.2
 description: Dogend模块中心
 author: Dogend
 website: http://qwq.tripleying.com/plugins/mailbox

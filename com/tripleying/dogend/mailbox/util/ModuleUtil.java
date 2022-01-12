@@ -90,7 +90,11 @@ public class ModuleUtil {
     public static YamlConfiguration getConfig(MailBoxModule module, String file){
         File f = new File(getModuleDataFolder(module), file);
         if(!f.exists()) saveConfig(module, file);
-        return FileUtil.getYaml(f);
+        try {
+            return FileUtil.getYaml(f);
+        } catch (Exception ex) {
+            return new YamlConfiguration();
+        }
     }
     
     /**
@@ -107,9 +111,9 @@ public class ModuleUtil {
      * 从jar加载模块信息
      * @param jar Jar
      * @return ModuleInfo
-     * @throws IOException IO异常
+     * @throws Exception 异常
      */
-    public static ModuleInfo loadModuleInfo(JarFile jar) throws IOException{
+    public static ModuleInfo loadModuleInfo(JarFile jar) throws Exception{
         JarEntry entry = jar.getJarEntry("module.yml");
         try(
             InputStream input = jar.getInputStream(entry);
