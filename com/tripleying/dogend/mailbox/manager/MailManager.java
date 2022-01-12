@@ -163,8 +163,8 @@ public class MailManager {
         if(view>0){
             long count = DataManager.getDataManager().getSystemMailCount(sm);
             if(count>0){
-                long pagel = view/count;
-                if(view%count!=0) pagel++;
+                long pagel = count/view;
+                if(count%view!=0) pagel++;
                 return pagel>Integer.MAX_VALUE?Integer.MAX_VALUE:(int)pagel;
             }
         }
@@ -241,8 +241,8 @@ public class MailManager {
         if(view>0){
             long count = DataManager.getDataManager().getPersonMailCount(p);
             if(count>0){
-                long pagel = view/count;
-                if(view%count!=0) pagel++;
+                long pagel = count/view;
+                if(count%view!=0) pagel++;
                 return pagel>Integer.MAX_VALUE?Integer.MAX_VALUE:(int)pagel;
             }
         }
@@ -297,10 +297,12 @@ public class MailManager {
     public long receiveAllPersonMail(Player p){
         long i = 0l;
         for(PersonMail pm:getPersonMailList(p)){
-            if(!pm.isReceived() && pm.receivedMail()){
-                i++;
-            }else{
-                break;
+            if(!pm.isReceived()){
+                if(pm.receivedMail()){
+                    i++;
+                }else{
+                    break;
+                }
             }
         }
         return i;

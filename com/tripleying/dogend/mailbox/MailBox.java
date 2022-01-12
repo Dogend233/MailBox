@@ -51,8 +51,13 @@ public class MailBox extends JavaPlugin {
         ConfigurationSerialization.registerClass(AttachFile.class);
         // 获取游戏版本
         String v1 = Bukkit.getServer().getVersion();
-        v1 = v1.substring(v1.indexOf("MC")+3, v1.length()-1).trim();
-        String v2 = v1.substring(0, v1.lastIndexOf('.'));
+        v1 = v1.substring(v1.indexOf("MC")+3, v1.length()-1).trim();//1.18 / 1.18.1
+        String v2;
+        if(v1.indexOf('.')==v1.lastIndexOf('.')){
+            v2 = v1;
+        }else{
+            v2 = v1.substring(0, v1.lastIndexOf('.'));
+        }
         v2 = v2.substring(v1.indexOf('.')+1);
         if(v2.length()==1) v2 = "0"+v2;
         mc_version = Double.parseDouble(v1.substring(0, v1.indexOf('.'))+"."+v2);
@@ -135,9 +140,9 @@ public class MailBox extends JavaPlugin {
         // 注销监听器
         HandlerList.unregisterAll(this);
         // 关闭数据源
-        this.datamgr.closeData();
+        if(this.datamgr!=null) this.datamgr.closeData();
         // 卸载全部模块
-        this.modulemgr.unloadAllModule();
+        if(this.modulemgr!=null) this.modulemgr.unloadAllModule();
     }
     
     public void reload(CommandSender cs){

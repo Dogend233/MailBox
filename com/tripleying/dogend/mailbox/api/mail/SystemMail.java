@@ -3,6 +3,7 @@ package com.tripleying.dogend.mailbox.api.mail;
 import com.tripleying.dogend.mailbox.api.event.mail.MailBoxPersonMailPreSendEvent;
 import com.tripleying.dogend.mailbox.api.event.mail.MailBoxPersonMailSendEvent;
 import com.tripleying.dogend.mailbox.api.event.mail.MailBoxSystemMailDeleteEvent;
+import com.tripleying.dogend.mailbox.api.event.mail.MailBoxSystemMailSendEvent;
 import com.tripleying.dogend.mailbox.manager.MailManager;
 import java.util.Iterator;
 import java.util.Map;
@@ -114,6 +115,18 @@ public abstract class SystemMail extends BaseMail {
             return true;
         }
         return false;
+    }
+    
+    /**
+     * 发送邮件
+     * @return SystemMail
+     */
+    public SystemMail sendMail(){
+        SystemMail sm = MailManager.getMailManager().sendSystemMail(this);
+        if(sm.getId()!=0){
+            Bukkit.getPluginManager().callEvent(new MailBoxSystemMailSendEvent(sm));
+        }
+        return sm;
     }
     
     /**
