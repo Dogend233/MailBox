@@ -18,3 +18,5 @@ Mail type and Money type can be extended through the MailBoxModule.
 
 ##### 模块列表
 ##### MailBoxModule: http://qwq.tripleying.com/plugins/mailbox/wiki?page=module-list
+
+[![](https://jitpack.io/v/Dogend233/MailBox.svg)](https://jitpack.io/#Dogend233/MailBox)
