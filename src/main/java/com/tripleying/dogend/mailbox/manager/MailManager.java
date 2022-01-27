@@ -22,7 +22,6 @@ import org.bukkit.entity.Player;
 public class MailManager {
     
     private static MailManager manager;
-    // 系统邮件实例列表
     private final Map<String, SystemMail> map;
     private final Map<SystemMail, MailBoxModule> mod_map;
     

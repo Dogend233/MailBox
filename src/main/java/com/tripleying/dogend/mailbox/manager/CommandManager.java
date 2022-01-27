@@ -23,7 +23,6 @@ import org.bukkit.command.CommandSender;
 public class CommandManager implements CommandExecutor {
     
     private static CommandManager manager;
-    // 指令列表
     private final Map<String, BaseCommand> map;
     private final Map<BaseCommand, MailBoxModule> mod_map;
     

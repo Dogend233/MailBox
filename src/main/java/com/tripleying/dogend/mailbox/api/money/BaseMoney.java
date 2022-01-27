@@ -9,9 +9,13 @@ import org.bukkit.entity.Player;
  */
 public abstract class BaseMoney {
     
-    // 金钱名
+    /**
+     * 金钱名
+     */
     protected final String name;
-    // 显示名称
+    /**
+     * 显示名称
+     */
     protected final String display;
     
     public BaseMoney(String name, String display){

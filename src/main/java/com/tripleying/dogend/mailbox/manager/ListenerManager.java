@@ -18,7 +18,6 @@ import org.bukkit.event.Listener;
 public class ListenerManager {
     
     private static ListenerManager manager;
-    // 指令列表
     private final Map<Listener, MailBoxModule> mod_map;
     
     public ListenerManager(){

@@ -32,9 +32,7 @@ import org.bukkit.Bukkit;
 public class ModuleManager {
     
     private static ModuleManager manager;
-    // 模块
     private final Map<String, MailBoxModule> map;
-    // Jar文件
     private final Map<JarFile, URLClassLoader> jar_map;
     
     

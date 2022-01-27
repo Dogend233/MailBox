@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import org.bukkit.configuration.file.YamlConfiguration;
 import com.tripleying.dogend.mailbox.api.data.Data;
+import com.tripleying.dogend.mailbox.api.mail.CustomData;
 
 /**
  * 反射工具
@@ -114,6 +115,67 @@ public class ReflectUtil {
                 if(f.isAnnotationPresent(Data.class)){
                     f.setAccessible(true);
                     temp.put(f.getName(), f.get(sm));
+                }
+            }
+        }
+        cols.forEach((c,dc) -> {
+            if(dc.type()==DataType.YamlString){
+                YamlConfiguration yml = new YamlConfiguration();
+                yml.set(c, temp.get(c));
+                map.put(c, yml.saveToString());
+            }else{
+                map.put(c, temp.get(c));
+            }
+        });
+        return map;
+    }
+    
+    /**
+     * 获取自定义数据需要在数据源中创建的字段及类型
+     * @param cd 继承自定义数据的类
+     * @since 3.1.0
+     * @return Map
+     */
+    public static Map<String, Data> getCustomDataColumns(Class<? extends CustomData> cd){
+        Map<String, Data> map = new LinkedHashMap();
+        List<Field> fields = new ArrayList();
+        Class sc = cd;
+        do{
+            fields.addAll(Arrays.asList(sc.getDeclaredFields()));
+            sc = sc.getSuperclass();
+        }while(sc!=CustomData.class);
+        for(Field field:fields){
+            if(field.isAnnotationPresent(Data.class)){
+                map.put(field.getName(), field.getDeclaredAnnotation(Data.class));
+            }
+        }
+        return map;
+    }
+    
+    /**
+     * 获取自定义数据需要在数据源中创建的字段及值
+     * @param cd 自定义数据实例
+     * @param cols 自定义数据在数据源中创建的字段及类型
+     * @since 3.1.0
+     * @return Map
+     * @throws java.lang.Exception 异常
+     */
+    public static Map<String, Object> getCustomDataValues(CustomData cd, Map<String, Data> cols) throws Exception {
+        Map<String, Object> map = new LinkedHashMap();
+        Map<String, Object> temp = new LinkedHashMap();
+        Map<Class, Field[]> fields = new LinkedHashMap();
+        Class sc = cd.getClass();
+        do{
+            fields.put(sc, sc.getDeclaredFields());
+            sc = sc.getSuperclass();
+        }while(sc!=CustomData.class);
+        Iterator<Map.Entry<Class, Field[]>> it = fields.entrySet().iterator();
+        while(it.hasNext()){
+            Map.Entry<Class, Field[]> me = it.next();
+            for(Field f:me.getValue()){
+                if(f.isAnnotationPresent(Data.class)){
+                    f.setAccessible(true);
+                    temp.put(f.getName(), f.get(cd));
                 }
             }
         }

@@ -18,8 +18,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -29,11 +27,17 @@ import org.bukkit.configuration.file.YamlConfiguration;
  */
 public class FileUtil {
     
-    // 插件数据文件夹
+    /**
+     * 插件数据文件夹
+     */
     private final static File data_folder;
-    // 默认编码格式
+    /**
+     * 默认编码格式
+     */
     private static String charset = "UTF-8";
-    // 1.9以下默认编码为UTF-8的服务端核心
+    /**
+     * 1.9以下默认编码为UTF-8的服务端核心
+     */
     private static final List<String> UTF8_Server;
     
     static{

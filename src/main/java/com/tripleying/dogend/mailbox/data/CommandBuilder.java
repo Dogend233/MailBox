@@ -11,6 +11,8 @@ import com.tripleying.dogend.mailbox.api.data.sql.UpdateData;
 import com.tripleying.dogend.mailbox.util.ReflectUtil;
 import java.util.Map;
 import com.tripleying.dogend.mailbox.api.data.Data;
+import com.tripleying.dogend.mailbox.api.data.DataType;
+import com.tripleying.dogend.mailbox.api.mail.CustomData;
 
 /**
  * SQL指令构造器
@@ -35,6 +37,10 @@ public class CommandBuilder {
     public static SelectData sqlPlayerDataSelectCommand(){
         return new SelectData("mailbox_player_data")
                 .addWhere("uuid");
+    }
+    
+    public static SelectData sqlPlayerDataSelectAllCommand(){
+        return new SelectData("mailbox_player_data");
     }
     
     public static UpdateData sqlPlayerDataUpdateCommand(){
@@ -147,7 +153,7 @@ public class CommandBuilder {
                 .addColumns("body")
                 .addColumns("sender")
                 .addColumns("sendtime")
-                .addColumns("attach");;
+                .addColumns("attach");
         cols.forEach((f,dc) -> cmd.addColumns(f));
         return cmd;
     }
@@ -163,6 +169,53 @@ public class CommandBuilder {
     
     public static LastInsertID sqlLastInsertIDCommand(){
         return new LastInsertID();
+    }
+    
+    public static CreateTable sqlCustomDataCreateCommand(CustomData cd){
+        Map<String, Data> cols = ReflectUtil.getCustomDataColumns(cd.getClass());
+        CreateTable cmd = new CreateTable(cd.getName());
+        cols.forEach((f,dc) -> {
+            switch(dc.type()){
+                case Integer:
+                    cmd.addInt(f);
+                    break;
+                case Long:
+                    cmd.addLong(f);
+                    break;
+                case Boolean:
+                    cmd.addBoolean(f);
+                    break;
+                case DateTime:
+                    cmd.addDateTime(f);
+                    break;
+                default:
+                case String:
+                    cmd.addString(f, dc.size());
+                    break;
+                case YamlString:
+                    cmd.addYamlString(f);
+                    break;
+                case Primary:
+                    cmd.setPrimaryKey(f);
+                    break;
+            }
+        });
+        return cmd;
+    }
+    
+    public static InsertData sqlCustomDataInsertCommand(CustomData cd){
+        Map<String, Data> cols = ReflectUtil.getCustomDataColumns(cd.getClass());
+        InsertData cmd = new InsertData(cd.getName());
+        cols.forEach((f,dc) -> {if(!dc.type().equals(DataType.Primary))cmd.addColumns(f);} );
+        return cmd;
+    }
+    
+    public static SelectData sqlCustomDataSelectCommand(CustomData cd){
+        return new SelectData(cd.getName());
+    }
+    
+    public static DeleteData sqlCustomDataDeleteCommand(CustomData cd){
+        return new DeleteData(cd.getName());
     }
     
 }

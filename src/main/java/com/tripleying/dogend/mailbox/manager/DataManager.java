@@ -1,8 +1,8 @@
 package com.tripleying.dogend.mailbox.manager;
 
-import java.sql.Connection;
 import com.tripleying.dogend.mailbox.MailBox;
 import com.tripleying.dogend.mailbox.api.data.BaseData;
+import com.tripleying.dogend.mailbox.api.mail.CustomData;
 import com.tripleying.dogend.mailbox.api.mail.PersonMail;
 import com.tripleying.dogend.mailbox.api.mail.PlayerData;
 import com.tripleying.dogend.mailbox.api.mail.SystemMail;
@@ -10,6 +10,7 @@ import com.tripleying.dogend.mailbox.api.module.MailBoxModule;
 import com.tripleying.dogend.mailbox.util.MessageUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.entity.Player;
@@ -21,10 +22,11 @@ import org.bukkit.entity.Player;
 public class DataManager {
     
     private static DataManager manager;
-    // 数据源列表
     private final Map<String, BaseData> map;
     private final Map<BaseData, MailBoxModule> mod_map;
-    // 使用的数据源
+    /**
+     * 使用的数据源
+     */
     private BaseData data;
     
     public DataManager(){
@@ -39,23 +41,6 @@ public class DataManager {
      */
     public BaseData getData(){
         return this.data;
-    }
-    
-    /**
-     * 获取一个连接
-     * @return Connection
-     */
-    public Connection getConnection(){
-        return this.data==null?null:this.data.getConnection();
-    }
-    /**
-     * 释放一个连接
-     * @param con Connection
-     */
-    public void releaseConnection(Connection con){
-        if(this.data!=null){
-            this.data.releaseConnection(con);
-        }
     }
     
     /**
@@ -124,6 +109,14 @@ public class DataManager {
     }
     
     /**
+     * 获取全部玩家数据
+     * @return List
+     */
+    public List<PlayerData> getAllPlayerData(){
+        return this.data==null?new ArrayList():this.data.getAllPlayerData();
+    }
+    
+    /**
      * 更新玩家数据
      * 若玩家数据不存在则插入数据
      * @param pd PlayerData
@@ -143,12 +136,33 @@ public class DataManager {
     }
     
     /**
+     * 获取未领取附件的个人邮件数量
+     * @param p 玩家
+     * @return Long
+     */
+    public long getNotReceivedPersonMailCount(Player p){
+        return (this.data==null || p==null)?0:this.data.getNotReceivedPersonMailCount(p);
+    }
+    
+    /**
      * 获取个人邮件列表
      * @param p 玩家
      * @return List
      */
     public List<PersonMail> getPersonMailList(Player p){
         return this.data==null?new ArrayList():this.data.getPersonMail(p);
+    }
+    
+    /**
+     * 以特定id和type获取个人邮件
+     * 不存在返回null
+     * @param p 玩家
+     * @param id id
+     * @param type 邮件类型
+     * @return PersonMail
+     */
+    public PersonMail getPersonMail(Player p, long id, String type){
+        return this.data==null?null:this.data.getPersonMail(p, id, type);
     }
     
     /**
@@ -219,6 +233,17 @@ public class DataManager {
     }
     
     /**
+     * 获取特定id的系统邮件列表
+     * 没有返回null
+     * @param sm 系统邮件
+     * @param id id
+     * @return SystemMail
+     */
+    public SystemMail getSystemMail(SystemMail sm, long id){
+        return (this.data==null || sm==null)?null:this.data.getSystemMail(sm, id);
+    }
+    
+    /**
      * 获取系统邮件数量
      * @param sm 系统邮件
      * @return Long
@@ -286,6 +311,48 @@ public class DataManager {
             this.data = null;
             this.mod_map.clear();
         }
+    }
+    
+    /**
+     * 创建自定义存储库
+     * @param cd CustomData
+     * @since 3.1.0
+     * @return boolean
+     */
+    public boolean createCustomStorage(CustomData cd){
+        return this.data==null?false:this.data.createCustomStorage(cd);
+    }
+    
+    /**
+     * 将自定义数据插入存储库
+     * @param cd 自定义数据
+     * @since 3.1.0
+     * @return boolean
+     */
+    public boolean insertCustomData(CustomData cd){
+        return this.data==null?false:this.data.insertCustomData(cd);
+    }
+    
+    /**
+     * 以特定条件获取自定义数据
+     * @param cd 自定义数据实例
+     * @param args 条件
+     * @since 3.1.0
+     * @return List
+     */
+    public List<CustomData> selectCustomData(CustomData cd, LinkedHashMap<String, Object> args){
+        return this.data==null?new ArrayList():this.data.selectCustomData(cd, args);
+    }
+    
+     /**
+     * 以特定条件删除自定义数据
+     * @param cd 自定义数据实例
+     * @param args 条件
+     * @since 3.1.0
+     * @return List
+     */
+    public long deleteCustomData(CustomData cd, LinkedHashMap<String, Object> args){
+        return this.data==null?0:this.data.deleteCustomData(cd, args);
     }
     
     public static DataManager getDataManager(){

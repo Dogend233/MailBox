@@ -23,7 +23,6 @@ import org.bukkit.entity.Player;
 public class MoneyManager {
     
     private static MoneyManager manager;
-    // 金钱列表
     private final Map<String, BaseMoney> map;
     private final Map<BaseMoney, MailBoxModule> mod_map;
     

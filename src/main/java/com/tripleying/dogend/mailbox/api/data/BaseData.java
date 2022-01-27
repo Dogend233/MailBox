@@ -1,11 +1,13 @@
 package com.tripleying.dogend.mailbox.api.data;
 
-import java.sql.Connection;
+import com.tripleying.dogend.mailbox.api.mail.CustomData;
 import com.tripleying.dogend.mailbox.api.mail.PersonMail;
 import com.tripleying.dogend.mailbox.api.mail.PlayerData;
 import com.tripleying.dogend.mailbox.api.mail.SystemMail;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 /**
@@ -27,18 +29,6 @@ public interface BaseData {
     public boolean enable();
     
     /**
-     * 获取一个连接
-     * @return Connection
-     */
-    public Connection getConnection();
-    
-    /**
-     * 释放一个连接
-     * @param con Connection
-     */
-    public void releaseConnection(Connection con);
-    
-    /**
      * 关闭数据源
      */
     public void close();
@@ -57,6 +47,12 @@ public interface BaseData {
      * @return PlayerData
      */
     public PlayerData getPlayerData(Player p);
+    
+    /**
+     * 获取全部玩家数据
+     * @return List
+     */
+    public List<PlayerData> getAllPlayerData();
     
     /**
      * 更新玩家数据
@@ -80,12 +76,29 @@ public interface BaseData {
     public long getPersonMailCount(Player p);
     
     /**
+     * 获取未领取附件的个人邮件数量
+     * @param p 玩家
+     * @return Long
+     */
+    public long getNotReceivedPersonMailCount(Player p);
+    
+    /**
      * 获取个人邮件列表
      * 拉取时邮件过期会进行删除
      * @param p 玩家
      * @return List
      */
     public List<PersonMail> getPersonMail(Player p);
+    
+    /**
+     * 以特定id和type获取个人邮件
+     * 不存在返回null
+     * @param p 玩家
+     * @param id id
+     * @param type 邮件类型
+     * @return PersonMail
+     */
+    public PersonMail getPersonMail(Player p, long id, String type);
     
     /**
      * 获取固定数量的个人邮件列表
@@ -156,6 +169,15 @@ public interface BaseData {
     public List<SystemMail> getSystemMail(SystemMail sm);
     
     /**
+     * 获取特定id的系统邮件列表
+     * 没有返回null
+     * @param sm 系统邮件
+     * @param id id
+     * @return SystemMail
+     */
+    public SystemMail getSystemMail(SystemMail sm, long id);
+    
+    /**
      * 获取固定数量的系统邮件列表
      * @param sm 系统邮件实例
      * @param count 每页个数
@@ -188,5 +210,38 @@ public interface BaseData {
      */
     public boolean deleteSystemMail(SystemMail sm);
     
+    /**
+     * 创建自定义存储库
+     * @param cd CustomData
+     * @since 3.1.0
+     * @return boolean
+     */
+    public boolean createCustomStorage(CustomData cd);
+    
+    /**
+     * 将自定义数据插入存储库
+     * @param cd 自定义数据
+     * @since 3.1.0
+     * @return boolean
+     */
+    public boolean insertCustomData(CustomData cd);
+    
+    /**
+     * 以特定条件获取自定义数据
+     * @param cd 自定义数据实例
+     * @param args 条件
+     * @since 3.1.0
+     * @return List
+     */
+    public List<CustomData> selectCustomData(CustomData cd, LinkedHashMap<String, Object> args);
+    
+    /**
+     * 以特定条件删除自定义数据
+     * @param cd 自定义数据实例
+     * @param args 条件
+     * @since 3.1.0
+     * @return List
+     */
+    public long deleteCustomData(CustomData cd, LinkedHashMap<String, Object> args);
     
 }

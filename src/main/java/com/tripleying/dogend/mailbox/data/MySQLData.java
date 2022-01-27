@@ -17,7 +17,9 @@ public class MySQLData extends SQLData {
     private Connection connection;
     private final boolean encp;
     private final String url;
-    // 连接池
+    /**
+     * 连接池
+     */
     protected final SimpleCP cp;
     
     public MySQLData(YamlConfiguration yml){

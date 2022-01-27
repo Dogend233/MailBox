@@ -13,25 +13,45 @@ import org.bukkit.configuration.file.YamlConfiguration;
  */
 public class ModuleInfo {
     
-    // 插件名
+    /**
+     * 插件名
+     */
     private final String name;
-    // 插件主类
+    /**
+     * 插件主类
+     */
     private final String main;
-    // 插件描述
+    /**
+     * 插件描述
+     */
     private final String description;
-    // 插件作者
+    /**
+     * 插件作者
+     */
     private final List<String> author;
-    // 插件版本
+    /**
+     * 插件版本
+     */
     private final Version version;
-    // 前置插件
+    /**
+     * 前置插件
+     */
     private final List<String> depend_plugin;
-    // 前置模块
+    /**
+     * 前置模块
+     */
     private final List<String> depend_module;
-    // 软前置模块
+    /**
+     * 软前置模块
+     */
     private final List<String> softdepend_module;
-    // 后置模块
+    /**
+     * 后置模块
+     */
     private final List<String> before_module;
-    // 是否可用
+    /**
+     * 是否可用
+     */
     private final boolean avaliable;
     
     public ModuleInfo(YamlConfiguration yml){

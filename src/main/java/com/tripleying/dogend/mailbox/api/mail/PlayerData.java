@@ -16,11 +16,17 @@ import org.bukkit.entity.Player;
  */
 public class PlayerData {
     
-    // 玩家名
+    /**
+     * 玩家名
+     */
     private final String name;
-    // 玩家UUID
+    /**
+     * 玩家UUID
+     */
     private final UUID uuid;
-    // 数据
+    /**
+     * 数据
+     */
     private final Map<String, Object> data;
     
     public PlayerData(Player player){

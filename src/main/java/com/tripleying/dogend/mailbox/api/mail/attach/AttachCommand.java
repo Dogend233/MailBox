@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 
@@ -118,7 +120,10 @@ public class AttachCommand implements ConfigurationSerializable {
      */
     public void doConsoleCommand(Player p){
         if(this.console.isEmpty()) return;
-        this.console.forEach(cc -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cc.replace("%player%", p.getName())));
+        String name = p.getName();
+        Server server = Bukkit.getServer();
+        CommandSender cs = Bukkit.getConsoleSender();
+        this.console.forEach(cc -> server.dispatchCommand(cs, cc.replace("%player%", name)));
         
     }
     
@@ -128,7 +133,9 @@ public class AttachCommand implements ConfigurationSerializable {
      */
     public void doPlayerCommand(Player p){
         if(this.player.isEmpty()) return;
-        this.player.forEach(pc -> p.performCommand(pc.replace("%player%", p.getName())));
+        String name = p.getName();
+        Server server = Bukkit.getServer();
+        this.player.forEach(pc -> server.dispatchCommand(p, pc.replace("%player%", name)));
     }
     
     /**
@@ -137,13 +144,18 @@ public class AttachCommand implements ConfigurationSerializable {
      */
     public void doOPCommand(Player p){
         if(this.op.isEmpty()) return;
-        boolean isOp = p.isOp();
-        try{
-            p.setOp(true);
-            this.op.forEach(oc -> p.performCommand(oc.replace("%player%", p.getName())));
-        }finally {
-            p.setOp(isOp);
-        }
+//        boolean isOp = p.isOp();
+//        try{
+//            p.setOp(true);
+//            this.op.forEach(oc -> p.performCommand(oc.replace("%player%", p.getName())));
+//        }finally {
+//            p.setOp(isOp);
+//        }
+        String name = p.getName();
+        Server server = Bukkit.getServer();
+        CommandSender cs = ProxyPlayer.getProxyPlayer(p);
+        System.out.println(cs.isOp());
+        this.op.forEach(oc -> server.dispatchCommand(cs, oc.replace("%player%", name)));
     }
     
     /**
@@ -190,11 +202,11 @@ public class AttachCommand implements ConfigurationSerializable {
         }
         if(map.containsKey("player")){
             List<String> list = (List<String>)map.get("player");
-            list.forEach(pc -> cmd.addConsoleCommand(pc));
+            list.forEach(pc -> cmd.addPlayerCommand(pc));
         }
         if(map.containsKey("op")){
             List<String> list = (List<String>)map.get("op");
-            list.forEach(oc -> cmd.addConsoleCommand(oc));
+            list.forEach(oc -> cmd.addOPCommand(oc));
         }
         return cmd;
     }

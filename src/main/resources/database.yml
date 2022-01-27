@@ -38,8 +38,8 @@ mysql:
   # 是否启用下方的连接池
   # Enable Simple Connection Pool
   encp: false
-# 简单连接池 (插件内置的两个数据源使用)
-# Simple Connection Pool (Used for sqlite and mysql in this plugin)
+# 简单连接池 (插件内置的MySQL使用)
+# Simple Connection Pool (Used for mysql in this plugin)
 simplecp:
   # 最小空闲连接数量
   # Minimum number of free connections

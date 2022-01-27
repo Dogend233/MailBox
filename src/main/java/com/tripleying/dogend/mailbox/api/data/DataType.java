@@ -8,11 +8,22 @@ package com.tripleying.dogend.mailbox.api.data;
  */
 public enum DataType {
     
-    Integer,// 整数
-    Long,// 长整数
+    /**
+     * 整数
+     */
+    Integer,
+    /**
+     * 长整数
+     */
+    Long,
     Boolean,// 布尔值
     DateTime,// 日期
     String,// 字符串
-    YamlString;// YML字符串
+    YamlString,// YML字符串
+    /**
+     * 自增主键 (CustomData用)
+     * @since 3.1.0
+     */
+    Primary;
     
 }

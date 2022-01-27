@@ -6,11 +6,17 @@ package com.tripleying.dogend.mailbox.api.util;
  */
 public class Version {
     
-    // 模块版本字符串
+    /**
+     * 模块版本字符串
+     */
     private final String version;
-    // 模块版本数组
+    /**
+     * 模块版本数组
+     */
     private final int[] versionarr;
-    // 是否可用
+    /**
+     * 是否可用
+     */
     private final boolean avaliable;
     
     public Version(String version){

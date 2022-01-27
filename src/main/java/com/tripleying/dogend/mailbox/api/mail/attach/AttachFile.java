@@ -18,11 +18,17 @@ import org.bukkit.inventory.ItemStack;
  */
 public class AttachFile implements ConfigurationSerializable {
     
-    // 金钱附件
+    /**
+     * 金钱附件
+     */
     private final Map<String, AttachMoney> moneys;
-    // 物品附件
+    /**
+     * 物品附件
+     */
     private final List<ItemStack> items;
-    // 指令附件
+    /**
+     * 指令附件
+     */
     private AttachCommand cmds; 
     
     /**

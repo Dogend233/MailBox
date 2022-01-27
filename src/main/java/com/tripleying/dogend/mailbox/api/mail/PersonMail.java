@@ -19,9 +19,13 @@ import org.bukkit.entity.Player;
  */
 public final class PersonMail extends BaseMail {
     
-    // 是否已接收附件
+    /**
+     * 是否已接收附件
+     */
     protected boolean received;
-    // 收件人
+    /**
+     * 收件人
+     */
     protected String uuid;
     
     /**

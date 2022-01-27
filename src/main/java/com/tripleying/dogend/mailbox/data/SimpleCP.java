@@ -14,19 +14,33 @@ import org.bukkit.configuration.ConfigurationSection;
  */
 public class SimpleCP {
     
-    // 空闲连接
+    /**
+     * 空闲连接
+     */
     private final List<Connection> free = new CopyOnWriteArrayList<>();
-    // 活动连接
+    /**
+     * 活动连接
+     */
     private final List<Connection> active = new CopyOnWriteArrayList<>();
-    // 大小
+    /**
+     * 大小
+     */
     private final AtomicInteger size;
-    // 连接URL
+    /**
+     * 连接URL
+     */
     private final String url;
-    // 做小空闲连接数量
+    /**
+     * 做小空闲连接数量
+     */
     private final int min;
-    // 最大连接数量
+    /**
+     * 最大连接数量
+     */
     private final int max;
-    // 连接超时时间
+    /**
+     * 连接超时时间
+     */
     private final int timeout;
 
     public SimpleCP(ConfigurationSection config, String url){

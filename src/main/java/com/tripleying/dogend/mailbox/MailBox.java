@@ -26,21 +26,20 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class MailBox extends JavaPlugin {
     
-    // 邮箱实例
+    /**
+     * 邮箱实例
+     */
     private static MailBox mailbox;
-    // MC版本
+    /**
+     * MC版本
+     */
     private static double mc_version;
-    // 数据管理器
+    // 管理器
     private DataManager datamgr;
-    // 邮件管理器
     private MailManager mailmgr;
-    // 金钱管理器
     private MoneyManager moneymgr;
-    // 指令管理器
     private CommandManager cmdmgr;
-    // 监听器管理器
     private ListenerManager listenermgr;
-    // 模块管理器
     private ModuleManager modulemgr;
     
     @Override

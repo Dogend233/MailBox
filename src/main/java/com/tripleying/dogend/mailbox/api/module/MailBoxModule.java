@@ -21,13 +21,21 @@ import org.bukkit.event.Listener;
  */
 public abstract class MailBoxModule {
     
-    // 模块文件名
+    /**
+     * 模块文件名
+     */
     private String filename;
-    // 模块jar文件
+    /**
+     * 模块jar文件
+     */
     private JarFile jar;
-    // 模块信息
+    /**
+     * 模块信息
+     */
     private ModuleInfo info;
-    // 配置文件
+    /**
+     * 配置文件
+     */
     private final Map<String, YamlConfiguration> configs;
     
     public MailBoxModule(){

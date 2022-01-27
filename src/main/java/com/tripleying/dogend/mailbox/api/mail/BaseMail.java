@@ -15,28 +15,44 @@ import org.bukkit.configuration.file.YamlConfiguration;
  */
 public abstract class BaseMail {
     
-    // 邮件id
+    /**
+     * 邮件id
+     */
     protected long id;
     
-    // 邮件类型
+    /**
+     * 邮件类型
+     */
     protected String type;
     
-    // 邮件类型显示名称
+    /**
+     * 邮件类型显示名称
+     */
     protected String display;
     
-    // 邮件标题
+    /**
+     * 邮件标题
+     */
     protected String title;
     
-    // 邮件内容
+    /**
+     * 邮件内容
+     */
     protected List<String> body;
     
-    // 发送人
+    /**
+     * 发送人
+     */
     protected String sender;
     
-    // 发送时间
+    /**
+     * 发送时间
+     */
     protected String sendtime;
     
-    // 邮件附件
+    /**
+     * 邮件附件
+     */
     protected AttachFile attach;
     
     /**

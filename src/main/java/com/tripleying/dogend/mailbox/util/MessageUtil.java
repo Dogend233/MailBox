@@ -11,9 +11,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
  */
 public class MessageUtil {
     
-    // 控制台
+    /**
+     * 控制台对象
+     */
     private static final ConsoleCommandSender console;
-    // 插件前缀
+    /**
+     * 插件前缀
+     */
     private static String prefix;
     // 重载
     public static String reload_load;
