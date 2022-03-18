@@ -9,6 +9,8 @@ import java.util.List;
  */
 public class SelectData implements SQLCommand {
     
+    private String order;
+    private boolean desc;
     private boolean limit;
     private final String table;
     private final List<String> select;
@@ -16,6 +18,8 @@ public class SelectData implements SQLCommand {
     private final List<String> between;
     
     public SelectData(String table){
+        this.order = null;
+        this.desc = false;
         this.limit = false;
         this.table = table;
         this.select = new LinkedList();
@@ -40,6 +44,16 @@ public class SelectData implements SQLCommand {
     
     public SelectData addBetween(String column){
         this.between.add(column);
+        return this;
+    }
+    
+    public SelectData orderBy(String column){
+        this.order = column;
+        return this;
+    }
+    
+    public SelectData desc(boolean desc){
+        this.desc = desc;
         return this;
     }
     
@@ -69,8 +83,14 @@ public class SelectData implements SQLCommand {
             }
             sb.delete(sb.length()-3, sb.length());
         }
+        if(this.order!=null){
+            sb.append(" ORDER BY `").append(this.order).append("`");
+            if(this.desc){
+                sb.append(" DESC");
+            }
+        }
         if(this.limit){
-            sb.append(" ORDER BY `id` LIMIT ?, ?");
+            sb.append(" LIMIT ?, ?");
         }
         return sb.toString();
     }

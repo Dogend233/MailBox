@@ -98,7 +98,7 @@ public abstract class BaseMail {
      * @param yml YamlConfiguration
      */
     public BaseMail(YamlConfiguration yml){
-        this.id = yml.getInt("id");
+        this.id = yml.getLong("id");
         this.title = yml.getString("title");
         this.type = yml.getString("type");
         this.display = MailManager.getMailManager().getSystemMailDisplay(type);
@@ -197,7 +197,7 @@ public abstract class BaseMail {
     public boolean equals(Object o){
         if(this == o) return true;
         if(o!=null && o instanceof BaseMail){
-            BaseMail bm =(BaseMail)o;
+            final BaseMail bm =(BaseMail)o;
             return (this.id==bm.id && this.type.equals(bm.type) && this.title.equals(bm.title) && this.sender.equals(bm.sender) &&  this.sendtime.equals(bm.sendtime) && this.body.equals(bm.body) && this.attach.equals(bm.attach));
         }
         return false;

@@ -50,7 +50,7 @@ public class MailBox extends JavaPlugin {
         ConfigurationSerialization.registerClass(AttachFile.class);
         // 获取游戏版本
         String v1 = Bukkit.getServer().getVersion();
-        v1 = v1.substring(v1.indexOf("MC")+3, v1.length()-1).trim();//1.18 / 1.18.1
+        v1 = v1.substring(v1.indexOf("MC")+3, v1.length()-1).trim();
         String v2;
         if(v1.indexOf('.')==v1.lastIndexOf('.')){
             v2 = v1;

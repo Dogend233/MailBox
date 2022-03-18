@@ -304,7 +304,7 @@ public abstract class SQLData implements BaseData {
         Connection con = this.getConnection();
         if(null!=con){
             try{
-                PreparedStatement ps = con.prepareStatement(this.command2String(CommandBuilder.sqlPersonMailSelectCommand().setLimit(true)));
+                PreparedStatement ps = con.prepareStatement(this.command2String(CommandBuilder.sqlPersonMailSelectCommand().orderBy("sendtime").setLimit(true)));
                 ps.setString(1, p.getUniqueId().toString());
                 ps.setInt(2, count*(page-1));
                 ps.setInt(3, count);
@@ -613,7 +613,7 @@ public abstract class SQLData implements BaseData {
             try{
                 String type = sm.getType();
                 Map<String, Data> cols = ReflectUtil.getSystemMailColumns(sm.getClass());
-                PreparedStatement ps = con.prepareStatement(this.command2String(CommandBuilder.sqlSystemMailSelectCommand(type).setLimit(true)));
+                PreparedStatement ps = con.prepareStatement(this.command2String(CommandBuilder.sqlSystemMailSelectCommand(type).orderBy("id").setLimit(true)));
                 ps.setInt(1, count*(page-1));
                 ps.setInt(2, count);
                 ResultSet rs = ps.executeQuery();

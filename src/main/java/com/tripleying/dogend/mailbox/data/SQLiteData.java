@@ -26,6 +26,7 @@ public class SQLiteData extends SQLData {
     @Override
     public boolean enable(){
         try{
+            if(MailBox.getMCVersion()<1.11) Class.forName("org.sqlite.JDBC");
             this.createConnection();
             return !this.connection.isClosed();
         }catch(Exception ex){
@@ -37,7 +38,6 @@ public class SQLiteData extends SQLData {
     private void createConnection(){
         try{
             FileUtil.getMailBoxFolder();
-            if(MailBox.getMCVersion()<1.11) Class.forName("org.sqlite.JDBC");
             this.connection = DriverManager.getConnection(url);
         }catch(Exception ex){
             ex.printStackTrace();
