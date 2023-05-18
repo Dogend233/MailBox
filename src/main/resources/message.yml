@@ -1,4 +1,4 @@
-version: '3.0.0'
+version: '3.2.0'
 prefix: '&b[MailBox]: '
 reload:
   load: '正在加载插件......'
@@ -48,4 +48,7 @@ modlue:
       recycle-depend: '模块加载失败: %module% 检测到循环依赖'
       main:
         read-err: '模块加载失败: %module% 主类错误'
+        not-found: '模块加载失败: %module% 找不到模块主类 %main% '
+        init-err: '模块加载失败: %module% 调用初始化失败'
+      no-depend: '警告: 模块 %module% 从非前置模块 %provider% 加载了类 %class%'
   unload: '卸载模块: &6%module%'

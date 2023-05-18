@@ -7,7 +7,6 @@ import com.tripleying.dogend.mailbox.api.mail.SystemMail;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 /**

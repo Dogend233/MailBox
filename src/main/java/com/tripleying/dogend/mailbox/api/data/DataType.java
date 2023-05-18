@@ -8,14 +8,8 @@ package com.tripleying.dogend.mailbox.api.data;
  */
 public enum DataType {
     
-    /**
-     * 整数
-     */
-    Integer,
-    /**
-     * 长整数
-     */
-    Long,
+    Integer,// 整数
+    Long,// 长整数
     Boolean,// 布尔值
     DateTime,// 日期
     String,// 字符串

@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 邮件字段注解
+ * 数据字段注解
  * @author Dogend
  */
 @Target(ElementType.FIELD)

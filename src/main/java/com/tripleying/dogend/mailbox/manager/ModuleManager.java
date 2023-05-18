@@ -1,18 +1,13 @@
 package com.tripleying.dogend.mailbox.manager;
 
-import com.tripleying.dogend.mailbox.MailBox;
 import com.tripleying.dogend.mailbox.api.event.module.MailBoxModuleLoadEvent;
 import com.tripleying.dogend.mailbox.api.event.module.MailBoxModuleUnloadEvent;
 import com.tripleying.dogend.mailbox.api.module.MailBoxModule;
+import com.tripleying.dogend.mailbox.api.module.ModuleClassLoader;
 import com.tripleying.dogend.mailbox.api.module.ModuleInfo;
 import com.tripleying.dogend.mailbox.util.MessageUtil;
 import com.tripleying.dogend.mailbox.util.ModuleUtil;
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,14 +27,25 @@ import org.bukkit.Bukkit;
 public class ModuleManager {
     
     private static ModuleManager manager;
-    private final Map<String, MailBoxModule> map;
-    private final Map<JarFile, URLClassLoader> jar_map;
-    
+    private final Map<String, ModuleClassLoader> map;
     
     public ModuleManager(){
         manager = this;
         this.map = new LinkedHashMap();
-        this.jar_map = new HashMap();
+    }
+    
+    /**
+     * 获取模块实例
+     * @since 3.1.0
+     * @param name 模块名
+     * @return MailBoxModule
+     */
+    public MailBoxModule getMailBoxModule(String name){
+        if(this.map.containsKey(name)){
+            return this.map.get(name).getModule();
+        }else{
+            return null;
+        }
     }
     
     /**
@@ -48,101 +54,26 @@ public class ModuleManager {
      * @return int
      */
     public boolean loadModule(File file){
-        // 读取jar文件
-        JarFile jar;
-        try {
-            jar = new JarFile(file);
-        } catch (IOException ex) {
-            MessageUtil.error(MessageUtil.modlue_load_error_not_jar.replaceAll("%module%", file.getName()));
-            ex.printStackTrace();
-            return false;
-        }
-        // 读取模块信息
-        ModuleInfo info;
-        try {
-            info = ModuleUtil.loadModuleInfo(jar);
-        } catch (Exception ex) {
-            MessageUtil.error(MessageUtil.modlue_load_error_not_info.replaceAll("%module%", file.getName()));
-            ex.printStackTrace();
-            return false;
-        }
-        if(!info.isAvaliable()){
-            MessageUtil.error(MessageUtil.modlue_load_error_info_err.replaceAll("%module%", file.getName()));
-            return false;
-        }
-        String name = info.getName();
-        if(this.hasModule(name)){
-            MessageUtil.error(MessageUtil.modlue_load_error_has_duplicate.replaceAll("%module%", file.getName()).replaceAll("%another%", this.map.get(name).getFileName()));
-            return false;
-        }else{
-            // 检查前置插件/模块
-            if(!info.getDependPlugin().isEmpty()){
-                List<String> lost = new ArrayList();
-                for(String plugin:info.getDependPlugin()){
-                    if(!Bukkit.getPluginManager().isPluginEnabled(plugin)){
-                        lost.add(plugin);
-                    }
-                }
-                if(!lost.isEmpty()){
-                    MessageUtil.error(MessageUtil.modlue_load_error_depend_plugin.replaceAll("%module%", file.getName()).replaceAll("%depends%", lost.stream().reduce("",(a,b) -> a.concat(" ").concat(b))));
-                    return false;
-                }
+        ModuleClassLoader module = null;
+        try{
+            module = new ModuleClassLoader(file, this.getClass().getClassLoader(), this);
+            module.getModule().onEnable();
+            ModuleInfo info = module.getModule().getInfo();
+            MessageUtil.log(MessageUtil.modlue_load_success.replaceAll("%module%", info.getName()).replaceAll("%version%", info.getVersion().toString()));
+            this.map.put(info.getName(), module);
+            this.addBefore(info);
+            // 调用模块加载事件
+            MailBoxModuleLoadEvent evt = new MailBoxModuleLoadEvent(module.getModule());
+            Bukkit.getPluginManager().callEvent(evt);
+            return true;
+        }catch(Exception ex){
+            MessageUtil.error(MessageUtil.modlue_load_error_main_err.replaceAll("%module%", file.getName()));
+            if(module!=null){
+                try{
+                    module.close();
+                }catch(Exception e){}
             }
-            if(!info.getDependModule().isEmpty()){
-                List<String> lost = new ArrayList();
-                for(String mod:info.getDependModule()){
-                    if(!this.hasModule(mod)){
-                        lost.add(mod);
-                    }
-                }
-                if(!lost.isEmpty()){
-                    MessageUtil.error(MessageUtil.modlue_load_error_depend_module.replaceAll("%module%", file.getName()).replaceAll("%depends%", lost.stream().reduce("",(a,b) -> a.concat(" ").concat(b))));
-                    return false;
-                }
-            }
-            // 加载jar
-            URLClassLoader cl = null;
-            try{
-                List<URLClassLoader> ul = new ArrayList();
-                info.getDependModule().forEach(m -> {
-                    MailBoxModule mm = this.map.get(m);
-                    URLClassLoader ucl = this.jar_map.get(mm.getJar());
-                    ul.add(ucl);
-                });
-                info.getSoftdependModule().forEach(m -> {
-                    if(this.map.containsKey(m)){
-                        MailBoxModule mm = this.map.get(m);
-                        URLClassLoader ucl = this.jar_map.get(mm.getJar());
-                        ul.add(ucl);
-                    }
-                });
-                cl = this.getModuleURLClassLoader(file.toURI().toURL(), ul.toArray(new URLClassLoader[0]));
-                Class<?> clazz = Class.forName(info.getMain(), true, cl);
-                Constructor<?> constructor = clazz.getConstructor();
-                Object instance = constructor.newInstance();
-                Method init = MailBoxModule.class.getDeclaredMethod("init", ModuleInfo.class, JarFile.class, String.class);
-                init.setAccessible(true);
-                MailBoxModule module = MailBoxModule.class.cast(instance);
-                init.invoke(module, info, jar, file.getName());
-                // 加载模块
-                module.onEnable();
-                MessageUtil.log(MessageUtil.modlue_load_success.replaceAll("%module%", name).replaceAll("%version%", info.getVersion().toString()));
-                this.map.put(name, module);
-                this.jar_map.put(jar, cl);
-                this.addBefore(info);
-                // 调用模块加载事件
-                MailBoxModuleLoadEvent evt = new MailBoxModuleLoadEvent(module);
-                Bukkit.getPluginManager().callEvent(evt);
-                return true;
-            }catch(Exception ex){
-                ex.printStackTrace();
-                MessageUtil.error(MessageUtil.modlue_load_error_main_err.replaceAll("%module%", file.getName()));
-                cl  = null;
-                try {
-                    jar.close();
-                } catch (Exception exj) {}
-                return false;
-            }
+            return false;
         }
     }
     
@@ -287,7 +218,8 @@ public class ModuleManager {
      */
     public void unloadModule(String name){
         if(this.map.containsKey(name)){
-            MailBoxModule module = this.map.get(name);
+            ModuleClassLoader loader = this.map.get(name);
+            MailBoxModule module = loader.getModule();
             // 卸载模块的后置模块
             for(String mod:module.getInfo().getBeforeModule()){
                 if(this.hasModule(mod)){
@@ -306,14 +238,9 @@ public class ModuleManager {
             // 调用插件卸载事件
             MailBoxModuleUnloadEvent evt = new MailBoxModuleUnloadEvent(module);
             Bukkit.getPluginManager().callEvent(evt);
-            // 关闭jar文件, 类加载器
-            JarFile jar = module.getJar();
+            // 关闭类加载器
             try {
-                jar.close();
-            } catch (Exception ex) {}
-            URLClassLoader ucl = this.jar_map.remove(jar);
-            try {
-                ucl.close();
+                loader.close();
             } catch (Exception ex) {}
             this.map.remove(name);
         }
@@ -334,10 +261,10 @@ public class ModuleManager {
      */
     public void addBefore(ModuleInfo info){
         info.getDependModule().stream().filter(mod -> this.hasModule(mod)).forEachOrdered(mod -> {
-            this.map.get(mod).getInfo().addBeforeModule(info.getName());
+            this.getMailBoxModule(mod).getInfo().addBeforeModule(info.getName());
         });
         info.getSoftdependModule().stream().filter(mod -> this.hasModule(mod)).forEachOrdered(mod -> {
-            this.map.get(mod).getInfo().addBeforeModule(info.getName());
+            this.getMailBoxModule(mod).getInfo().addBeforeModule(info.getName());
         });
     }
     
@@ -347,11 +274,27 @@ public class ModuleManager {
      */
     public void removeBefore(ModuleInfo info){
         info.getDependModule().stream().filter(mod -> (this.hasModule(mod))).forEachOrdered(mod -> {
-            this.map.get(mod).getInfo().removeBeforeModule(mod);
+            this.getMailBoxModule(mod).getInfo().removeBeforeModule(mod);
         });
         info.getSoftdependModule().stream().filter(mod -> this.hasModule(mod)).forEachOrdered(mod -> {
-            this.map.get(mod).getInfo().addBeforeModule(info.getName());
+            this.getMailBoxModule(mod).getInfo().addBeforeModule(info.getName());
         });
+    }
+    
+    /**
+     * 从已加载的模块类加载器中加载类
+     * @since 3.1.0
+     * @param name 类名
+     * @param resolve resolve
+     * @return Class
+     */
+    public Class<?> getClassFromModuleClassLoaders(String name, boolean resolve) {
+        for (ModuleClassLoader loader : this.map.values()) {
+            try {
+                return loader.loadModuleClass(name, resolve, false);
+            }catch (ClassNotFoundException ex) {}
+        }
+        return null;
     }
     
     /**
@@ -361,32 +304,7 @@ public class ModuleManager {
      */
     public boolean hasModule(String name){
         return this.map.containsKey(name);
-    }
-    
-    /**
-     * 获取模块的类加载器
-     * @param url URL
-     * @param cls ClassLoaderArray
-     * @return URLClassLoader
-     */
-    private URLClassLoader getModuleURLClassLoader(URL url, ClassLoader... cls) {
-        URLClassLoader ucl;
-        URL[] urls = new URL[]{url};
-        ClassLoader cl = null;
-        for(ClassLoader c:cls){
-            if(cl==null){
-                cl = c;
-            }else{
-                cl = new URLClassLoader(urls, c);
-            }
-        }
-        if(cl==null){
-            ucl = new URLClassLoader(urls, MailBox.getMailBox().getClass().getClassLoader());
-        }else{
-            ucl = new URLClassLoader(urls, cl);
-        }
-        return ucl;
-    }
+    } 
 
     public static ModuleManager getModuleManager() {
         return manager;

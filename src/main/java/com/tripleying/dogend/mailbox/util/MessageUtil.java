@@ -65,6 +65,9 @@ public class MessageUtil {
     public static String modlue_load_error_recycle_depend;
     public static String modlue_load_error_main_err;
     public static String modlue_unload;
+    public static String modlue_load_error_main_find;
+    public static String modlue_load_error_main_init;
+    public static String modlue_load_error_no_depend;
     
     static {
         console = Bukkit.getConsoleSender();
@@ -117,6 +120,10 @@ public class MessageUtil {
         modlue_load_error_depend_module = color(yml.getString("modlue.load.error.depend-module", "模块加载失败: %module% 缺少前置模块: %depends%"));
         modlue_load_error_recycle_depend = color(yml.getString("modlue.load.error.recycle-depend", "模块加载失败: %module% 检测到循环依赖"));
         modlue_load_error_main_err = color(yml.getString("modlue.load.error.main.read-err", "模块加载失败: %module% 主类错误"));
+        modlue_load_error_main_find = color(yml.getString("modlue.load.error.main.not-found", "模块加载失败: %module% 找不到模块主类 %main%"));
+        modlue_load_error_main_init = color(yml.getString("modlue.load.error.main.init-err", "模块加载失败: %module% 调用初始化失败"));
+        modlue_load_error_no_depend = color(yml.getString("modlue.load.error.no-depend", "警告: 模块 %module% 从非前置模块 %provider% 加载了类 %class%"));
+        
         modlue_unload = color(yml.getString("modlue.unload", "卸载模块: &6%module%"));
     }
     

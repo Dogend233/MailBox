@@ -115,6 +115,16 @@ public class ModuleInfo {
         return this.before_module;
     }
     
+    /**
+     * 判断A模块是否是此模块的前置
+     * @since 3.1.0
+     * @param name A模块名
+     * @return boolean
+     */
+    public boolean isDependModule(String name){
+        return this.depend_module.contains(name) || this.softdepend_module.contains(name);
+    }
+    
     public void addBeforeModule(String module){
         if(!this.before_module.contains(module)){
             this.before_module.add(module);
