@@ -1,5 +1,5 @@
 # MailBox
-A plugin of Minecraft (1.7.10-1.18).  
+A plugin of Minecraft (1.7.10-1.19).  
 Used to send items and money to players.  
 Mail type and Money type can be extended through the MailBoxModule.  
 (The plugin itself has no actual function ~)
