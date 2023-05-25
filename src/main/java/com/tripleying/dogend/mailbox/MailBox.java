@@ -104,6 +104,7 @@ public class MailBox extends JavaPlugin {
                 if(this.datamgr.selectData(database)){
                     // 注册指令
                     Bukkit.getPluginCommand("mailbox").setExecutor(this.cmdmgr);
+                    Bukkit.getPluginCommand("mailbox").setTabCompleter(this.cmdmgr.getTabManager());
                     // 注册监听器
                     Bukkit.getPluginManager().registerEvents(new onPlayerJoin(), this);
                     // 发起加载完成事件

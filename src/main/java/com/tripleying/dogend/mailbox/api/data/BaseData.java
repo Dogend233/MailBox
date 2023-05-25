@@ -226,6 +226,14 @@ public interface BaseData {
     public boolean insertCustomData(CustomData cd);
     
     /**
+     * 按主键将存储库的其他数据更新
+     * @param cd 自定义数据
+     * @since 3.3.0
+     * @return boolean
+     */
+    public boolean updateCustomDataByPrimaryKey(CustomData cd);
+    
+    /**
      * 以特定条件获取自定义数据
      * @param cd 自定义数据实例
      * @param args 条件

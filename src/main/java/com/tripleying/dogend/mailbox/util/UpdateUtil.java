@@ -51,7 +51,7 @@ public class UpdateUtil {
                                 File newfile = new File("Plugins/[邮箱]-MailBox-v"+version.get(0)+".jar");
                                 MessageUtil.log(sender, "准备下载新文件......");
                                 HTTPUtil.downloadFile(MailBox.getMailBox().getDescription().getWebsite()+"/files/download.php", newfile);
-                                MessageUtil.log(sender, "准备下载完成, 准备卸载旧插件并删除, 然后加载新插件");
+                                MessageUtil.log(sender, "下载完成, 准备卸载旧插件并删除, 然后加载新插件");
                                 File oldfile = MailBox.getMailBox().getFile();
                                 unloadPlugin("MailBox");
                                 oldfile.delete();

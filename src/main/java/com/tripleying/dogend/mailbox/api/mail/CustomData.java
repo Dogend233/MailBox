@@ -50,6 +50,15 @@ public abstract class CustomData {
     }
     
     /**
+     * 按主键将存储库的其他数据更新
+     * @since 3.3.0
+     * @return boolean
+     */
+    public boolean updateCustomDataByPrimaryKey(){
+        return DataManager.getDataManager().updateCustomDataByPrimaryKey(this);
+    }
+    
+    /**
     * 以特定条件获取自定义数据
      * @param args 条件
      * @return List

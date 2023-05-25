@@ -210,6 +210,19 @@ public class CommandBuilder {
         return cmd;
     }
     
+    public static UpdateData sqlCustomDataUpdateByPrimaryKeyCommand(CustomData cd){
+        Map<String, Data> cols = ReflectUtil.getCustomDataColumns(cd.getClass());
+        UpdateData cmd = new UpdateData(cd.getName());
+        cols.forEach((f,dc) -> {
+            if(dc.type().equals(DataType.Primary)){
+                cmd.addWhere(f);
+            }else{
+                cmd.addSet(f);
+            }
+        });
+        return cmd;
+    }
+    
     public static SelectData sqlCustomDataSelectCommand(CustomData cd){
         return new SelectData(cd.getName());
     }

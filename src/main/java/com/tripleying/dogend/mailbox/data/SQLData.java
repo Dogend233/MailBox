@@ -863,6 +863,53 @@ public abstract class SQLData implements BaseData {
         }
         return false;
     }
+    
+    @Override
+    public boolean updateCustomDataByPrimaryKey(CustomData cd){
+        Connection con = this.getConnection();
+        if(null!=con){
+            try{
+                Map<String, Data> cols = ReflectUtil.getCustomDataColumns(cd.getClass());
+                Map<String, Object> map = ReflectUtil.getCustomDataValues(cd, cols);
+                PreparedStatement ps = con.prepareStatement(this.command2String(CommandBuilder.sqlCustomDataUpdateByPrimaryKeyCommand(cd)));
+                long main = -1;
+                int i = 1;
+                Iterator<Map.Entry<String, Data>> it = cols.entrySet().iterator();
+                while(it.hasNext()){
+                    Map.Entry<String, Data> me = it.next();
+                    switch(me.getValue().type()){
+                        case Primary:
+                            main = (long)map.get(me.getKey());
+                            break;
+                        case Integer:
+                            ps.setInt(i++, (int)map.get(me.getKey()));
+                            break;
+                        case Long:
+                            ps.setLong(i++, (long)map.get(me.getKey()));
+                            break;
+                        case Boolean:
+                            ps.setBoolean(i++, (boolean)map.get(me.getKey()));
+                            break;
+                        default:
+                        case String:
+                        case DateTime:
+                        case YamlString:
+                            ps.setString(i++, (String)map.get(me.getKey()));
+                            break;
+                    }
+                }
+                if(main>=0){
+                    ps.setLong(i, main);
+                    return ps.executeUpdate()!=0;
+                }
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }finally{
+                this.releaseConnection(con);
+            }
+        }
+        return false;
+    }
 
     @Override
     public List<CustomData> selectCustomData(CustomData cd, LinkedHashMap<String, Object> args) {

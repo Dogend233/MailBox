@@ -1,6 +1,7 @@
 package com.tripleying.dogend.mailbox.manager;
 
 import com.tripleying.dogend.mailbox.api.command.BaseCommand;
+import com.tripleying.dogend.mailbox.api.command.BaseTabCompleter;
 import com.tripleying.dogend.mailbox.api.module.MailBoxModule;
 import com.tripleying.dogend.mailbox.command.CheckCommand;
 import com.tripleying.dogend.mailbox.command.HelpCommand;
@@ -23,11 +24,13 @@ import org.bukkit.command.CommandSender;
 public class CommandManager implements CommandExecutor {
     
     private static CommandManager manager;
+    private final TabManager tab;
     private final Map<String, BaseCommand> map;
     private final Map<BaseCommand, MailBoxModule> mod_map;
     
     public CommandManager(){
         manager = this;
+        this.tab = new TabManager();
         this.map = new LinkedHashMap();
         this.mod_map = new HashMap();
     }
@@ -50,14 +53,10 @@ public class CommandManager implements CommandExecutor {
      * 注册基础指令
      */
     public void registerBaseCommand(){
-        HelpCommand hc = new HelpCommand();
-        this.map.put(hc.getLabel(), hc);
-        CheckCommand cc = new CheckCommand();
-        this.map.put(cc.getLabel(), cc);
-        UpdateCommand uc = new UpdateCommand();
-        this.map.put(uc.getLabel(), uc);
-        ReloadCommand rc = new ReloadCommand();
-        this.map.put(rc.getLabel(), rc);
+        putCommand(new HelpCommand());
+        putCommand(new CheckCommand());
+        putCommand(new UpdateCommand());
+        putCommand(new ReloadCommand());
     }
     
     public void help(CommandSender cs){
@@ -68,6 +67,19 @@ public class CommandManager implements CommandExecutor {
                 MessageUtil.log(cs, MessageUtil.color("&6/mailbox ".concat(l).concat(" &b").concat(desc)));
             }
         });
+    }
+    
+    private void putCommand(BaseCommand cmd){
+        String label = cmd.getLabel();
+        this.map.put(label, cmd);
+        if(cmd instanceof BaseTabCompleter){
+            this.tab.registerTab(label, (BaseTabCompleter)cmd);
+        }
+    }
+    
+    private void removeCommand(String label){
+        this.map.remove(label);
+        this.tab.unregisterTab(label);
     }
     
     /**
@@ -82,7 +94,7 @@ public class CommandManager implements CommandExecutor {
             MessageUtil.log(MessageUtil.command_reg_error.replaceAll("%command%", label));
             return false;
         }else{
-            this.map.put(label, cmd);
+            putCommand(cmd);
             this.mod_map.put(cmd, module);
             MessageUtil.log(MessageUtil.command_reg.replaceAll("%command%", label));
             return true;
@@ -96,7 +108,7 @@ public class CommandManager implements CommandExecutor {
     public void unregisterCommand(String label){
         if(this.map.containsKey(label)){
             this.mod_map.remove(this.map.get(label));
-            this.map.remove(label);
+            removeCommand(label);
             MessageUtil.log(MessageUtil.command_unreg.replaceAll("%command%", label));
         }
     }
@@ -108,7 +120,7 @@ public class CommandManager implements CommandExecutor {
     public void unregisterCommand(BaseCommand cmd){
         if(this.map.containsValue(cmd)){
             this.mod_map.remove(cmd);
-            this.map.remove(cmd.getLabel());
+            removeCommand(cmd.getLabel());
             MessageUtil.log(MessageUtil.command_unreg.replaceAll("%command%", cmd.getLabel()));
         }
     }
@@ -127,6 +139,10 @@ public class CommandManager implements CommandExecutor {
                 this.unregisterCommand(cmd);
             });
         }
+    }
+    
+    public TabManager getTabManager() {
+        return this.tab;
     }
     
     public static CommandManager getCommandManager(){

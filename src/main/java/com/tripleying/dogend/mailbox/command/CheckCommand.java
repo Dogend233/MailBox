@@ -1,15 +1,17 @@
 package com.tripleying.dogend.mailbox.command;
 
 import com.tripleying.dogend.mailbox.api.command.BaseCommand;
+import com.tripleying.dogend.mailbox.api.command.BaseTabCompleter;
 import com.tripleying.dogend.mailbox.api.util.CommonConfig;
 import com.tripleying.dogend.mailbox.util.UpdateUtil;
+import java.util.List;
 import org.bukkit.command.CommandSender;
 
 /**
  * 检查更新指令
  * @author Dogend
  */
-public class CheckCommand implements BaseCommand {
+public class CheckCommand implements BaseCommand, BaseTabCompleter {
 
     @Override
     public String getLabel() {
@@ -29,6 +31,16 @@ public class CheckCommand implements BaseCommand {
         }else{
             return false;
         }
+    }
+
+    @Override
+    public boolean allowTab(CommandSender sender) {
+        return sender.isOp();
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, String[] args) {
+        return null;
     }
     
 }

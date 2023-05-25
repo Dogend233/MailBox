@@ -212,6 +212,19 @@ public class MailManager {
     }
     
     /**
+     * 按id及类型获取一封系统邮件
+     * @param type 邮件类型
+     * @param id 邮件ID
+     * @since 3.3.0
+     * @return SystemMail
+     */
+    public SystemMail getSystemMailById(String type, long id){
+        return DataManager.getDataManager().getSystemMail(this.map.getOrDefault(type, null), id);
+    }
+    
+    
+    
+    /**
      * 发送一封系统邮件
      * 若返回的邮件ID为0则发送失败
      * @param sm 系统邮件
