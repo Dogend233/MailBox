@@ -10,6 +10,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
  * @author Dogend
  */
 public class MessageUtil {
+
+    private static final String COLOR_CHAR = "§";
     
     /**
      * 控制台对象
@@ -133,7 +135,7 @@ public class MessageUtil {
      * @return 转换后的字符串
      */
     public static String color(String original){
-        return original.replaceAll("&", "§");
+        return original.replaceAll("&", COLOR_CHAR);
     }
     
     /**
@@ -142,7 +144,7 @@ public class MessageUtil {
      * @param msg 信息
      */
     public static void log(CommandSender cs, String msg){
-        cs.sendMessage(prefix+"§a"+msg);
+        cs.sendMessage(prefix.concat(COLOR_CHAR).concat("a").concat(msg));
     }
     
     /**
@@ -159,7 +161,7 @@ public class MessageUtil {
      * @param msg 信息
      */
     public static void error(CommandSender cs, String msg){
-        cs.sendMessage(prefix+"§c"+msg);
+        cs.sendMessage(prefix.concat(COLOR_CHAR).concat("c").concat(msg));
     }
     
     /**

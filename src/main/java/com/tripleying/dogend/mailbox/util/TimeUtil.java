@@ -11,10 +11,10 @@ import java.util.Date;
  */
 public class TimeUtil {
     
-    private static final SimpleDateFormat sdf;
+    private static final SimpleDateFormat SDF;
     
     static{
-        sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     }
     
     /**
@@ -23,7 +23,7 @@ public class TimeUtil {
      * @return String
      */
     public static String date2String(Date date){
-        return sdf.format(date);
+        return SDF.format(date);
     }
     
     /**
@@ -32,7 +32,7 @@ public class TimeUtil {
      * @return String
      */
     public static String long2String(long time){
-        return sdf.format(new Date(time));
+        return SDF.format(new Date(time));
     }
     
     /**
@@ -50,7 +50,7 @@ public class TimeUtil {
      */
     public static boolean isExpire(String sendtime){
         try {
-            long deadline = sdf.parse(sendtime).getTime() + 1000L*60*60*24*CommonConfig.expire_day;
+            long deadline = SDF.parse(sendtime).getTime() + 1000L*60*60*24*CommonConfig.expire_day;
             return System.currentTimeMillis()>deadline;
         } catch (ParseException ex) {
             ex.printStackTrace();

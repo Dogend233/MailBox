@@ -35,16 +35,28 @@ public class MailBox extends JavaPlugin {
      */
     private static double mc_version;
     // 管理器
-    private DataManager datamgr;
-    private MailManager mailmgr;
-    private MoneyManager moneymgr;
-    private CommandManager cmdmgr;
-    private ListenerManager listenermgr;
-    private ModuleManager modulemgr;
+    private DataManager data_man;
+    private MailManager mail_man;
+    private MoneyManager money_man;
+    private CommandManager cmd_man;
+    private ListenerManager listener_man;
+    private ModuleManager module_man;
+    /**
+     * 主指令
+     */
+    private String[] main_cmd = new String[0];
     
     @Override
     public void onEnable(){
         mailbox = this;
+        System.out.println("  _____   ____   _____ ______ _   _ _____");
+        System.out.println(" |  __ \\ / __ \\ / ____|  ____| \\ | |  __ \\");
+        System.out.println(" | |  | | |  | | |  __| |__  |  \\| | |  | |");
+        System.out.println(" | |  | | |  | | | |_ |  __| | . ` | |  | |");
+        System.out.println(" | |__| | |__| | |__| | |____| |\\  | |__| |");
+        System.out.println(" |_____/ \\____/ \\_____|______|_| \\_|_____/ ");
+        // 获取插件注册指令
+        this.main_cmd = this.getDescription().getCommands().keySet().toArray(this.main_cmd);
         // 为邮件附件注册序列化
         ConfigurationSerialization.registerClass(AttachCommand.class);
         ConfigurationSerialization.registerClass(AttachFile.class);
@@ -58,8 +70,8 @@ public class MailBox extends JavaPlugin {
             v2 = v1.substring(0, v1.lastIndexOf('.'));
         }
         v2 = v2.substring(v1.indexOf('.')+1);
-        if(v2.length()==1) v2 = "0"+v2;
-        mc_version = Double.parseDouble(v1.substring(0, v1.indexOf('.'))+"."+v2);
+        if(v2.length()==1) v2 = "0".concat(v2);
+        mc_version = Double.parseDouble(v1.substring(0, v1.indexOf('.')).concat(".").concat(v2));
         // 设置默认编码
         if(mc_version<1.09) FileUtil.setCharset(Bukkit.getServer().getName());
         // 加载插件
@@ -68,12 +80,12 @@ public class MailBox extends JavaPlugin {
     
     public void load(){
         // 加载各管理器
-        this.datamgr = new DataManager();
-        this.mailmgr = new MailManager();
-        this.moneymgr = new MoneyManager();
-        this.cmdmgr = new CommandManager();
-        this.listenermgr = new ListenerManager();
-        this.modulemgr = new ModuleManager();
+        this.data_man = new DataManager();
+        this.mail_man = new MailManager();
+        this.money_man = new MoneyManager();
+        this.cmd_man = new CommandManager();
+        this.listener_man = new ListenerManager();
+        this.module_man = new ModuleManager();
         // 初始化配置文件
         YamlConfiguration msg = FileUtil.getConfig("message.yml");
         YamlConfiguration db = FileUtil.getConfig("database.yml");
@@ -93,18 +105,21 @@ public class MailBox extends JavaPlugin {
         // 当服务器完全启动后加载
         Bukkit.getScheduler().runTask(this, () -> {
             // 注册基础指令
-            this.cmdmgr.registerBaseCommand();
+            this.cmd_man.registerBaseCommand();
             try{
                 // 加载本地模块
-                this.modulemgr.loadLocalModule();
+                this.module_man.loadLocalModule();
             }catch(Exception ex){
             }finally{
                 // 选择使用的数据源
                 String database = config.getString("database", "sqlite");
-                if(this.datamgr.selectData(database)){
+                if(this.data_man.selectData(database)){
                     // 注册指令
-                    Bukkit.getPluginCommand("mailbox").setExecutor(this.cmdmgr);
-                    Bukkit.getPluginCommand("mailbox").setTabCompleter(this.cmdmgr.getTabManager());
+                    for(String cmd:this.main_cmd){
+                        Bukkit.getPluginCommand(cmd).setExecutor(this.cmd_man);
+                        Bukkit.getPluginCommand(cmd).setTabCompleter(this.cmd_man.getTabManager());
+                        MessageUtil.log("为 ".concat(cmd).concat(" 注册指令执行器与指令补全器"));
+                    }
                     // 注册监听器
                     Bukkit.getPluginManager().registerEvents(new onPlayerJoin(), this);
                     // 发起加载完成事件
@@ -123,11 +138,11 @@ public class MailBox extends JavaPlugin {
     public void loadDataBase(YamlConfiguration database){
         // 加载SQLite配置
         if(database.getBoolean("sqlite.enable", false)){
-            this.datamgr.addData(null, new SQLiteData(database));
+            this.data_man.addData(null, new SQLiteData(database));
         }
         // 加载MySQL配置
         if(database.getBoolean("mysql.enable", false)){
-            this.datamgr.addData(null, new MySQLData(database));
+            this.data_man.addData(null, new MySQLData(database));
         }
     }
     
@@ -137,9 +152,9 @@ public class MailBox extends JavaPlugin {
         // 注销监听器
         HandlerList.unregisterAll(this);
         // 关闭数据源
-        if(this.datamgr!=null) this.datamgr.closeData();
+        if(this.data_man !=null) this.data_man.closeData();
         // 卸载全部模块
-        if(this.modulemgr!=null) this.modulemgr.unloadAllModule();
+        if(this.module_man!=null) this.module_man.unloadAllModule();
     }
     
     public void reload(CommandSender cs){
@@ -160,27 +175,35 @@ public class MailBox extends JavaPlugin {
     }
     
     public DataManager getDataManager(){
-        return this.datamgr;
+        return this.data_man;
     }
     
     public MailManager getMailManager(){
-        return this.mailmgr;
+        return this.mail_man;
     }
     
     public MoneyManager getMoneyManager(){
-        return this.moneymgr;
+        return this.money_man;
     }
     
     public CommandManager getCommandManager(){
-        return this.cmdmgr;
+        return this.cmd_man;
     }
     
     public ListenerManager getListenerManager(){
-        return this.listenermgr;
+        return this.listener_man;
     }
     
     public ModuleManager getModuleManager(){
-        return this.modulemgr;
+        return this.module_man;
+    }
+    
+    public String[] getMainCommands(){
+        return this.main_cmd;
+    }
+    
+    public String getMainCommand(){
+        return this.main_cmd.length>0 ? this.main_cmd[0] : null;
     }
     
     public static MailBox getMailBox(){

@@ -9,6 +9,7 @@ import com.tripleying.dogend.mailbox.util.TimeUtil;
 import java.util.Objects;
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
@@ -79,6 +80,15 @@ public final class PersonMail extends BaseMail {
      */
     public Player getReceiver(){
         return Bukkit.getPlayer(UUID.fromString(this.uuid));
+    }
+    
+    /**
+     * 获取离线接收人
+     * @since 3.2.0
+     * @return OfflinePlayer
+     */
+    public OfflinePlayer getOfflineReceiver(){
+        return Bukkit.getOfflinePlayer(UUID.fromString(this.uuid));
     }
     
     /**

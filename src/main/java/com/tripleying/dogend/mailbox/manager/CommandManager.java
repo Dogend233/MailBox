@@ -1,5 +1,6 @@
 package com.tripleying.dogend.mailbox.manager;
 
+import com.tripleying.dogend.mailbox.MailBox;
 import com.tripleying.dogend.mailbox.api.command.BaseCommand;
 import com.tripleying.dogend.mailbox.api.command.BaseTabCompleter;
 import com.tripleying.dogend.mailbox.api.module.MailBoxModule;
@@ -60,13 +61,18 @@ public class CommandManager implements CommandExecutor {
     }
     
     public void help(CommandSender cs){
-        MessageUtil.log(cs, MessageUtil.command_help);
-        this.map.forEach((l,cmd) -> {
-            String desc = cmd.getDescription(cs);
-            if(desc!=null){
-                MessageUtil.log(cs, MessageUtil.color("&6/mailbox ".concat(l).concat(" &b").concat(desc)));
-            }
-        });
+        String main_cmd = MailBox.getMailBox().getMainCommand();
+        if(main_cmd==null){
+            MessageUtil.error(cs, "未设置主指令");
+        }else{
+            MessageUtil.log(cs, MessageUtil.command_help);
+            this.map.forEach((l,cmd) -> {
+                String desc = cmd.getDescription(cs);
+                if(desc!=null){
+                    MessageUtil.log(cs, MessageUtil.color("&6/".concat(main_cmd).concat(" ").concat(l).concat(" &b").concat(desc)));
+                }
+            });
+        }
     }
     
     private void putCommand(BaseCommand cmd){

@@ -32,7 +32,7 @@ public class UpdateUtil {
             @Override
             public void run(){
                 try{
-                    List<String> version = HTTPUtil.getLineList(MailBox.getMailBox().getDescription().getWebsite()+"/version");
+                    List<String> version = HTTPUtil.getLineList(MailBox.getMailBox().getDescription().getWebsite().concat("/version"));
                     if(version.isEmpty()){
                         MessageUtil.error(sender, "获取版本信息失败");
                     }else{
@@ -41,16 +41,16 @@ public class UpdateUtil {
                             MessageUtil.log(sender, "插件已是最新版本");
                         }else{
                             MessageUtil.log(sender, "检测到最新版本, 正在获取更新信息");
-                            JsonObject jo = HTTPUtil.getJson(MailBox.getMailBox().getDescription().getWebsite()+"/version?info");
+                            JsonObject jo = HTTPUtil.getJson(MailBox.getMailBox().getDescription().getWebsite().concat("/version?info"));
                             MessageUtil.log(sender, "检测到新版本: ".concat(jo.get("version").getAsString()));
                             MessageUtil.log(sender, "更新时间: ".concat(jo.get("time").getAsString()));
                             MessageUtil.log(sender, "更新内容:");
                             jo.getAsJsonArray("info").forEach(i -> MessageUtil.log("-".concat(i.getAsString())));
                             if(download){
                                 MessageUtil.log(sender, "准备更新......");
-                                File newfile = new File("Plugins/[邮箱]-MailBox-v"+version.get(0)+".jar");
+                                File newfile = new File("Plugins/[邮箱]-MailBox-v".concat(version.get(0)).concat(".jar"));
                                 MessageUtil.log(sender, "准备下载新文件......");
-                                HTTPUtil.downloadFile(MailBox.getMailBox().getDescription().getWebsite()+"/files/download.php", newfile);
+                                HTTPUtil.downloadFile(MailBox.getMailBox().getDescription().getWebsite().concat("/files/download.php"), newfile);
                                 MessageUtil.log(sender, "下载完成, 准备卸载旧插件并删除, 然后加载新插件");
                                 File oldfile = MailBox.getMailBox().getFile();
                                 unloadPlugin("MailBox");

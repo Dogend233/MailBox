@@ -33,7 +33,7 @@ public class SelectData implements SQLCommand {
     }
     
     public SelectData addSelect(String column){
-        this.select.add("`"+column+"`");
+        this.select.add("`".concat(column).concat("`"));
         return this;
     }
     

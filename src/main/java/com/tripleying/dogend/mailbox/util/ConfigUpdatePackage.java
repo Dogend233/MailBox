@@ -17,7 +17,7 @@ public class ConfigUpdatePackage{
     private final String version;
     private final List<String> removes;
     private final Map<String, Object> adds;
-    private final boolean avaliable;
+    private boolean avaliable;
     
     public ConfigUpdatePackage(JsonObject jo){
         this.removes = new LinkedList();

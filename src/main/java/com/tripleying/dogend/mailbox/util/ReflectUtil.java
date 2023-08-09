@@ -21,6 +21,22 @@ import com.tripleying.dogend.mailbox.api.mail.CustomData;
 public class ReflectUtil {
     
     /**
+     * 获取类
+     * @since 3.2.0
+     * @param classPath 类路径
+     * @return 类
+     */
+    public static Class<?> getClass(String classPath) {
+        Class<?> clazz = null;
+        try {
+            clazz = Class.forName(classPath);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return clazz;
+    }
+    
+    /**
      * 获取类的方法
      * @param clazz 类
      * @param methodName 方法名

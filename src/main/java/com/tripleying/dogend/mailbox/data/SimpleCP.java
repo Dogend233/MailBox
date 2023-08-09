@@ -2,7 +2,9 @@ package com.tripleying.dogend.mailbox.data;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -163,10 +165,10 @@ public class SimpleCP {
      * @return boolean
      */
     public boolean isAvailable(Connection connection){
-        try {
-            if(null!=connection && !connection.isClosed()){
-                return true;
-            }
+        try (Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery("select 1")) {
+            rs.next();
+            return true;
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
