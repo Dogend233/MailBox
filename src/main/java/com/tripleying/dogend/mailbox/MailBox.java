@@ -45,6 +45,14 @@ public class MailBox extends JavaPlugin {
     @Override
     public void onEnable(){
         mailbox = this;
+        System.out.println(
+            "  _____   ____   _____ ______ _   _ _____  \n" +
+            " |  __ \\ / __ \\ / ____|  ____| \\ | |  __ \\ \n" +
+            " | |  | | |  | | |  __| |__  |  \\| | |  | |\n" +
+            " | |  | | |  | | | |_ |  __| | . ` | |  | |\n" +
+            " | |__| | |__| | |__| | |____| |\\  | |__| |\n" +
+            " |_____/ \\____/ \\_____|______|_| \\_|_____/ "
+        );
         // 为邮件附件注册序列化
         ConfigurationSerialization.registerClass(AttachCommand.class);
         ConfigurationSerialization.registerClass(AttachFile.class);

@@ -65,7 +65,9 @@ public class CommandBuilder {
     
     public static SelectData sqlPersonMailSelectCommand(){
         return new SelectData("mailbox_person_mail")
-                .addWhere("uuid");
+                .addWhere("uuid")
+                .orderBy("sendtime")
+                .desc(true);
     }
     
     public static InsertData sqlPersonMailInsertCommand(){
@@ -143,7 +145,9 @@ public class CommandBuilder {
     }
     
     public static SelectData sqlSystemMailSelectCommand(String type){
-        return new SelectData(getSystemMailTable(type));
+        return new SelectData(getSystemMailTable(type))
+                .orderBy("sendtime")
+                .desc(true);
     }
     
     public static InsertData sqlSystemMailInsertCommand(String type, Class<? extends SystemMail> clazz){
